@@ -1,0 +1,24 @@
+{
+  "components": {
+    "sdx_excelcopilotformula.app": {
+      "displayName": "sdx_excelcopilotformula"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 320,
+        "height": 450
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32",
+    "extension": "bundle.js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/index"
+  }
+}

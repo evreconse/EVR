@@ -1,0 +1,16 @@
+{
+    "components": {
+    },
+    "runtime": {
+    },
+    "assetsPath": ".",
+    "bundle": {
+        "fileName": "ONCanvasComponents",
+        "extension": "js"
+    },
+    "packager": { 
+        "host": "localhost:8081",
+        "fileName": "src/oncanvascomponents"
+    }
+}
+  

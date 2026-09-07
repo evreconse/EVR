@@ -1,0 +1,649 @@
+{
+  "control_signals": [
+    {
+      "symbol": "WLD-USDT",
+      "timestamp_ms": 1786375800000,
+      "open": 0.346,
+      "high": 0.3463,
+      "low": 0.3371,
+      "close": 0.3419,
+      "volume": 1196852.452,
+      "volume_ratio": 4.272503571300187,
+      "body_percent": 1.1849710982658939,
+      "range_percent": 2.6589595375722506,
+      "lower_wick_body_ratio": 1.1707317073170682,
+      "lower_wick_range_ratio": 0.5217391304347803,
+      "open_to_low_percent": -2.5722543352601055,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 1.0236911377595799,
+        "max_down_pct": -2.7493419128400016,
+        "time_to_1pct_candles": 2,
+        "time_to_2pct_candles": null,
+        "time_to_3pct_candles": null,
+        "max_adverse_move_pct": 2.7493419128400016
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 0.9836065573770418,
+          "20_candles": 0.9863013698630076,
+          "50_candles": 0.7728937728937714
+        },
+        "previous_movement": {
+          "1_candles": 0.6399069226294298,
+          "2_candles": 1.2287887653598542,
+          "3_candles": 0.8452346254736107,
+          "5_candles": -0.028893383415210774,
+          "10_candles": 1.974653698791625
+        },
+        "nearest_support": {
+          "price": 0.3369,
+          "candles_away": 12,
+          "distance_pct": 2.7010982487384974
+        },
+        "consecutive_red_candles": 0,
+        "volume_analysis": {
+          "avg_volume_5": 666371.918,
+          "avg_volume_10": 543317.8651111111,
+          "avg_volume_20": 472113.36347368424,
+          "current_volume": 280129.07
+        },
+        "atr_percent": 1.0053674649050377,
+        "at_local_minimum": false
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 0.6434630008774436,
+        "max_adverse_before_2pct": 2.7493419128400016,
+        "max_adverse_before_3pct": 2.7493419128400016,
+        "max_adverse_overall": 2.7493419128400016,
+        "time_to_1pct": 2,
+        "time_to_2pct": null,
+        "time_to_3pct": null,
+        "hit_sl_3pct": false,
+        "candles_before_sl": null
+      },
+      "sl_risk_category": "HIGH_RISK"
+    },
+    {
+      "symbol": "SIREN-USDT",
+      "timestamp_ms": 1786390200000,
+      "open": 0.03366,
+      "high": 0.03371,
+      "low": 0.03279,
+      "close": 0.03333,
+      "volume": 788722.3,
+      "volume_ratio": 1.1536647676909277,
+      "body_percent": 0.9803921568627565,
+      "range_percent": 2.733214497920372,
+      "lower_wick_body_ratio": 1.6363636363636134,
+      "lower_wick_range_ratio": 0.5869565217391309,
+      "open_to_low_percent": -2.584670231729063,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 0.9900990099010019,
+        "max_down_pct": -3.2703270327032725,
+        "time_to_1pct_candles": null,
+        "time_to_2pct_candles": null,
+        "time_to_3pct_candles": null,
+        "max_adverse_move_pct": 3.2703270327032725
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 0.20000000000000556,
+          "20_candles": 0.05714285714285873,
+          "50_candles": 0.3139293139293147
+        },
+        "previous_movement": {
+          "1_candles": -0.26666666666666605,
+          "2_candles": 0.1189767995241086,
+          "3_candles": 0.08920606601249553,
+          "5_candles": 0.0,
+          "10_candles": -1.4348462664714419
+        },
+        "nearest_support": {
+          "price": 0.03319,
+          "candles_away": 7,
+          "distance_pct": 1.4160891834890184
+        },
+        "consecutive_red_candles": 1,
+        "volume_analysis": {
+          "avg_volume_5": 716138.55,
+          "avg_volume_10": 763720.0,
+          "avg_volume_20": 795368.9578947368,
+          "current_volume": 683666.8
+        },
+        "atr_percent": 2.043544690603517,
+        "at_local_minimum": false
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 3.2703270327032725,
+        "max_adverse_before_2pct": 3.2703270327032725,
+        "max_adverse_before_3pct": 3.2703270327032725,
+        "max_adverse_overall": 3.2703270327032725,
+        "time_to_1pct": null,
+        "time_to_2pct": null,
+        "time_to_3pct": null,
+        "hit_sl_3pct": true,
+        "candles_before_sl": 15
+      },
+      "sl_risk_category": "SL_HIT"
+    },
+    {
+      "symbol": "HOME-USDT",
+      "timestamp_ms": 1786385700000,
+      "open": 0.010439,
+      "high": 0.010525,
+      "low": 0.010164,
+      "close": 0.010343,
+      "volume": 12582003.9,
+      "volume_ratio": 1.256248682047571,
+      "body_percent": 0.9196283168885966,
+      "range_percent": 3.4581856499664734,
+      "lower_wick_body_ratio": 1.8645833333333253,
+      "lower_wick_range_ratio": 0.49584487534626104,
+      "open_to_low_percent": -2.6343519494204513,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 0.7154597312191764,
+        "max_down_pct": -9.755390118921005,
+        "time_to_1pct_candles": null,
+        "time_to_2pct_candles": null,
+        "time_to_3pct_candles": null,
+        "max_adverse_move_pct": 9.755390118921005
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 0.0,
+          "20_candles": 0.3694522191123553,
+          "50_candles": 0.3863813229571986
+        },
+        "previous_movement": {
+          "1_candles": -1.1744648607690766,
+          "2_candles": -1.6124469589816055,
+          "3_candles": -2.9756369722893727,
+          "5_candles": -10.036213140196585,
+          "10_candles": -9.724865893753245
+        },
+        "nearest_support": {
+          "price": 0.009471,
+          "candles_away": 20,
+          "distance_pct": 10.16788089958822
+        },
+        "consecutive_red_candles": 7,
+        "volume_analysis": {
+          "avg_volume_5": 17845646.2,
+          "avg_volume_10": 18876007.555555556,
+          "avg_volume_20": 14375370.157894736,
+          "current_volume": 10015536.0
+        },
+        "atr_percent": 5.370492072619731,
+        "at_local_minimum": false
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 9.755390118921005,
+        "max_adverse_before_2pct": 9.755390118921005,
+        "max_adverse_before_3pct": 9.755390118921005,
+        "max_adverse_overall": 9.755390118921005,
+        "time_to_1pct": null,
+        "time_to_2pct": null,
+        "time_to_3pct": null,
+        "hit_sl_3pct": true,
+        "candles_before_sl": 5
+      },
+      "sl_risk_category": "SL_HIT"
+    },
+    {
+      "symbol": "ONE-USDT",
+      "timestamp_ms": 1786554000000,
+      "open": 0.000783,
+      "high": 0.000784,
+      "low": 0.000759,
+      "close": 0.000774,
+      "volume": 17846244.0,
+      "volume_ratio": 1.0542232298687377,
+      "body_percent": 1.1494252873563222,
+      "range_percent": 3.192848020434222,
+      "lower_wick_body_ratio": 1.6666666666666585,
+      "lower_wick_range_ratio": 0.5999999999999983,
+      "open_to_low_percent": -3.06513409961685,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 3.229974160206727,
+        "max_down_pct": -4.26356589147286,
+        "time_to_1pct_candles": 1,
+        "time_to_2pct_candles": 1,
+        "time_to_3pct_candles": 5,
+        "max_adverse_move_pct": 4.26356589147286
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 0.5076923076923074,
+          "20_candles": 0.5114503816793892,
+          "50_candles": 0.33838383838383834
+        },
+        "previous_movement": {
+          "1_candles": -0.7604562737642633,
+          "2_candles": -7.556080283353015,
+          "3_candles": 1.953124999999991,
+          "5_candles": 9.20502092050209,
+          "10_candles": 9.357541899441342
+        },
+        "nearest_support": {
+          "price": 0.000697,
+          "candles_away": 12,
+          "distance_pct": 12.338593974175025
+        },
+        "consecutive_red_candles": 2,
+        "volume_analysis": {
+          "avg_volume_5": 44159678.0,
+          "avg_volume_10": 32850922.333333332,
+          "avg_volume_20": 28507569.263157893,
+          "current_volume": 16928335.0
+        },
+        "atr_percent": 4.542966611932131,
+        "at_local_minimum": false
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 1.162790697674419,
+        "max_adverse_before_2pct": 1.162790697674419,
+        "max_adverse_before_3pct": 2.5839793281653676,
+        "max_adverse_overall": 4.26356589147286,
+        "time_to_1pct": 1,
+        "time_to_2pct": 1,
+        "time_to_3pct": 5,
+        "hit_sl_3pct": true,
+        "candles_before_sl": 12
+      },
+      "sl_risk_category": "SL_HIT"
+    },
+    {
+      "symbol": "1000BONK-USDT",
+      "timestamp_ms": 1786086000000,
+      "open": 0.002816,
+      "high": 0.00283,
+      "low": 0.002534,
+      "close": 0.002676,
+      "volume": 58417091.0,
+      "volume_ratio": 4.759967462429667,
+      "body_percent": 4.9715909090909065,
+      "range_percent": 10.511363636363646,
+      "lower_wick_body_ratio": 1.0142857142857162,
+      "lower_wick_range_ratio": 0.47972972972973,
+      "open_to_low_percent": -10.01420454545455,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 0.4484304932735373,
+        "max_down_pct": -7.660687593423016,
+        "time_to_1pct_candles": null,
+        "time_to_2pct_candles": null,
+        "time_to_3pct_candles": null,
+        "max_adverse_move_pct": 7.660687593423016
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 1.0,
+          "20_candles": 0.5100000000000013,
+          "50_candles": 0.5462962962962964
+        },
+        "previous_movement": {
+          "1_candles": 0.5353319057815937,
+          "2_candles": 0.8231925554760205,
+          "3_candles": 0.8592910848549999,
+          "5_candles": 1.8438177874186648,
+          "10_candles": 0.4278074866310109
+        },
+        "nearest_support": {
+          "price": 0.002766,
+          "candles_away": 6,
+          "distance_pct": 1.8438177874186648
+        },
+        "consecutive_red_candles": 0,
+        "volume_analysis": {
+          "avg_volume_5": 8729766.25,
+          "avg_volume_10": 8916488.666666666,
+          "avg_volume_20": 9502246.736842105,
+          "current_volume": 12272582.0
+        },
+        "atr_percent": 0.618692631472186,
+        "at_local_minimum": false
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 7.660687593423016,
+        "max_adverse_before_2pct": 7.660687593423016,
+        "max_adverse_before_3pct": 7.660687593423016,
+        "max_adverse_overall": 7.660687593423016,
+        "time_to_1pct": null,
+        "time_to_2pct": null,
+        "time_to_3pct": null,
+        "hit_sl_3pct": true,
+        "candles_before_sl": 2
+      },
+      "sl_risk_category": "SL_HIT"
+    },
+    {
+      "symbol": "GALA-USDT",
+      "timestamp_ms": 1786569300000,
+      "open": 0.001668,
+      "high": 0.001672,
+      "low": 0.001612,
+      "close": 0.001641,
+      "volume": 22049438.0,
+      "volume_ratio": 1.4427081414717058,
+      "body_percent": 1.6187050359712167,
+      "range_percent": 3.597122302158283,
+      "lower_wick_body_ratio": 1.0740740740740842,
+      "lower_wick_range_ratio": 0.4833333333333348,
+      "open_to_low_percent": -3.3573141486810587,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 0.731261425959772,
+        "max_down_pct": -0.7921998781230951,
+        "time_to_1pct_candles": null,
+        "time_to_2pct_candles": null,
+        "time_to_3pct_candles": null,
+        "max_adverse_move_pct": 0.7921998781230951
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 0.0,
+          "20_candles": 0.0,
+          "50_candles": 0.0
+        },
+        "previous_movement": {
+          "1_candles": -0.2390914524805796,
+          "2_candles": -0.4770423375074654,
+          "3_candles": -0.7138607971445613,
+          "5_candles": -0.179425837320585,
+          "10_candles": -1.3010053222945062
+        },
+        "nearest_support": {
+          "price": 0.001667,
+          "candles_away": 8,
+          "distance_pct": 0.1199760047990301
+        },
+        "consecutive_red_candles": 3,
+        "volume_analysis": {
+          "avg_volume_5": 26926114.0,
+          "avg_volume_10": 22579004.0,
+          "avg_volume_20": 18256333.89473684,
+          "current_volume": 15283367.0
+        },
+        "atr_percent": 0.4536506034408942,
+        "at_local_minimum": true
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 0.7921998781230951,
+        "max_adverse_before_2pct": 0.7921998781230951,
+        "max_adverse_before_3pct": 0.7921998781230951,
+        "max_adverse_overall": 0.7921998781230951,
+        "time_to_1pct": null,
+        "time_to_2pct": null,
+        "time_to_3pct": null,
+        "hit_sl_3pct": false,
+        "candles_before_sl": null
+      },
+      "sl_risk_category": "NO_REVERSAL"
+    },
+    {
+      "symbol": "PEOPLE-USDT",
+      "timestamp_ms": 1786338000000,
+      "open": 0.009132,
+      "high": 0.009144,
+      "low": 0.008895,
+      "close": 0.009009,
+      "volume": 3335013.0,
+      "volume_ratio": 0.9736900343578401,
+      "body_percent": 1.346911957950064,
+      "range_percent": 2.7266754270696367,
+      "lower_wick_body_ratio": 0.9268292682926802,
+      "lower_wick_range_ratio": 0.4578313253012043,
+      "open_to_low_percent": -2.595269382391583,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 1.4763014763014894,
+        "max_down_pct": -5.183705183705188,
+        "time_to_1pct_candles": 1,
+        "time_to_2pct_candles": null,
+        "time_to_3pct_candles": null,
+        "max_adverse_move_pct": 5.183705183705188
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 0.38775510204081404,
+          "20_candles": 0.6350364963503629,
+          "50_candles": 0.6075322101090181
+        },
+        "previous_movement": {
+          "1_candles": 0.18650575973669395,
+          "2_candles": 0.37370850736424827,
+          "3_candles": 1.0512338165320305,
+          "5_candles": -0.6635483520069649,
+          "10_candles": -0.6743528388079322
+        },
+        "nearest_support": {
+          "price": 0.008966,
+          "candles_away": 9,
+          "distance_pct": 1.8514387686816804
+        },
+        "consecutive_red_candles": 0,
+        "volume_analysis": {
+          "avg_volume_5": 3012298.25,
+          "avg_volume_10": 3332420.111111111,
+          "avg_volume_20": 3161878.4210526315,
+          "current_volume": 3425128.0
+        },
+        "atr_percent": 1.7575558475689836,
+        "at_local_minimum": false
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 0.044400044400031036,
+        "max_adverse_before_2pct": 5.183705183705188,
+        "max_adverse_before_3pct": 5.183705183705188,
+        "max_adverse_overall": 5.183705183705188,
+        "time_to_1pct": 1,
+        "time_to_2pct": null,
+        "time_to_3pct": null,
+        "hit_sl_3pct": true,
+        "candles_before_sl": 2
+      },
+      "sl_risk_category": "SL_HIT"
+    },
+    {
+      "symbol": "STG-USDT",
+      "timestamp_ms": 1786150800000,
+      "open": 0.1402,
+      "high": 0.1409,
+      "low": 0.1356,
+      "close": 0.1394,
+      "volume": 161545.0,
+      "volume_ratio": 1.4850206374157726,
+      "body_percent": 0.5706134094151178,
+      "range_percent": 3.780313837375178,
+      "lower_wick_body_ratio": 4.750000000000026,
+      "lower_wick_range_ratio": 0.7169811320754714,
+      "open_to_low_percent": -3.2810271041369425,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 1.8651362984218014,
+        "max_down_pct": -3.2998565279770395,
+        "time_to_1pct_candles": 12,
+        "time_to_2pct_candles": null,
+        "time_to_3pct_candles": null,
+        "max_adverse_move_pct": 3.2998565279770395
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 0.22222222222222138,
+          "20_candles": 0.1739130434782601,
+          "50_candles": 0.14705882352941188
+        },
+        "previous_movement": {
+          "1_candles": 0.5738880918220912,
+          "2_candles": -1.9580419580419561,
+          "3_candles": -1.267605633802814,
+          "5_candles": -1.9580419580419561,
+          "10_candles": -2.163293789253328
+        },
+        "nearest_support": {
+          "price": 0.1403,
+          "candles_away": 10,
+          "distance_pct": -0.07127583749110245
+        },
+        "consecutive_red_candles": 0,
+        "volume_analysis": {
+          "avg_volume_5": 107821.5,
+          "avg_volume_10": 99365.44444444444,
+          "avg_volume_20": 98231.94736842105,
+          "current_volume": 108783.0
+        },
+        "atr_percent": 1.2838801711840215,
+        "at_local_minimum": true
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 3.2998565279770395,
+        "max_adverse_before_2pct": 3.2998565279770395,
+        "max_adverse_before_3pct": 3.2998565279770395,
+        "max_adverse_overall": 3.2998565279770395,
+        "time_to_1pct": 12,
+        "time_to_2pct": null,
+        "time_to_3pct": null,
+        "hit_sl_3pct": true,
+        "candles_before_sl": 2
+      },
+      "sl_risk_category": "SL_HIT"
+    },
+    {
+      "symbol": "STORJ-USDT",
+      "timestamp_ms": 1786537800000,
+      "open": 0.0473,
+      "high": 0.04733,
+      "low": 0.04575,
+      "close": 0.04661,
+      "volume": 566390.0,
+      "volume_ratio": 1.1366103769703901,
+      "body_percent": 1.4587737843551862,
+      "range_percent": 3.3403805496828713,
+      "lower_wick_body_ratio": 1.2463768115941969,
+      "lower_wick_range_ratio": 0.5443037974683549,
+      "open_to_low_percent": -3.276955602537004,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 0.6436387041407459,
+        "max_down_pct": -4.913108774941001,
+        "time_to_1pct_candles": null,
+        "time_to_2pct_candles": null,
+        "time_to_3pct_candles": null,
+        "max_adverse_move_pct": 4.913108774941001
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 0.1564482029598319,
+          "20_candles": 0.0926157697121407,
+          "50_candles": 0.4418783679753658
+        },
+        "previous_movement": {
+          "1_candles": 1.5907136715391328,
+          "2_candles": -0.4633529907329359,
+          "3_candles": -1.9705455299730334,
+          "5_candles": -1.1297071129707088,
+          "10_candles": -5.043198714084786
+        },
+        "nearest_support": {
+          "price": 0.04151,
+          "candles_away": 35,
+          "distance_pct": 13.85208383522044
+        },
+        "consecutive_red_candles": 0,
+        "volume_analysis": {
+          "avg_volume_5": 670413.5,
+          "avg_volume_10": 827623.1111111111,
+          "avg_volume_20": 1054819.4736842106,
+          "current_volume": 498315.0
+        },
+        "atr_percent": 3.32355963968321,
+        "at_local_minimum": false
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 4.913108774941001,
+        "max_adverse_before_2pct": 4.913108774941001,
+        "max_adverse_before_3pct": 4.913108774941001,
+        "max_adverse_overall": 4.913108774941001,
+        "time_to_1pct": null,
+        "time_to_2pct": null,
+        "time_to_3pct": null,
+        "hit_sl_3pct": true,
+        "candles_before_sl": 6
+      },
+      "sl_risk_category": "SL_HIT"
+    },
+    {
+      "symbol": "SUSHI-USDT",
+      "timestamp_ms": 1786140900000,
+      "open": 0.1666,
+      "high": 0.1668,
+      "low": 0.1609,
+      "close": 0.1636,
+      "volume": 164497.0,
+      "volume_ratio": 1.1822239151370542,
+      "body_percent": 1.8007202881152478,
+      "range_percent": 3.54141656662666,
+      "lower_wick_body_ratio": 0.9000000000000018,
+      "lower_wick_range_ratio": 0.45762711864406785,
+      "open_to_low_percent": -3.4213685474189734,
+      "is_manual": false,
+      "post_signal": {
+        "max_up_pct": 1.5892420537897258,
+        "max_down_pct": -0.18337408312958112,
+        "time_to_1pct_candles": 6,
+        "time_to_2pct_candles": null,
+        "time_to_3pct_candles": null,
+        "max_adverse_move_pct": 1.2224938875305635
+      },
+      "pre_signal_context": {
+        "range_position": {
+          "10_candles": 0.2631578947368406,
+          "20_candles": 0.17857142857142716,
+          "50_candles": 0.5636363636363616
+        },
+        "previous_movement": {
+          "1_candles": 0.06002400960383493,
+          "2_candles": -0.05995203836931459,
+          "3_candles": -0.05995203836931459,
+          "5_candles": 0.24052916416114475,
+          "10_candles": -0.7738095238095376
+        },
+        "nearest_support": {
+          "price": 0.1662,
+          "candles_away": 6,
+          "distance_pct": 0.30084235860409175
+        },
+        "consecutive_red_candles": 0,
+        "volume_analysis": {
+          "avg_volume_5": 146985.25,
+          "avg_volume_10": 146661.33333333334,
+          "avg_volume_20": 147147.2105263158,
+          "current_volume": 139142.0
+        },
+        "atr_percent": 0.4199160167966432,
+        "at_local_minimum": true
+      },
+      "mae_detailed": {
+        "max_adverse_before_1pct": 0.7334963325183415,
+        "max_adverse_before_2pct": 1.2224938875305635,
+        "max_adverse_before_3pct": 1.2224938875305635,
+        "max_adverse_overall": 1.2224938875305635,
+        "time_to_1pct": 6,
+        "time_to_2pct": null,
+        "time_to_3pct": null,
+        "hit_sl_3pct": false,
+        "candles_before_sl": null
+      },
+      "sl_risk_category": "NO_REVERSAL"
+    }
+  ],
+  "classification": {
+    "HIGH_RISK": 1,
+    "SL_HIT": 7,
+    "NO_REVERSAL": 2
+  }
+}

@@ -1,0 +1,11 @@
+{
+    "1.0": [
+        "app.json",
+        "assets\\assets\\onedrive\\OneDriveIcon_dark.png",
+        "assets\\assets\\onedrive\\OneDriveIcon_light.png",
+        "index.win32.bundle",
+        "strings.resjson",
+        "StoreLogo.png",
+        "manifest.xml"
+    ]
+}

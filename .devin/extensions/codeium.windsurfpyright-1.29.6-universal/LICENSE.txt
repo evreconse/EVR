@@ -1,0 +1,18 @@
+Devin Pyright
+
+Copyright (c) 2024, Exafunction, Inc.
+All rights reserved.
+
+License
+------------------------------------------------------------------------------------------
+See https://codeium.com/terms-of-service-individual
+
+Third Party Content
+------------------------------------------------------------------------------------------
+See https://codeium.com/oss-licenses
+Original license found at LICENSE.pyright.txt.
+
+THIS SOFTWARE IS DISTRIBUTED "AS-IS" WITHOUT ANY WARRANTIES, CONDITIONS AND REPRESENTATIONS WHETHER
+EXPRESS OR IMPLIED, INCLUDING WITHOUTLIMITATION THE IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY,
+MERCHANTABLE QUALITY, FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, NON-INFRINGEMENT, PERFORMANCE AND
+THOSE ARISING BY STATUTE OR FROM CUSTOM OR USAGE OF TRADE OR COURSE OF DEALING.

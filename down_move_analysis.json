@@ -1,0 +1,315 @@
+{
+  "total_signals": 31,
+  "results": [
+    {
+      "symbol": "NEAR-USDT",
+      "open": 1.919,
+      "high": 1.923,
+      "low": 1.817,
+      "close": 1.887,
+      "open_to_low_percent": -5.315268368942163,
+      "prev_close_to_low_percent": -5.2659019812304475,
+      "timestamp_ms": 1780675200000
+    },
+    {
+      "symbol": "ONDO-USDT",
+      "open": 0.3944,
+      "high": 0.3968,
+      "low": 0.3776,
+      "close": 0.393,
+      "open_to_low_percent": -4.259634888438129,
+      "prev_close_to_low_percent": -4.308160162189563,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "TAO-USDT",
+      "open": 217.35,
+      "high": 217.74,
+      "low": 205.14,
+      "close": 212.9,
+      "open_to_low_percent": -5.617667356797796,
+      "prev_close_to_low_percent": -5.58726067746687,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "ENA-USDT",
+      "open": 0.1077,
+      "high": 0.1083,
+      "low": 0.1001,
+      "close": 0.1046,
+      "open_to_low_percent": -7.056638811513471,
+      "prev_close_to_low_percent": -7.2289156626506035,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "ENA-USDT",
+      "open": 0.0855,
+      "high": 0.0859,
+      "low": 0.0825,
+      "close": 0.0847,
+      "open_to_low_percent": -3.508771929824564,
+      "prev_close_to_low_percent": -3.508771929824564,
+      "timestamp_ms": 1780640100000
+    },
+    {
+      "symbol": "WLFI-USDT",
+      "open": 0.0605,
+      "high": 0.0606,
+      "low": 0.0585,
+      "close": 0.0598,
+      "open_to_low_percent": -3.305785123966934,
+      "prev_close_to_low_percent": -3.305785123966934,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "DOT-USDT",
+      "open": 1.055,
+      "high": 1.061,
+      "low": 1.007,
+      "close": 1.042,
+      "open_to_low_percent": -4.54976303317536,
+      "prev_close_to_low_percent": -4.730368968779569,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "UNI-USDT",
+      "open": 2.664,
+      "high": 2.671,
+      "low": 2.568,
+      "close": 2.642,
+      "open_to_low_percent": -3.6036036036036063,
+      "prev_close_to_low_percent": -3.6036036036036063,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "ATOM-USDT",
+      "open": 1.8,
+      "high": 1.806,
+      "low": 1.734,
+      "close": 1.782,
+      "open_to_low_percent": -3.66666666666667,
+      "prev_close_to_low_percent": -3.7735849056603805,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "INJ-USDT",
+      "open": 6.243,
+      "high": 6.245,
+      "low": 5.957,
+      "close": 6.153,
+      "open_to_low_percent": -4.581130866570566,
+      "prev_close_to_low_percent": -4.535256410256416,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "XPL-USDT",
+      "open": 0.0854,
+      "high": 0.0856,
+      "low": 0.08,
+      "close": 0.084,
+      "open_to_low_percent": -6.323185011709604,
+      "prev_close_to_low_percent": -6.323185011709604,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "FARTCOIN-USDT",
+      "open": 0.1351,
+      "high": 0.1356,
+      "low": 0.1244,
+      "close": 0.1321,
+      "open_to_low_percent": -7.920059215396004,
+      "prev_close_to_low_percent": -7.920059215396004,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "FF-USDT",
+      "open": 0.09164,
+      "high": 0.0918,
+      "low": 0.09013,
+      "close": 0.09112,
+      "open_to_low_percent": -1.6477520733304207,
+      "prev_close_to_low_percent": -1.6799389113123155,
+      "timestamp_ms": 1780673400000
+    },
+    {
+      "symbol": "ICP-USDT",
+      "open": 2.863,
+      "high": 2.87,
+      "low": 2.695,
+      "close": 2.81,
+      "open_to_low_percent": -5.867970660146705,
+      "prev_close_to_low_percent": -5.802167074449505,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "SIREN-USDT",
+      "open": 0.59293,
+      "high": 0.59387,
+      "low": 0.53504,
+      "close": 0.57159,
+      "open_to_low_percent": -9.76337847638001,
+      "prev_close_to_low_percent": -9.76337847638001,
+      "timestamp_ms": 1780407000000
+    },
+    {
+      "symbol": "SIREN-USDT",
+      "open": 0.57693,
+      "high": 0.57803,
+      "low": 0.55075,
+      "close": 0.57413,
+      "open_to_low_percent": -4.5378122129201275,
+      "prev_close_to_low_percent": -4.5378122129201275,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "SIREN-USDT",
+      "open": 1.14409,
+      "high": 1.16967,
+      "low": 0.94101,
+      "close": 1.08997,
+      "open_to_low_percent": -17.750351807987137,
+      "prev_close_to_low_percent": -17.850876044312905,
+      "timestamp_ms": 1780857000000
+    },
+    {
+      "symbol": "ARB-USDT",
+      "open": 0.0891,
+      "high": 0.0892,
+      "low": 0.0851,
+      "close": 0.0877,
+      "open_to_low_percent": -4.4893378226711596,
+      "prev_close_to_low_percent": -4.4893378226711596,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "APT-USDT",
+      "open": 0.7711,
+      "high": 0.7729,
+      "low": 0.7312,
+      "close": 0.7577,
+      "open_to_low_percent": -5.1744261444689466,
+      "prev_close_to_low_percent": -5.07594443723225,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "ZRO-USDT",
+      "open": 1.2179,
+      "high": 1.2201,
+      "low": 1.158,
+      "close": 1.1923,
+      "open_to_low_percent": -4.91830199523771,
+      "prev_close_to_low_percent": -4.957321076822063,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "KITE-USDT",
+      "open": 0.1925,
+      "high": 0.19259,
+      "low": 0.18703,
+      "close": 0.19048,
+      "open_to_low_percent": -2.8415584415584427,
+      "prev_close_to_low_percent": -2.886961939872272,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "CRV-USDT",
+      "open": 0.1965,
+      "high": 0.1968,
+      "low": 0.1871,
+      "close": 0.193,
+      "open_to_low_percent": -4.783715012722656,
+      "prev_close_to_low_percent": -4.686704024452376,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "WIF-USDT",
+      "open": 0.1749,
+      "high": 0.175,
+      "low": 0.1654,
+      "close": 0.1709,
+      "open_to_low_percent": -5.431675242996003,
+      "prev_close_to_low_percent": -5.431675242996003,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "PENGU-USDT",
+      "open": 0.006772,
+      "high": 0.00678,
+      "low": 0.006415,
+      "close": 0.006703,
+      "open_to_low_percent": -5.271707028942713,
+      "prev_close_to_low_percent": -5.271707028942713,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "VIRTUAL-USDT",
+      "open": 0.6841,
+      "high": 0.6851,
+      "low": 0.6421,
+      "close": 0.6626,
+      "open_to_low_percent": -6.139453296301715,
+      "prev_close_to_low_percent": -6.139453296301715,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "SEI-USDT",
+      "open": 0.0559,
+      "high": 0.056,
+      "low": 0.054,
+      "close": 0.0553,
+      "open_to_low_percent": -3.398926654740606,
+      "prev_close_to_low_percent": -3.398926654740606,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "HOME-USDT",
+      "open": 0.048429,
+      "high": 0.048554,
+      "low": 0.037952,
+      "close": 0.043849,
+      "open_to_low_percent": -21.63373185488034,
+      "prev_close_to_low_percent": -21.559225347746114,
+      "timestamp_ms": 1780595100000
+    },
+    {
+      "symbol": "RENDER-USDT",
+      "open": 2.044,
+      "high": 2.047,
+      "low": 1.956,
+      "close": 2.027,
+      "open_to_low_percent": -4.305283757338556,
+      "prev_close_to_low_percent": -4.305283757338556,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "PENDLE-USDT",
+      "open": 1.2622,
+      "high": 1.2638,
+      "low": 1.2002,
+      "close": 1.2419,
+      "open_to_low_percent": -4.912058310885759,
+      "prev_close_to_low_percent": -4.851752021563353,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "POL-USDT",
+      "open": 0.09011,
+      "high": 0.09024,
+      "low": 0.08751,
+      "close": 0.08906,
+      "open_to_low_percent": -2.8853623349239723,
+      "prev_close_to_low_percent": -2.8745837957824585,
+      "timestamp_ms": 1780538400000
+    },
+    {
+      "symbol": "OP-USDT",
+      "open": 0.1142,
+      "high": 0.1145,
+      "low": 0.1072,
+      "close": 0.1113,
+      "open_to_low_percent": -6.129597197898418,
+      "prev_close_to_low_percent": -6.047326906222603,
+      "timestamp_ms": 1780538400000
+    }
+  ]
+}

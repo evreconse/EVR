@@ -1,0 +1,25 @@
+{
+  "components": {
+    "progressbar.copilot.onenote": {
+      "displayName": "OneNoteProgressBar"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 500,
+        "height": 100
+      }
+    }
+  },
+  "assetsPath": ".",
+  "bundle": {
+    "fileName": "OneNoteCopilot",
+    "extension": "js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/OneNoteCopilot"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "total_signals": 30,
+  "timeframes": {
+    "15m": {
+      "support_levels": {
+        "at_local_min": 0,
+        "total": 30,
+        "broke_swing_low": 0,
+        "closed_above_swing_low": 0,
+        "swing_low_break_pcts": [],
+        "at_local_min_pct": 0.0,
+        "broke_swing_low_pct": 0.0,
+        "closed_above_swing_low_pct": 0.0
+      },
+      "trend_structure": {
+        "total": 30,
+        "descending_highs_pct": 0.0,
+        "descending_lows_pct": 0.0
+      }
+    },
+    "1h": {
+      "support_levels": {
+        "at_local_min": 0,
+        "total": 30,
+        "broke_swing_low": 0,
+        "closed_above_swing_low": 0,
+        "swing_low_break_pcts": [],
+        "at_local_min_pct": 0.0,
+        "broke_swing_low_pct": 0.0,
+        "closed_above_swing_low_pct": 0.0
+      },
+      "trend_structure": {
+        "total": 30,
+        "descending_highs_pct": 0.0,
+        "descending_lows_pct": 0.0
+      }
+    },
+    "4h": {
+      "support_levels": {
+        "at_local_min": 0,
+        "total": 30,
+        "broke_swing_low": 0,
+        "closed_above_swing_low": 0,
+        "swing_low_break_pcts": [],
+        "at_local_min_pct": 0.0,
+        "broke_swing_low_pct": 0.0,
+        "closed_above_swing_low_pct": 0.0
+      },
+      "trend_structure": {
+        "total": 30,
+        "descending_highs_pct": 0.0,
+        "descending_lows_pct": 0.0
+      }
+    },
+    "1d": {
+      "support_levels": {
+        "at_local_min": 0,
+        "total": 30,
+        "broke_swing_low": 0,
+        "closed_above_swing_low": 0,
+        "swing_low_break_pcts": [],
+        "at_local_min_pct": 0.0,
+        "broke_swing_low_pct": 0.0,
+        "closed_above_swing_low_pct": 0.0
+      },
+      "trend_structure": {
+        "total": 30,
+        "descending_highs_pct": 0.0,
+        "descending_lows_pct": 0.0
+      }
+    }
+  }
+}

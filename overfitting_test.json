@@ -1,0 +1,58 @@
+{
+  "sample_a_symbols": [
+    "PEOPLE-USDT",
+    "JTO-USDT",
+    "1000BONK-USDT",
+    "SUSHI-USDT",
+    "HOME-USDT",
+    "WLD-USDT"
+  ],
+  "sample_b_symbols": [
+    "SIREN-USDT",
+    "STG-USDT",
+    "ONE-USDT",
+    "KITE-USDT",
+    "GALA-USDT",
+    "STORJ-USDT"
+  ],
+  "pm10_0": {
+    "sample_a": {
+      "total": 8,
+      "fast_pct": 12.5,
+      "sl_hit_pct": 50.0,
+      "tp_before_sl_pct": 12.5
+    },
+    "sample_b": {
+      "total": 6,
+      "fast_pct": 83.33333333333334,
+      "sl_hit_pct": 16.666666666666664,
+      "tp_before_sl_pct": 83.33333333333334
+    },
+    "all": {
+      "total": 14,
+      "fast_pct": 42.857142857142854,
+      "sl_hit_pct": 35.714285714285715,
+      "tp_before_sl_pct": 42.857142857142854
+    }
+  },
+  "pm10_05": {
+    "sample_a": {
+      "total": 5,
+      "fast_pct": 20.0,
+      "sl_hit_pct": 20.0,
+      "tp_before_sl_pct": 20.0
+    },
+    "sample_b": {
+      "total": 6,
+      "fast_pct": 83.33333333333334,
+      "sl_hit_pct": 16.666666666666664,
+      "tp_before_sl_pct": 83.33333333333334
+    },
+    "all": {
+      "total": 11,
+      "fast_pct": 54.54545454545454,
+      "sl_hit_pct": 18.181818181818183,
+      "tp_before_sl_pct": 54.54545454545454
+    }
+  }
+}

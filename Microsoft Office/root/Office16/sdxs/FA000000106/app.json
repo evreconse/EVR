@@ -1,0 +1,21 @@
+{
+  "components": {
+    "sdx_excel_optimizeworkbook.app": {
+      "displayName": "sdx_excel_optimizeworkbook"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "taskpane",
+        "msotbid": 3130
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32"
+  },
+  "packager": {
+    "fileName": "src/index"
+  }
+}

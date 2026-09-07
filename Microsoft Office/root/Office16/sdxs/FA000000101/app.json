@@ -1,0 +1,22 @@
+{
+  "components": {
+    "sdx_unified_consent_ui.app": {
+      "displayName": "sdx_unified_consent_ui"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 456,
+        "height": 740
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "unified_consent_ui.win32"
+  },
+  "packager": {
+    "fileName": "src/unified_consent_ui"
+  }
+}

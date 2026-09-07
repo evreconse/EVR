@@ -1,0 +1,100 @@
+# EVRECONSE Trading Bot Configuration
+# All values can be overridden via environment variables with EVRECONSE_ prefix
+# Example: EVRECONSE_EXCHANGE__API_KEY=your_key
+
+system:
+  timezone: "UTC"
+  log_level: "INFO"
+  log_path: "./logs/evreconse.log"
+  config_version: "1.0"
+  max_concurrent_events: 10
+  execution_timeout_seconds: 30
+  enable_metrics: true
+  enable_persistence: true
+  enable_recovery: true
+
+storage:
+  data_path: "./data"
+  events_retention_days: 90
+  events_buffer_size: 100
+  max_file_size_mb: 100
+  rotation_interval_hours: 24
+  compression_enabled: true
+
+exchange:
+  name: "bingx"
+  testnet: false
+  symbols: []  # Will be loaded from BingX API
+  symbols_min: 0
+  symbols_max: 250
+  timeframe: "15m"
+  api_key: ""  # Set via EVRECONSE_EXCHANGE_API_KEY
+  api_secret: ""  # Set via EVRECONSE_EXCHANGE_API_SECRET
+  recv_window: 5000
+  rate_limit_requests: 10
+  rate_limit_window_seconds: 1
+  websocket_ping_interval: 20
+  websocket_ping_timeout: 10
+  max_reconnect_attempts: 0  # 0 = unlimited
+  reconnect_base_delay: 1
+  reconnect_max_delay: 60
+  connection_timeout: 30
+  connection_heartbeat_interval: 30
+
+strategy:
+  default_timeframe: "15m"
+  max_concurrent_strategies: 5
+  evaluation_timeout_seconds: 5
+  cache_enabled: true
+  cache_ttl_seconds: 60
+  active:
+    - "LW-001"
+  strategies:
+    LW-001:
+      enabled: true
+      timeframe: "15m"
+      risk:
+        take_profit_percent: 3.0
+        stop_loss_percent: -3.0
+      notification:
+        channels: ["telegram"]
+
+scoring:
+  default_threshold: 80.0
+  minimum_signal_score: 80.0
+  maximum_score: 100
+  minimum_score: 0
+  penalty_enabled: true
+  parameters_active:
+    - "lower_wick_quality"
+    - "candle_confirmation"
+  lower_wick_quality:
+    enabled: true
+    max_score: 70
+  candle_confirmation:
+    enabled: true
+    max_score: 30
+
+notification:
+  channels: ["telegram"]
+  telegram:
+    enabled: true
+    bot_token: ""  # Set via EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN
+    chat_id: ""  # Set via EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID
+  queue_max_size: 1000
+  queue_timeout_seconds: 5
+  rate_limit_requests: 30
+  rate_limit_window_seconds: 1
+  retry_max_attempts: 3
+  retry_base_delay: 1.0
+  retry_max_delay: 60.0
+  retry_exponential_base: 2.0
+  default_priority: "normal"
+  delivery_timeout_seconds: 30
+
+risk:
+  take_profit_percent: 3.0
+  stop_loss_percent: -3.0
+  monitoring:
+    max_duration_hours: 24
+    expire_after_hours: 48

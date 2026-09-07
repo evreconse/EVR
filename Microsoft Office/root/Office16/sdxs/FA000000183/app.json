@@ -1,0 +1,23 @@
+{
+  "components": {
+    "keyboardshortcutsdialog.app": {
+      "displayName": "Keyboard Shortcuts"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog"
+      }
+    }
+  },
+  "assetsPath": "assets",
+  "bundle": {
+    "fileName": "keyboardshortcutsdialog",
+    "extension": "js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/KeyboardShortcutsDialog"
+  }
+}

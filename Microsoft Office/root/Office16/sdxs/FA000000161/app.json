@@ -1,0 +1,22 @@
+{
+  "components": {
+    "sdx_excel_formulabyexample_cardui.app": {
+      "displayName": "sdx_excel_formulabyexample_cardui"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 450,
+        "height": 400
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32"
+  },
+  "packager": {
+    "fileName": "src/index"
+  }
+}

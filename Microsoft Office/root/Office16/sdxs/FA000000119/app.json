@@ -1,0 +1,22 @@
+{
+  "components": {
+    "sdx_excel_externallinkschangesourcedialog.app": {
+      "displayName": "sdx_excel_externallinkschangesourcedialog"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 816,
+        "height": 497
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32"
+  },
+  "packager": {
+    "fileName": "src/index"
+  }
+}

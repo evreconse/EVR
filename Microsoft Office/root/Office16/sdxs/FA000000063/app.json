@@ -1,0 +1,21 @@
+{
+  "components": {
+    "LinkedEntityRefresh": {
+      "displayName": "LinkedEntityRefresh"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "taskpane",
+        "msotbid": 3125
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32"
+  },
+  "packager": {
+    "fileName": "src/index"
+  }
+}

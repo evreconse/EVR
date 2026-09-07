@@ -1,0 +1,12 @@
+{
+    "1.0": [
+        "app.json",
+        "index.win32.bundle",
+        "_office_iss_excel_optimizeworkbook\\strings.resjson",
+        "_office_iss_excel_shared_ux\\BusinessBar\\strings.resjson",
+        "_office_iss_excel_shared_ux\\Filter\\strings.resjson",
+        "_office_iss_excel_shared_ux\\UserActivityUX\\strings.resjson",
+        "WorkbookPerformance-80.png",
+        "manifest.xml"
+    ]
+}

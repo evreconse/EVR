@@ -1,0 +1,10 @@
+{
+    "1.0": [
+        "app.json",
+        "index.win32.bundle",
+        "index.win32.bundle.tpn.txt",
+        "strings.resjson",
+        "StoreLogo.png",
+        "manifest.xml"
+    ]
+}

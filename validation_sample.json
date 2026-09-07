@@ -1,0 +1,2209 @@
+{
+  "candidates": [
+    {
+      "symbol": "SIREN-USDT",
+      "event_time": "10.08.2026 14:15 UTC",
+      "event_time_msk": "10.08.2026 14:15 MSK",
+      "timestamp_ms": 1786371300000,
+      "open": 0.03603,
+      "high": 0.03621,
+      "low": 0.03515,
+      "close": 0.03554,
+      "volume": 857740.9,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.795918367346946,
+      "lower_wick_range_ratio": 0.3679245283018887,
+      "body_percent": 1.3787281935846858,
+      "range_percent": 2.982554867754638,
+      "open_to_low_percent": -2.442409103524837,
+      "formula_details": {
+        "body_percent": 1.3787281935846858,
+        "range_percent": 2.982554867754638,
+        "lower_wick_body_ratio": 0.795918367346946,
+        "lower_wick_range_ratio": 0.3679245283018887,
+        "open_to_low_percent": -2.442409103524837,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "SIREN-USDT",
+      "event_time": "10.08.2026 14:30 UTC",
+      "event_time_msk": "10.08.2026 14:30 MSK",
+      "timestamp_ms": 1786372200000,
+      "open": 0.03547,
+      "high": 0.03563,
+      "low": 0.03396,
+      "close": 0.03485,
+      "volume": 838173.6,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.4354838709677393,
+      "lower_wick_range_ratio": 0.5329341317365266,
+      "body_percent": 1.7790530846485006,
+      "range_percent": 4.791965566714505,
+      "open_to_low_percent": -4.257118691852281,
+      "formula_details": {
+        "body_percent": 1.7790530846485006,
+        "range_percent": 4.791965566714505,
+        "lower_wick_body_ratio": 1.4354838709677393,
+        "lower_wick_range_ratio": 0.5329341317365266,
+        "open_to_low_percent": -4.257118691852281,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "SIREN-USDT",
+      "event_time": "10.08.2026 15:15 UTC",
+      "event_time_msk": "10.08.2026 15:15 MSK",
+      "timestamp_ms": 1786374900000,
+      "open": 0.03696,
+      "high": 0.03704,
+      "low": 0.03601,
+      "close": 0.0367,
+      "volume": 1009296.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 2.653846153846203,
+      "lower_wick_range_ratio": 0.6699029126213647,
+      "body_percent": 0.7084468664850037,
+      "range_percent": 2.806539509536774,
+      "open_to_low_percent": -2.570346320346319,
+      "formula_details": {
+        "body_percent": 0.7084468664850037,
+        "range_percent": 2.806539509536774,
+        "lower_wick_body_ratio": 2.653846153846203,
+        "lower_wick_range_ratio": 0.6699029126213647,
+        "open_to_low_percent": -2.570346320346319,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "HOME-USDT",
+      "event_time": "10.08.2026 15:45 UTC",
+      "event_time_msk": "10.08.2026 15:45 MSK",
+      "timestamp_ms": 1786376700000,
+      "open": 0.011548,
+      "high": 0.011892,
+      "low": 0.011331,
+      "close": 0.011847,
+      "volume": 18381662.6,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.7257525083611972,
+      "lower_wick_range_ratio": 0.38680926916220826,
+      "body_percent": 2.52384569933317,
+      "range_percent": 4.735376044568237,
+      "open_to_low_percent": -1.879113266366457,
+      "formula_details": {
+        "body_percent": 2.52384569933317,
+        "range_percent": 4.735376044568237,
+        "lower_wick_body_ratio": 0.7257525083611972,
+        "lower_wick_range_ratio": 0.38680926916220826,
+        "open_to_low_percent": -1.879113266366457,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "HOME-USDT",
+      "event_time": "10.08.2026 16:00 UTC",
+      "event_time_msk": "10.08.2026 16:00 MSK",
+      "timestamp_ms": 1786377600000,
+      "open": 0.01185,
+      "high": 0.012054,
+      "low": 0.011379,
+      "close": 0.011587,
+      "volume": 25145017.9,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.7908745247148303,
+      "lower_wick_range_ratio": 0.30814814814814784,
+      "body_percent": 2.2697851039958516,
+      "range_percent": 5.825494088202298,
+      "open_to_low_percent": -3.9746835443037907,
+      "formula_details": {
+        "body_percent": 2.2697851039958516,
+        "range_percent": 5.825494088202298,
+        "lower_wick_body_ratio": 0.7908745247148303,
+        "lower_wick_range_ratio": 0.30814814814814784,
+        "open_to_low_percent": -3.9746835443037907,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "HOME-USDT",
+      "event_time": "10.08.2026 16:15 UTC",
+      "event_time_msk": "10.08.2026 16:15 MSK",
+      "timestamp_ms": 1786378500000,
+      "open": 0.011586,
+      "high": 0.012097,
+      "low": 0.01112,
+      "close": 0.012011,
+      "volume": 23852396.4,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.0964705882352968,
+      "lower_wick_range_ratio": 0.4769703172978515,
+      "body_percent": 3.538423112147199,
+      "range_percent": 8.134210307218387,
+      "open_to_low_percent": -4.0220956326601165,
+      "formula_details": {
+        "body_percent": 3.538423112147199,
+        "range_percent": 8.134210307218387,
+        "lower_wick_body_ratio": 1.0964705882352968,
+        "lower_wick_range_ratio": 0.4769703172978515,
+        "open_to_low_percent": -4.0220956326601165,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "1000BONK-USDT",
+      "event_time": "11.08.2026 15:30 UTC",
+      "event_time_msk": "11.08.2026 15:30 MSK",
+      "timestamp_ms": 1786462200000,
+      "open": 0.002312,
+      "high": 0.002312,
+      "low": 0.002276,
+      "close": 0.002294,
+      "volume": 11533748.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.0000000000000242,
+      "lower_wick_range_ratio": 0.500000000000006,
+      "body_percent": 0.7846556233652914,
+      "range_percent": 1.5693112467306018,
+      "open_to_low_percent": -1.5570934256055369,
+      "formula_details": {
+        "body_percent": 0.7846556233652914,
+        "range_percent": 1.5693112467306018,
+        "lower_wick_body_ratio": 1.0000000000000242,
+        "lower_wick_range_ratio": 0.500000000000006,
+        "open_to_low_percent": -1.5570934256055369,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "1000BONK-USDT",
+      "event_time": "12.08.2026 12:15 UTC",
+      "event_time_msk": "12.08.2026 12:15 MSK",
+      "timestamp_ms": 1786536900000,
+      "open": 0.002254,
+      "high": 0.002259,
+      "low": 0.002206,
+      "close": 0.002242,
+      "volume": 550556175.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 3.000000000000036,
+      "lower_wick_range_ratio": 0.6792452830188669,
+      "body_percent": 0.5352363960749267,
+      "range_percent": 2.3639607493309587,
+      "open_to_low_percent": -2.129547471162372,
+      "formula_details": {
+        "body_percent": 0.5352363960749267,
+        "range_percent": 2.3639607493309587,
+        "lower_wick_body_ratio": 3.000000000000036,
+        "lower_wick_range_ratio": 0.6792452830188669,
+        "open_to_low_percent": -2.129547471162372,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "WIF-USDT",
+      "event_time": "12.08.2026 21:30 UTC",
+      "event_time_msk": "12.08.2026 21:30 MSK",
+      "timestamp_ms": 1786570200000,
+      "open": 0.1385,
+      "high": 0.1385,
+      "low": 0.1334,
+      "close": 0.1353,
+      "volume": 1582739.54,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.5937500000000024,
+      "lower_wick_range_ratio": 0.3725490196078441,
+      "body_percent": 2.365114560236518,
+      "range_percent": 3.769401330376956,
+      "open_to_low_percent": -3.6823104693140944,
+      "formula_details": {
+        "body_percent": 2.365114560236518,
+        "range_percent": 3.769401330376956,
+        "lower_wick_body_ratio": 0.5937500000000024,
+        "lower_wick_range_ratio": 0.3725490196078441,
+        "open_to_low_percent": -3.6823104693140944,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "WIF-USDT",
+      "event_time": "12.08.2026 21:45 UTC",
+      "event_time_msk": "12.08.2026 21:45 MSK",
+      "timestamp_ms": 1786571100000,
+      "open": 0.136,
+      "high": 0.1366,
+      "low": 0.1339,
+      "close": 0.1348,
+      "volume": 386151.45,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.7500000000000058,
+      "lower_wick_range_ratio": 0.33333333333333676,
+      "body_percent": 0.890207715133536,
+      "range_percent": 2.002967359050451,
+      "open_to_low_percent": -1.544117647058837,
+      "formula_details": {
+        "body_percent": 0.890207715133536,
+        "range_percent": 2.002967359050451,
+        "lower_wick_body_ratio": 0.7500000000000058,
+        "lower_wick_range_ratio": 0.33333333333333676,
+        "open_to_low_percent": -1.544117647058837,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "BOME-USDT",
+      "event_time": "10.08.2026 13:45 UTC",
+      "event_time_msk": "10.08.2026 13:45 MSK",
+      "timestamp_ms": 1786369500000,
+      "open": 0.0008126,
+      "high": 0.0008135,
+      "low": 0.0007993,
+      "close": 0.0008043,
+      "volume": 133495524.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6024096385542156,
+      "lower_wick_range_ratio": 0.35211267605633845,
+      "body_percent": 1.031953251274405,
+      "range_percent": 1.7655103816983737,
+      "open_to_low_percent": -1.636721634260405,
+      "formula_details": {
+        "body_percent": 1.031953251274405,
+        "range_percent": 1.7655103816983737,
+        "lower_wick_body_ratio": 0.6024096385542156,
+        "lower_wick_range_ratio": 0.35211267605633845,
+        "open_to_low_percent": -1.636721634260405,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "BOME-USDT",
+      "event_time": "10.08.2026 22:15 UTC",
+      "event_time_msk": "10.08.2026 22:15 MSK",
+      "timestamp_ms": 1786400100000,
+      "open": 0.0008325,
+      "high": 0.0008345,
+      "low": 0.0008085,
+      "close": 0.0008198,
+      "volume": 102052285.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.8897637795275567,
+      "lower_wick_range_ratio": 0.43461538461538507,
+      "body_percent": 1.5491583313003219,
+      "range_percent": 3.1715052451817494,
+      "open_to_low_percent": -2.8828828828828876,
+      "formula_details": {
+        "body_percent": 1.5491583313003219,
+        "range_percent": 3.1715052451817494,
+        "lower_wick_body_ratio": 0.8897637795275567,
+        "lower_wick_range_ratio": 0.43461538461538507,
+        "open_to_low_percent": -2.8828828828828876,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "BOME-USDT",
+      "event_time": "11.08.2026 03:30 UTC",
+      "event_time_msk": "11.08.2026 03:30 MSK",
+      "timestamp_ms": 1786419000000,
+      "open": 0.0007604,
+      "high": 0.000763,
+      "low": 0.0007418,
+      "close": 0.0007507,
+      "volume": 142206924.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.9175257731958637,
+      "lower_wick_range_ratio": 0.41981132075471495,
+      "body_percent": 1.2921273478087216,
+      "range_percent": 2.82403090448914,
+      "open_to_low_percent": -2.446081009994742,
+      "formula_details": {
+        "body_percent": 1.2921273478087216,
+        "range_percent": 2.82403090448914,
+        "lower_wick_body_ratio": 0.9175257731958637,
+        "lower_wick_range_ratio": 0.41981132075471495,
+        "open_to_low_percent": -2.446081009994742,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ORCA-USDT",
+      "event_time": "15.08.2026 10:15 UTC",
+      "event_time_msk": "15.08.2026 10:15 MSK",
+      "timestamp_ms": 1786788900000,
+      "open": 1.066,
+      "high": 1.07,
+      "low": 1.047,
+      "close": 1.056,
+      "volume": 65181.406,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.9000000000000111,
+      "lower_wick_range_ratio": 0.3913043478260899,
+      "body_percent": 0.9469696969696977,
+      "range_percent": 2.178030303030315,
+      "open_to_low_percent": -1.7823639774859406,
+      "formula_details": {
+        "body_percent": 0.9469696969696977,
+        "range_percent": 2.178030303030315,
+        "lower_wick_body_ratio": 0.9000000000000111,
+        "lower_wick_range_ratio": 0.3913043478260899,
+        "open_to_low_percent": -1.7823639774859406,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "JUP-USDT",
+      "event_time": "12.08.2026 08:45 UTC",
+      "event_time_msk": "12.08.2026 08:45 MSK",
+      "timestamp_ms": 1786524300000,
+      "open": 0.1736,
+      "high": 0.1738,
+      "low": 0.1687,
+      "close": 0.1707,
+      "volume": 804971.92,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6896551724137905,
+      "lower_wick_range_ratio": 0.39215686274509676,
+      "body_percent": 1.6988869361452923,
+      "range_percent": 2.987697715289995,
+      "open_to_low_percent": -2.8225806451612994,
+      "formula_details": {
+        "body_percent": 1.6988869361452923,
+        "range_percent": 2.987697715289995,
+        "lower_wick_body_ratio": 0.6896551724137905,
+        "lower_wick_range_ratio": 0.39215686274509676,
+        "open_to_low_percent": -2.8225806451612994,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "GALA-USDT",
+      "event_time": "11.08.2026 15:30 UTC",
+      "event_time_msk": "11.08.2026 15:30 MSK",
+      "timestamp_ms": 1786462200000,
+      "open": 0.001726,
+      "high": 0.001726,
+      "low": 0.001692,
+      "close": 0.001706,
+      "volume": 26353143.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.7000000000000043,
+      "lower_wick_range_ratio": 0.4117647058823544,
+      "body_percent": 1.1723329425556888,
+      "range_percent": 1.992966002344676,
+      "open_to_low_percent": -1.9698725376593378,
+      "formula_details": {
+        "body_percent": 1.1723329425556888,
+        "range_percent": 1.992966002344676,
+        "lower_wick_body_ratio": 0.7000000000000043,
+        "lower_wick_range_ratio": 0.4117647058823544,
+        "open_to_low_percent": -1.9698725376593378,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "GALA-USDT",
+      "event_time": "12.08.2026 21:15 UTC",
+      "event_time_msk": "12.08.2026 21:15 MSK",
+      "timestamp_ms": 1786569300000,
+      "open": 0.001668,
+      "high": 0.001672,
+      "low": 0.001612,
+      "close": 0.001641,
+      "volume": 22049438.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.0740740740740842,
+      "lower_wick_range_ratio": 0.4833333333333348,
+      "body_percent": 1.6453382084095,
+      "range_percent": 3.656307129798912,
+      "open_to_low_percent": -3.3573141486810587,
+      "formula_details": {
+        "body_percent": 1.6453382084095,
+        "range_percent": 3.656307129798912,
+        "lower_wick_body_ratio": 1.0740740740740842,
+        "lower_wick_range_ratio": 0.4833333333333348,
+        "open_to_low_percent": -3.3573141486810587,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "SAND-USDT",
+      "event_time": "12.08.2026 21:45 UTC",
+      "event_time_msk": "12.08.2026 21:45 MSK",
+      "timestamp_ms": 1786571100000,
+      "open": 0.03846,
+      "high": 0.03846,
+      "low": 0.03784,
+      "close": 0.03807,
+      "volume": 825916.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.5897435897435902,
+      "lower_wick_range_ratio": 0.37096774193548404,
+      "body_percent": 1.024428684003156,
+      "range_percent": 1.628578933543479,
+      "open_to_low_percent": -1.6120644825793098,
+      "formula_details": {
+        "body_percent": 1.024428684003156,
+        "range_percent": 1.628578933543479,
+        "lower_wick_body_ratio": 0.5897435897435902,
+        "lower_wick_range_ratio": 0.37096774193548404,
+        "open_to_low_percent": -1.6120644825793098,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "AXS-USDT",
+      "event_time": "14.08.2026 16:45 UTC",
+      "event_time_msk": "14.08.2026 16:45 MSK",
+      "timestamp_ms": 1786725900000,
+      "open": 0.9041,
+      "high": 0.9067,
+      "low": 0.8896,
+      "close": 0.8968,
+      "volume": 31109.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.9863013698630304,
+      "lower_wick_range_ratio": 0.42105263157895284,
+      "body_percent": 0.8140053523639578,
+      "range_percent": 1.9067796610169496,
+      "open_to_low_percent": -1.6038048888397376,
+      "formula_details": {
+        "body_percent": 0.8140053523639578,
+        "range_percent": 1.9067796610169496,
+        "lower_wick_body_ratio": 0.9863013698630304,
+        "lower_wick_range_ratio": 0.42105263157895284,
+        "open_to_low_percent": -1.6038048888397376,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "IMX-USDT",
+      "event_time": "12.08.2026 21:45 UTC",
+      "event_time_msk": "12.08.2026 21:45 MSK",
+      "timestamp_ms": 1786571100000,
+      "open": 0.1097,
+      "high": 0.1098,
+      "low": 0.1066,
+      "close": 0.1077,
+      "volume": 471518.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.5500000000000014,
+      "lower_wick_range_ratio": 0.3437500000000018,
+      "body_percent": 1.8570102135561761,
+      "range_percent": 2.9712163416898743,
+      "open_to_low_percent": -2.8258887876025574,
+      "formula_details": {
+        "body_percent": 1.8570102135561761,
+        "range_percent": 2.9712163416898743,
+        "lower_wick_body_ratio": 0.5500000000000014,
+        "lower_wick_range_ratio": 0.3437500000000018,
+        "open_to_low_percent": -2.8258887876025574,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ILV-USDT",
+      "event_time": "15.08.2026 00:00 UTC",
+      "event_time_msk": "15.08.2026 00:00 MSK",
+      "timestamp_ms": 1786752000000,
+      "open": 3.199,
+      "high": 3.214,
+      "low": 3.146,
+      "close": 3.17,
+      "volume": 23269.41,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.8275862068965549,
+      "lower_wick_range_ratio": 0.35294117647058826,
+      "body_percent": 0.9148264984227102,
+      "range_percent": 2.1451104100946394,
+      "open_to_low_percent": -1.6567677399187228,
+      "formula_details": {
+        "body_percent": 0.9148264984227102,
+        "range_percent": 2.1451104100946394,
+        "lower_wick_body_ratio": 0.8275862068965549,
+        "lower_wick_range_ratio": 0.35294117647058826,
+        "open_to_low_percent": -1.6567677399187228,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "YGG-USDT",
+      "event_time": "12.08.2026 21:45 UTC",
+      "event_time_msk": "12.08.2026 21:45 MSK",
+      "timestamp_ms": 1786571100000,
+      "open": 0.01876,
+      "high": 0.01878,
+      "low": 0.01847,
+      "close": 0.0186,
+      "volume": 1302507.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.8124999999999865,
+      "lower_wick_range_ratio": 0.41935483870966983,
+      "body_percent": 0.8602150537634431,
+      "range_percent": 1.6666666666666736,
+      "open_to_low_percent": -1.5458422174840012,
+      "formula_details": {
+        "body_percent": 0.8602150537634431,
+        "range_percent": 1.6666666666666736,
+        "lower_wick_body_ratio": 0.8124999999999865,
+        "lower_wick_range_ratio": 0.41935483870966983,
+        "open_to_low_percent": -1.5458422174840012,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ALICE-USDT",
+      "event_time": "10.08.2026 20:30 UTC",
+      "event_time_msk": "10.08.2026 20:30 MSK",
+      "timestamp_ms": 1786393800000,
+      "open": 0.124,
+      "high": 0.124,
+      "low": 0.122,
+      "close": 0.1228,
+      "volume": 96489.4,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6666666666666783,
+      "lower_wick_range_ratio": 0.4000000000000042,
+      "body_percent": 0.9771986970683979,
+      "range_percent": 1.628664495114008,
+      "open_to_low_percent": -1.6129032258064528,
+      "formula_details": {
+        "body_percent": 0.9771986970683979,
+        "range_percent": 1.628664495114008,
+        "lower_wick_body_ratio": 0.6666666666666783,
+        "lower_wick_range_ratio": 0.4000000000000042,
+        "open_to_low_percent": -1.6129032258064528,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ALICE-USDT",
+      "event_time": "12.08.2026 21:15 UTC",
+      "event_time_msk": "12.08.2026 21:15 MSK",
+      "timestamp_ms": 1786569300000,
+      "open": 0.1172,
+      "high": 0.1173,
+      "low": 0.1128,
+      "close": 0.1158,
+      "volume": 159060.4,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 2.1428571428571472,
+      "lower_wick_range_ratio": 0.6666666666666666,
+      "body_percent": 1.2089810017271143,
+      "range_percent": 3.886010362694304,
+      "open_to_low_percent": -3.754266211604097,
+      "formula_details": {
+        "body_percent": 1.2089810017271143,
+        "range_percent": 3.886010362694304,
+        "lower_wick_body_ratio": 2.1428571428571472,
+        "lower_wick_range_ratio": 0.6666666666666666,
+        "open_to_low_percent": -3.754266211604097,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ALICE-USDT",
+      "event_time": "14.08.2026 12:30 UTC",
+      "event_time_msk": "14.08.2026 12:30 MSK",
+      "timestamp_ms": 1786710600000,
+      "open": 0.1227,
+      "high": 0.1227,
+      "low": 0.1205,
+      "close": 0.122,
+      "volume": 122919.9,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 2.142857142857126,
+      "lower_wick_range_ratio": 0.6818181818181801,
+      "body_percent": 0.5737704918032838,
+      "range_percent": 1.8032786885245962,
+      "open_to_low_percent": -1.792991035044831,
+      "formula_details": {
+        "body_percent": 0.5737704918032838,
+        "range_percent": 1.8032786885245962,
+        "lower_wick_body_ratio": 2.142857142857126,
+        "lower_wick_range_ratio": 0.6818181818181801,
+        "open_to_low_percent": -1.792991035044831,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "SUSHI-USDT",
+      "event_time": "14.08.2026 09:30 UTC",
+      "event_time_msk": "14.08.2026 09:30 MSK",
+      "timestamp_ms": 1786699800000,
+      "open": 0.1553,
+      "high": 0.1556,
+      "low": 0.1524,
+      "close": 0.1542,
+      "volume": 244918.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.6363636363636478,
+      "lower_wick_range_ratio": 0.5625000000000022,
+      "body_percent": 0.7133592736705511,
+      "range_percent": 2.0752269779507007,
+      "open_to_low_percent": -1.8673535093367586,
+      "formula_details": {
+        "body_percent": 0.7133592736705511,
+        "range_percent": 2.0752269779507007,
+        "lower_wick_body_ratio": 1.6363636363636478,
+        "lower_wick_range_ratio": 0.5625000000000022,
+        "open_to_low_percent": -1.8673535093367586,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "SNX-USDT",
+      "event_time": "12.08.2026 07:15 UTC",
+      "event_time_msk": "12.08.2026 07:15 MSK",
+      "timestamp_ms": 1786518900000,
+      "open": 0.2011,
+      "high": 0.202,
+      "low": 0.1974,
+      "close": 0.1988,
+      "volume": 130418.6,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6086956521739193,
+      "lower_wick_range_ratio": 0.3043478260869578,
+      "body_percent": 1.1569416498993945,
+      "range_percent": 2.3138832997988033,
+      "open_to_low_percent": -1.8398806563898602,
+      "formula_details": {
+        "body_percent": 1.1569416498993945,
+        "range_percent": 2.3138832997988033,
+        "lower_wick_body_ratio": 0.6086956521739193,
+        "lower_wick_range_ratio": 0.3043478260869578,
+        "open_to_low_percent": -1.8398806563898602,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "CRV-USDT",
+      "event_time": "10.08.2026 20:30 UTC",
+      "event_time_msk": "10.08.2026 20:30 MSK",
+      "timestamp_ms": 1786393800000,
+      "open": 0.2624,
+      "high": 0.2626,
+      "low": 0.2574,
+      "close": 0.2602,
+      "volume": 145642.9,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.2727272727272383,
+      "lower_wick_range_ratio": 0.5384615384615343,
+      "body_percent": 0.8455034588777999,
+      "range_percent": 1.998462720983852,
+      "open_to_low_percent": -1.9054878048780504,
+      "formula_details": {
+        "body_percent": 0.8455034588777999,
+        "range_percent": 1.998462720983852,
+        "lower_wick_body_ratio": 1.2727272727272383,
+        "lower_wick_range_ratio": 0.5384615384615343,
+        "open_to_low_percent": -1.9054878048780504,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "CRV-USDT",
+      "event_time": "11.08.2026 21:00 UTC",
+      "event_time_msk": "11.08.2026 21:00 MSK",
+      "timestamp_ms": 1786482000000,
+      "open": 0.27,
+      "high": 0.2703,
+      "low": 0.2646,
+      "close": 0.2667,
+      "volume": 152806.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6363636363636287,
+      "lower_wick_range_ratio": 0.3684210526315784,
+      "body_percent": 1.2373453318335301,
+      "range_percent": 2.137232845894257,
+      "open_to_low_percent": -2.0000000000000058,
+      "formula_details": {
+        "body_percent": 1.2373453318335301,
+        "range_percent": 2.137232845894257,
+        "lower_wick_body_ratio": 0.6363636363636287,
+        "lower_wick_range_ratio": 0.3684210526315784,
+        "open_to_low_percent": -2.0000000000000058,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "CRV-USDT",
+      "event_time": "12.08.2026 00:15 UTC",
+      "event_time_msk": "12.08.2026 00:15 MSK",
+      "timestamp_ms": 1786493700000,
+      "open": 0.2763,
+      "high": 0.2772,
+      "low": 0.27,
+      "close": 0.2729,
+      "volume": 149435.5,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.8529411764705724,
+      "lower_wick_range_ratio": 0.40277777777777285,
+      "body_percent": 1.245877610846469,
+      "range_percent": 2.6383290582630945,
+      "open_to_low_percent": -2.280130293159599,
+      "formula_details": {
+        "body_percent": 1.245877610846469,
+        "range_percent": 2.6383290582630945,
+        "lower_wick_body_ratio": 0.8529411764705724,
+        "lower_wick_range_ratio": 0.40277777777777285,
+        "open_to_low_percent": -2.280130293159599,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "TAO-USDT",
+      "event_time": "11.08.2026 15:30 UTC",
+      "event_time_msk": "11.08.2026 15:30 MSK",
+      "timestamp_ms": 1786462200000,
+      "open": 200.76,
+      "high": 200.76,
+      "low": 196.63,
+      "close": 198.11,
+      "volume": 5072.91147,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.5584905660377475,
+      "lower_wick_range_ratio": 0.35835351089588857,
+      "body_percent": 1.3376407046590162,
+      "range_percent": 2.0847004189591614,
+      "open_to_low_percent": -2.0571827057182683,
+      "formula_details": {
+        "body_percent": 1.3376407046590162,
+        "range_percent": 2.0847004189591614,
+        "lower_wick_body_ratio": 0.5584905660377475,
+        "lower_wick_range_ratio": 0.35835351089588857,
+        "open_to_low_percent": -2.0571827057182683,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "OP-USDT",
+      "event_time": "11.08.2026 15:30 UTC",
+      "event_time_msk": "11.08.2026 15:30 MSK",
+      "timestamp_ms": 1786462200000,
+      "open": 0.0896,
+      "high": 0.0896,
+      "low": 0.0881,
+      "close": 0.0887,
+      "volume": 1200091.4,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6666666666666718,
+      "lower_wick_range_ratio": 0.40000000000000185,
+      "body_percent": 1.0146561443066493,
+      "range_percent": 1.6910935738444206,
+      "open_to_low_percent": -1.6741071428571441,
+      "formula_details": {
+        "body_percent": 1.0146561443066493,
+        "range_percent": 1.6910935738444206,
+        "lower_wick_body_ratio": 0.6666666666666718,
+        "lower_wick_range_ratio": 0.40000000000000185,
+        "open_to_low_percent": -1.6741071428571441,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "OP-USDT",
+      "event_time": "12.08.2026 21:30 UTC",
+      "event_time_msk": "12.08.2026 21:30 MSK",
+      "timestamp_ms": 1786570200000,
+      "open": 0.0882,
+      "high": 0.0882,
+      "low": 0.0863,
+      "close": 0.0871,
+      "volume": 930757.7,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.7272727272727204,
+      "lower_wick_range_ratio": 0.42105263157894507,
+      "body_percent": 1.262916188289327,
+      "range_percent": 2.1814006888633743,
+      "open_to_low_percent": -2.154195011337867,
+      "formula_details": {
+        "body_percent": 1.262916188289327,
+        "range_percent": 2.1814006888633743,
+        "lower_wick_body_ratio": 0.7272727272727204,
+        "lower_wick_range_ratio": 0.42105263157894507,
+        "open_to_low_percent": -2.154195011337867,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "TIA-USDT",
+      "event_time": "11.08.2026 15:30 UTC",
+      "event_time_msk": "11.08.2026 15:30 MSK",
+      "timestamp_ms": 1786462200000,
+      "open": 0.3105,
+      "high": 0.3107,
+      "low": 0.3041,
+      "close": 0.3068,
+      "volume": 136858.26,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.7297297297297431,
+      "lower_wick_range_ratio": 0.40909090909091483,
+      "body_percent": 1.205997392438064,
+      "range_percent": 2.151238591916556,
+      "open_to_low_percent": -2.061191626409023,
+      "formula_details": {
+        "body_percent": 1.205997392438064,
+        "range_percent": 2.151238591916556,
+        "lower_wick_body_ratio": 0.7297297297297431,
+        "lower_wick_range_ratio": 0.40909090909091483,
+        "open_to_low_percent": -2.061191626409023,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "INJ-USDT",
+      "event_time": "14.08.2026 18:45 UTC",
+      "event_time_msk": "14.08.2026 18:45 MSK",
+      "timestamp_ms": 1786733100000,
+      "open": 4.307,
+      "high": 4.31,
+      "low": 4.234,
+      "close": 4.259,
+      "volume": 35871.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.5208333333333403,
+      "lower_wick_range_ratio": 0.3289473684210589,
+      "body_percent": 1.1270251232683737,
+      "range_percent": 1.784456445174915,
+      "open_to_low_percent": -1.6949152542372972,
+      "formula_details": {
+        "body_percent": 1.1270251232683737,
+        "range_percent": 1.784456445174915,
+        "lower_wick_body_ratio": 0.5208333333333403,
+        "lower_wick_range_ratio": 0.3289473684210589,
+        "open_to_low_percent": -1.6949152542372972,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "DOGE-USDT",
+      "event_time": "12.08.2026 21:15 UTC",
+      "event_time_msk": "12.08.2026 21:15 MSK",
+      "timestamp_ms": 1786569300000,
+      "open": 0.07055,
+      "high": 0.07055,
+      "low": 0.06911,
+      "close": 0.06978,
+      "volume": 18283905.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.8701298701298495,
+      "lower_wick_range_ratio": 0.4652777777777719,
+      "body_percent": 1.103468042419041,
+      "range_percent": 2.0636285468615605,
+      "open_to_low_percent": -2.0411055988660483,
+      "formula_details": {
+        "body_percent": 1.103468042419041,
+        "range_percent": 2.0636285468615605,
+        "lower_wick_body_ratio": 0.8701298701298495,
+        "lower_wick_range_ratio": 0.4652777777777719,
+        "open_to_low_percent": -2.0411055988660483,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "STG-USDT",
+      "event_time": "12.08.2026 04:45 UTC",
+      "event_time_msk": "12.08.2026 04:45 MSK",
+      "timestamp_ms": 1786509900000,
+      "open": 0.1376,
+      "high": 0.1376,
+      "low": 0.1354,
+      "close": 0.1363,
+      "volume": 79177.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6923076923077038,
+      "lower_wick_range_ratio": 0.4090909090909131,
+      "body_percent": 0.953778429933966,
+      "range_percent": 1.6140865737344148,
+      "open_to_low_percent": -1.598837209302331,
+      "formula_details": {
+        "body_percent": 0.953778429933966,
+        "range_percent": 1.6140865737344148,
+        "lower_wick_body_ratio": 0.6923076923077038,
+        "lower_wick_range_ratio": 0.4090909090909131,
+        "open_to_low_percent": -1.598837209302331,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "STG-USDT",
+      "event_time": "13.08.2026 17:15 UTC",
+      "event_time_msk": "13.08.2026 17:15 MSK",
+      "timestamp_ms": 1786641300000,
+      "open": 0.142,
+      "high": 0.142,
+      "low": 0.138,
+      "close": 0.1396,
+      "volume": 110751.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6666666666666666,
+      "lower_wick_range_ratio": 0.4,
+      "body_percent": 1.7191977077363794,
+      "range_percent": 2.865329512893965,
+      "open_to_low_percent": -2.816901408450687,
+      "formula_details": {
+        "body_percent": 1.7191977077363794,
+        "range_percent": 2.865329512893965,
+        "lower_wick_body_ratio": 0.6666666666666666,
+        "lower_wick_range_ratio": 0.4,
+        "open_to_low_percent": -2.816901408450687,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "JTO-USDT",
+      "event_time": "10.08.2026 15:00 UTC",
+      "event_time_msk": "10.08.2026 15:00 MSK",
+      "timestamp_ms": 1786374000000,
+      "open": 0.5576,
+      "high": 0.5577,
+      "low": 0.5482,
+      "close": 0.5514,
+      "volume": 114118.381,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.5161290322580628,
+      "lower_wick_range_ratio": 0.3368421052631575,
+      "body_percent": 1.12441059122234,
+      "range_percent": 1.7228871962277754,
+      "open_to_low_percent": -1.685796269727397,
+      "formula_details": {
+        "body_percent": 1.12441059122234,
+        "range_percent": 1.7228871962277754,
+        "lower_wick_body_ratio": 0.5161290322580628,
+        "lower_wick_range_ratio": 0.3368421052631575,
+        "open_to_low_percent": -1.685796269727397,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "JTO-USDT",
+      "event_time": "11.08.2026 13:15 UTC",
+      "event_time_msk": "11.08.2026 13:15 MSK",
+      "timestamp_ms": 1786454100000,
+      "open": 0.5446,
+      "high": 0.5452,
+      "low": 0.5356,
+      "close": 0.54,
+      "volume": 108579.787,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.9565217391304631,
+      "lower_wick_range_ratio": 0.45833333333333814,
+      "body_percent": 0.8518518518518403,
+      "range_percent": 1.7777777777777874,
+      "open_to_low_percent": -1.6525890561880294,
+      "formula_details": {
+        "body_percent": 0.8518518518518403,
+        "range_percent": 1.7777777777777874,
+        "lower_wick_body_ratio": 0.9565217391304631,
+        "lower_wick_range_ratio": 0.45833333333333814,
+        "open_to_low_percent": -1.6525890561880294,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "JTO-USDT",
+      "event_time": "12.08.2026 08:45 UTC",
+      "event_time_msk": "12.08.2026 08:45 MSK",
+      "timestamp_ms": 1786524300000,
+      "open": 0.5445,
+      "high": 0.5447,
+      "low": 0.5359,
+      "close": 0.5389,
+      "volume": 50047.393,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.5357142857142921,
+      "lower_wick_range_ratio": 0.3409090909090943,
+      "body_percent": 1.0391538318797435,
+      "range_percent": 1.632956021525314,
+      "open_to_low_percent": -1.5794306703397505,
+      "formula_details": {
+        "body_percent": 1.0391538318797435,
+        "range_percent": 1.632956021525314,
+        "lower_wick_body_ratio": 0.5357142857142921,
+        "lower_wick_range_ratio": 0.3409090909090943,
+        "open_to_low_percent": -1.5794306703397505,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "STORJ-USDT",
+      "event_time": "12.08.2026 08:00 UTC",
+      "event_time_msk": "12.08.2026 08:00 MSK",
+      "timestamp_ms": 1786521600000,
+      "open": 0.05355,
+      "high": 0.05365,
+      "low": 0.05061,
+      "close": 0.05286,
+      "volume": 1342739.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 3.2608695652173694,
+      "lower_wick_range_ratio": 0.7401315789473666,
+      "body_percent": 1.3053348467650459,
+      "range_percent": 5.751040484298149,
+      "open_to_low_percent": -5.490196078431369,
+      "formula_details": {
+        "body_percent": 1.3053348467650459,
+        "range_percent": 5.751040484298149,
+        "lower_wick_body_ratio": 3.2608695652173694,
+        "lower_wick_range_ratio": 0.7401315789473666,
+        "open_to_low_percent": -5.490196078431369,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "STORJ-USDT",
+      "event_time": "12.08.2026 08:45 UTC",
+      "event_time_msk": "12.08.2026 08:45 MSK",
+      "timestamp_ms": 1786524300000,
+      "open": 0.05127,
+      "high": 0.05289,
+      "low": 0.05047,
+      "close": 0.05225,
+      "volume": 1141392.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.8163265306122514,
+      "lower_wick_range_ratio": 0.3305785123966953,
+      "body_percent": 1.875598086124392,
+      "range_percent": 4.631578947368419,
+      "open_to_low_percent": -1.5603666861712542,
+      "formula_details": {
+        "body_percent": 1.875598086124392,
+        "range_percent": 4.631578947368419,
+        "lower_wick_body_ratio": 0.8163265306122514,
+        "lower_wick_range_ratio": 0.3305785123966953,
+        "open_to_low_percent": -1.5603666861712542,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "STORJ-USDT",
+      "event_time": "12.08.2026 09:15 UTC",
+      "event_time_msk": "12.08.2026 09:15 MSK",
+      "timestamp_ms": 1786526100000,
+      "open": 0.05105,
+      "high": 0.05169,
+      "low": 0.05015,
+      "close": 0.05151,
+      "volume": 636319.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.9565217391304217,
+      "lower_wick_range_ratio": 0.5844155844155833,
+      "body_percent": 0.8930304795185442,
+      "range_percent": 2.9897107357794597,
+      "open_to_low_percent": -1.7629774730656183,
+      "formula_details": {
+        "body_percent": 0.8930304795185442,
+        "range_percent": 2.9897107357794597,
+        "lower_wick_body_ratio": 1.9565217391304217,
+        "lower_wick_range_ratio": 0.5844155844155833,
+        "open_to_low_percent": -1.7629774730656183,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "WLD-USDT",
+      "event_time": "10.08.2026 15:30 UTC",
+      "event_time_msk": "10.08.2026 15:30 MSK",
+      "timestamp_ms": 1786375800000,
+      "open": 0.346,
+      "high": 0.3463,
+      "low": 0.3371,
+      "close": 0.3419,
+      "volume": 1196852.452,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.1707317073170682,
+      "lower_wick_range_ratio": 0.5217391304347803,
+      "body_percent": 1.1991810470897903,
+      "range_percent": 2.6908452763966033,
+      "open_to_low_percent": -2.5722543352601055,
+      "formula_details": {
+        "body_percent": 1.1991810470897903,
+        "range_percent": 2.6908452763966033,
+        "lower_wick_body_ratio": 1.1707317073170682,
+        "lower_wick_range_ratio": 0.5217391304347803,
+        "open_to_low_percent": -2.5722543352601055,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ONE-USDT",
+      "event_time": "12.08.2026 01:15 UTC",
+      "event_time_msk": "12.08.2026 01:15 MSK",
+      "timestamp_ms": 1786497300000,
+      "open": 0.000809,
+      "high": 0.000856,
+      "low": 0.000584,
+      "close": 0.000745,
+      "volume": 139761048.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 2.5156249999999987,
+      "lower_wick_range_ratio": 0.5919117647058824,
+      "body_percent": 8.590604026845643,
+      "range_percent": 36.51006711409396,
+      "open_to_low_percent": -27.812113720642774,
+      "formula_details": {
+        "body_percent": 8.590604026845643,
+        "range_percent": 36.51006711409396,
+        "lower_wick_body_ratio": 2.5156249999999987,
+        "lower_wick_range_ratio": 0.5919117647058824,
+        "open_to_low_percent": -27.812113720642774,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ONE-USDT",
+      "event_time": "12.08.2026 01:30 UTC",
+      "event_time_msk": "12.08.2026 01:30 MSK",
+      "timestamp_ms": 1786498200000,
+      "open": 0.000748,
+      "high": 0.000778,
+      "low": 0.0007,
+      "close": 0.000736,
+      "volume": 31946377.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 3.000000000000009,
+      "lower_wick_range_ratio": 0.46153846153846134,
+      "body_percent": 1.6304347826086911,
+      "range_percent": 10.597826086956529,
+      "open_to_low_percent": -6.417112299465237,
+      "formula_details": {
+        "body_percent": 1.6304347826086911,
+        "range_percent": 10.597826086956529,
+        "lower_wick_body_ratio": 3.000000000000009,
+        "lower_wick_range_ratio": 0.46153846153846134,
+        "open_to_low_percent": -6.417112299465237,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ONE-USDT",
+      "event_time": "12.08.2026 02:15 UTC",
+      "event_time_msk": "12.08.2026 02:15 MSK",
+      "timestamp_ms": 1786500900000,
+      "open": 0.000921,
+      "high": 0.000942,
+      "low": 0.000891,
+      "close": 0.000914,
+      "volume": 30838410.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 3.285714285714259,
+      "lower_wick_range_ratio": 0.45098039215686264,
+      "body_percent": 0.7658643326039455,
+      "range_percent": 5.579868708971559,
+      "open_to_low_percent": -3.2573289902280216,
+      "formula_details": {
+        "body_percent": 0.7658643326039455,
+        "range_percent": 5.579868708971559,
+        "lower_wick_body_ratio": 3.285714285714259,
+        "lower_wick_range_ratio": 0.45098039215686264,
+        "open_to_low_percent": -3.2573289902280216,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ROSE-USDT",
+      "event_time": "11.08.2026 15:30 UTC",
+      "event_time_msk": "11.08.2026 15:30 MSK",
+      "timestamp_ms": 1786462200000,
+      "open": 0.005528,
+      "high": 0.005529,
+      "low": 0.005412,
+      "close": 0.005458,
+      "volume": 6821836.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.65714285714286,
+      "lower_wick_range_ratio": 0.3931623931623937,
+      "body_percent": 1.2825210699890022,
+      "range_percent": 2.143642359838767,
+      "open_to_low_percent": -2.098408104196812,
+      "formula_details": {
+        "body_percent": 1.2825210699890022,
+        "range_percent": 2.143642359838767,
+        "lower_wick_body_ratio": 0.65714285714286,
+        "lower_wick_range_ratio": 0.3931623931623937,
+        "open_to_low_percent": -2.098408104196812,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ROSE-USDT",
+      "event_time": "11.08.2026 19:00 UTC",
+      "event_time_msk": "11.08.2026 19:00 MSK",
+      "timestamp_ms": 1786474800000,
+      "open": 0.005476,
+      "high": 0.005477,
+      "low": 0.005355,
+      "close": 0.005399,
+      "volume": 4901107.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.5714285714285698,
+      "lower_wick_range_ratio": 0.360655737704917,
+      "body_percent": 1.4261900351916985,
+      "range_percent": 2.2596777180959386,
+      "open_to_low_percent": -2.209642074506932,
+      "formula_details": {
+        "body_percent": 1.4261900351916985,
+        "range_percent": 2.2596777180959386,
+        "lower_wick_body_ratio": 0.5714285714285698,
+        "lower_wick_range_ratio": 0.360655737704917,
+        "open_to_low_percent": -2.209642074506932,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "VET-USDT",
+      "event_time": "12.08.2026 22:00 UTC",
+      "event_time_msk": "12.08.2026 22:00 MSK",
+      "timestamp_ms": 1786572000000,
+      "open": 0.00448,
+      "high": 0.004483,
+      "low": 0.004343,
+      "close": 0.004415,
+      "volume": 10163946.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.1076923076923086,
+      "lower_wick_range_ratio": 0.514285714285713,
+      "body_percent": 1.4722536806342006,
+      "range_percent": 3.1710079275198275,
+      "open_to_low_percent": -3.058035714285714,
+      "formula_details": {
+        "body_percent": 1.4722536806342006,
+        "range_percent": 3.1710079275198275,
+        "lower_wick_body_ratio": 1.1076923076923086,
+        "lower_wick_range_ratio": 0.514285714285713,
+        "open_to_low_percent": -3.058035714285714,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "ICP-USDT",
+      "event_time": "11.08.2026 15:30 UTC",
+      "event_time_msk": "11.08.2026 15:30 MSK",
+      "timestamp_ms": 1786462200000,
+      "open": 2.284,
+      "high": 2.287,
+      "low": 2.244,
+      "close": 2.26,
+      "volume": 31695.09,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6666666666666482,
+      "lower_wick_range_ratio": 0.3720930232558065,
+      "body_percent": 1.0619469026548682,
+      "range_percent": 1.9026548672566244,
+      "open_to_low_percent": -1.7513134851138177,
+      "formula_details": {
+        "body_percent": 1.0619469026548682,
+        "range_percent": 1.9026548672566244,
+        "lower_wick_body_ratio": 0.6666666666666482,
+        "lower_wick_range_ratio": 0.3720930232558065,
+        "open_to_low_percent": -1.7513134851138177,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "AXL-USDT",
+      "event_time": "13.08.2026 14:30 UTC",
+      "event_time_msk": "13.08.2026 14:30 MSK",
+      "timestamp_ms": 1786631400000,
+      "open": 0.03755,
+      "high": 0.03758,
+      "low": 0.03687,
+      "close": 0.03729,
+      "volume": 608985.7,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.6153846153845826,
+      "lower_wick_range_ratio": 0.5915492957746414,
+      "body_percent": 0.6972378653794672,
+      "range_percent": 1.90399570930545,
+      "open_to_low_percent": -1.8109187749667113,
+      "formula_details": {
+        "body_percent": 0.6972378653794672,
+        "range_percent": 1.90399570930545,
+        "lower_wick_body_ratio": 1.6153846153845826,
+        "lower_wick_range_ratio": 0.5915492957746414,
+        "open_to_low_percent": -1.8109187749667113,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "UMA-USDT",
+      "event_time": "12.08.2026 21:45 UTC",
+      "event_time_msk": "12.08.2026 21:45 MSK",
+      "timestamp_ms": 1786571100000,
+      "open": 0.3232,
+      "high": 0.3233,
+      "low": 0.3183,
+      "close": 0.3201,
+      "volume": 75324.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.580645161290314,
+      "lower_wick_range_ratio": 0.3599999999999973,
+      "body_percent": 0.9684473601999348,
+      "range_percent": 1.5620118712902058,
+      "open_to_low_percent": -1.5160891089108788,
+      "formula_details": {
+        "body_percent": 0.9684473601999348,
+        "range_percent": 1.5620118712902058,
+        "lower_wick_body_ratio": 0.580645161290314,
+        "lower_wick_range_ratio": 0.3599999999999973,
+        "open_to_low_percent": -1.5160891089108788,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "BCH-USDT",
+      "event_time": "13.08.2026 15:30 UTC",
+      "event_time_msk": "13.08.2026 15:30 MSK",
+      "timestamp_ms": 1786635000000,
+      "open": 212.78,
+      "high": 212.81,
+      "low": 206.79,
+      "close": 209.36,
+      "volume": 2028.78,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.7514619883041026,
+      "lower_wick_range_ratio": 0.4269102990033251,
+      "body_percent": 1.633549866259069,
+      "range_percent": 2.875429881543757,
+      "open_to_low_percent": -2.8151142024626417,
+      "formula_details": {
+        "body_percent": 1.633549866259069,
+        "range_percent": 2.875429881543757,
+        "lower_wick_body_ratio": 0.7514619883041026,
+        "lower_wick_range_ratio": 0.4269102990033251,
+        "open_to_low_percent": -2.8151142024626417,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "BCH-USDT",
+      "event_time": "13.08.2026 16:00 UTC",
+      "event_time_msk": "13.08.2026 16:00 MSK",
+      "timestamp_ms": 1786636800000,
+      "open": 208.13,
+      "high": 208.75,
+      "low": 204.66,
+      "close": 206.04,
+      "volume": 1302.23,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.6602870813397097,
+      "lower_wick_range_ratio": 0.3374083129584338,
+      "body_percent": 1.0143661424966044,
+      "range_percent": 1.9850514463211046,
+      "open_to_low_percent": -1.6672272137606299,
+      "formula_details": {
+        "body_percent": 1.0143661424966044,
+        "range_percent": 1.9850514463211046,
+        "lower_wick_body_ratio": 0.6602870813397097,
+        "lower_wick_range_ratio": 0.3374083129584338,
+        "open_to_low_percent": -1.6672272137606299,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "AVAX-USDT",
+      "event_time": "11.08.2026 15:00 UTC",
+      "event_time_msk": "11.08.2026 15:00 MSK",
+      "timestamp_ms": 1786460400000,
+      "open": 6.245,
+      "high": 6.246,
+      "low": 6.11,
+      "close": 6.192,
+      "volume": 85255.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 1.5471698113207537,
+      "lower_wick_range_ratio": 0.6029411764705866,
+      "body_percent": 0.8559431524547794,
+      "range_percent": 2.1963824289405705,
+      "open_to_low_percent": -2.161729383506802,
+      "formula_details": {
+        "body_percent": 0.8559431524547794,
+        "range_percent": 2.1963824289405705,
+        "lower_wick_body_ratio": 1.5471698113207537,
+        "lower_wick_range_ratio": 0.6029411764705866,
+        "open_to_low_percent": -2.161729383506802,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "GRT-USDT",
+      "event_time": "11.08.2026 15:30 UTC",
+      "event_time_msk": "11.08.2026 15:30 MSK",
+      "timestamp_ms": 1786462200000,
+      "open": 0.01394,
+      "high": 0.01395,
+      "low": 0.01371,
+      "close": 0.01379,
+      "volume": 2833601.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.533333333333338,
+      "lower_wick_range_ratio": 0.3333333333333333,
+      "body_percent": 1.087744742567071,
+      "range_percent": 1.7403915881073286,
+      "open_to_low_percent": -1.6499282639885173,
+      "formula_details": {
+        "body_percent": 1.087744742567071,
+        "range_percent": 1.7403915881073286,
+        "lower_wick_body_ratio": 0.533333333333338,
+        "lower_wick_range_ratio": 0.3333333333333333,
+        "open_to_low_percent": -1.6499282639885173,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "GRT-USDT",
+      "event_time": "12.08.2026 21:15 UTC",
+      "event_time_msk": "12.08.2026 21:15 MSK",
+      "timestamp_ms": 1786569300000,
+      "open": 0.0135,
+      "high": 0.0135,
+      "low": 0.01326,
+      "close": 0.01336,
+      "volume": 1879163.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.714285714285725,
+      "lower_wick_range_ratio": 0.4166666666666703,
+      "body_percent": 1.0479041916167628,
+      "range_percent": 1.7964071856287473,
+      "open_to_low_percent": -1.7777777777777826,
+      "formula_details": {
+        "body_percent": 1.0479041916167628,
+        "range_percent": 1.7964071856287473,
+        "lower_wick_body_ratio": 0.714285714285725,
+        "lower_wick_range_ratio": 0.4166666666666703,
+        "open_to_low_percent": -1.7777777777777826,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "DOGE-USDT",
+      "event_time": "12.08.2026 21:15 UTC",
+      "event_time_msk": "12.08.2026 21:15 MSK",
+      "timestamp_ms": 1786569300000,
+      "open": 0.07055,
+      "high": 0.07055,
+      "low": 0.06911,
+      "close": 0.06978,
+      "volume": 18283905.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.8701298701298495,
+      "lower_wick_range_ratio": 0.4652777777777719,
+      "body_percent": 1.103468042419041,
+      "range_percent": 2.0636285468615605,
+      "open_to_low_percent": -2.0411055988660483,
+      "formula_details": {
+        "body_percent": 1.103468042419041,
+        "range_percent": 2.0636285468615605,
+        "lower_wick_body_ratio": 0.8701298701298495,
+        "lower_wick_range_ratio": 0.4652777777777719,
+        "open_to_low_percent": -2.0411055988660483,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    },
+    {
+      "symbol": "UNI-USDT",
+      "event_time": "14.08.2026 11:45 UTC",
+      "event_time_msk": "14.08.2026 11:45 MSK",
+      "timestamp_ms": 1786707900000,
+      "open": 3.229,
+      "high": 3.239,
+      "low": 3.174,
+      "close": 3.198,
+      "volume": 157624.0,
+      "volume_ratio": null,
+      "lower_wick_body_ratio": 0.774193548387094,
+      "lower_wick_range_ratio": 0.36923076923076986,
+      "body_percent": 0.9693558474046323,
+      "range_percent": 2.0325203252032504,
+      "open_to_low_percent": -1.7033137194177812,
+      "formula_details": {
+        "body_percent": 0.9693558474046323,
+        "range_percent": 2.0325203252032504,
+        "lower_wick_body_ratio": 0.774193548387094,
+        "lower_wick_range_ratio": 0.36923076923076986,
+        "open_to_low_percent": -1.7033137194177812,
+        "conditions": {
+          "body_percent": true,
+          "range_percent": true,
+          "lower_wick_body_ratio": true,
+          "lower_wick_range_ratio": true,
+          "open_to_low_percent": true
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total_signals": 61,
+    "successful_symbols": [
+      "SIREN-USDT",
+      "HOME-USDT",
+      "1000BONK-USDT",
+      "WIF-USDT",
+      "BOME-USDT",
+      "ORCA-USDT",
+      "JUP-USDT",
+      "GALA-USDT",
+      "SAND-USDT",
+      "AXS-USDT",
+      "IMX-USDT",
+      "ILV-USDT",
+      "YGG-USDT",
+      "ALICE-USDT",
+      "SUSHI-USDT",
+      "SNX-USDT",
+      "CRV-USDT",
+      "TAO-USDT",
+      "OP-USDT",
+      "TIA-USDT",
+      "INJ-USDT",
+      "DOGE-USDT",
+      "STG-USDT",
+      "JTO-USDT",
+      "STORJ-USDT",
+      "WLD-USDT",
+      "ONE-USDT",
+      "ROSE-USDT",
+      "VET-USDT",
+      "ICP-USDT",
+      "AXL-USDT",
+      "UMA-USDT",
+      "BCH-USDT",
+      "AVAX-USDT",
+      "GRT-USDT",
+      "DOGE-USDT",
+      "UNI-USDT"
+    ],
+    "failed_symbols": [
+      [
+        "KITE-USDT",
+        "OK"
+      ],
+      [
+        "PEPE-USDT",
+        "Error: API Error: PEPE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "FLOKI-USDT",
+        "OK"
+      ],
+      [
+        "BONK-USDT",
+        "Error: API Error: BONK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "RAY-USDT",
+        "OK"
+      ],
+      [
+        "BONK-USDT",
+        "Error: API Error: BONK-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "WEN-USDT",
+        "Error: API Error: WEN-USDT not exist, please verify it in api: /openApi/swap/v2/quote/contracts"
+      ],
+      [
+        "MANA-USDT",
+        "OK"
+      ],
+      [
+        "ENJ-USDT",
+        "OK"
+      ],
+      [
+        "RPL-USDT",
+        "OK"
+      ],
+      [
+        "1INCH-USDT",
+        "OK"
+      ],
+      [
+        "BAL-USDT",
+        "Error: API Error: BAL-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "LOOKS-USDT",
+        "Error: API Error: LOOKS-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "BLUR-USDT",
+        "OK"
+      ],
+      [
+        "X2Y2-USDT",
+        "Error: API Error: X2Y2-USDT not exist, please verify it in api: /openApi/swap/v2/quote/contracts"
+      ],
+      [
+        "FET-USDT",
+        "OK"
+      ],
+      [
+        "RNDR-USDT",
+        "Error: API Error: RNDR-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "AGIX-USDT",
+        "Error: API Error: AGIX-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "OCEAN-USDT",
+        "Error: API Error: OCEAN-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "NMR-USDT",
+        "OK"
+      ],
+      [
+        "GLM-USDT",
+        "OK"
+      ],
+      [
+        "NMR-USDT",
+        "OK"
+      ],
+      [
+        "ARB-USDT",
+        "OK"
+      ],
+      [
+        "SEI-USDT",
+        "OK"
+      ],
+      [
+        "SUI-USDT",
+        "OK"
+      ],
+      [
+        "APT-USDT",
+        "OK"
+      ],
+      [
+        "KAVA-USDT",
+        "OK"
+      ],
+      [
+        "SHIB-USDT",
+        "Error: API Error: SHIB-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "PEPE-USDT",
+        "Error: API Error: PEPE-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "FLOKI-USDT",
+        "OK"
+      ],
+      [
+        "CELO-USDT",
+        "OK"
+      ],
+      [
+        "ALGO-USDT",
+        "OK"
+      ],
+      [
+        "HBAR-USDT",
+        "OK"
+      ],
+      [
+        "EGLD-USDT",
+        "OK"
+      ],
+      [
+        "QNT-USDT",
+        "OK"
+      ],
+      [
+        "ZEC-USDT",
+        "OK"
+      ],
+      [
+        "DASH-USDT",
+        "OK"
+      ],
+      [
+        "MINA-USDT",
+        "OK"
+      ],
+      [
+        "MASK-USDT",
+        "OK"
+      ],
+      [
+        "BAND-USDT",
+        "Error: API Error: BAND-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "THETA-USDT",
+        "OK"
+      ],
+      [
+        "TFUEL-USDT",
+        "Error: API Error: TFUEL-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "XLM-USDT",
+        "OK"
+      ],
+      [
+        "HOT-USDT",
+        "Error: API Error: HOT-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "IOTA-USDT",
+        "OK"
+      ],
+      [
+        "XEM-USDT",
+        "Error: API Error: XEM-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "XTZ-USDT",
+        "Error: API Error: XTZ-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "EOS-USDT",
+        "Error: API Error: EOS-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "TRX-USDT",
+        "OK"
+      ],
+      [
+        "XMR-USDT",
+        "OK"
+      ],
+      [
+        "ETC-USDT",
+        "OK"
+      ],
+      [
+        "ADA-USDT",
+        "OK"
+      ],
+      [
+        "DOT-USDT",
+        "OK"
+      ],
+      [
+        "LINK-USDT",
+        "OK"
+      ],
+      [
+        "MATIC-USDT",
+        "Error: API Error: MATIC-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "ATOM-USDT",
+        "OK"
+      ],
+      [
+        "NEAR-USDT",
+        "OK"
+      ],
+      [
+        "AAVE-USDT",
+        "OK"
+      ],
+      [
+        "MKR-USDT",
+        "Error: API Error: MKR-USDT is offline currently,all validted symbols in api:/openApi/swap/v2/quote/contracts, please verify it"
+      ],
+      [
+        "COMP-USDT",
+        "OK"
+      ],
+      [
+        "YFI-USDT",
+        "OK"
+      ],
+      [
+        "BTC-USDT",
+        "OK"
+      ],
+      [
+        "ETH-USDT",
+        "OK"
+      ],
+      [
+        "BNB-USDT",
+        "OK"
+      ],
+      [
+        "SOL-USDT",
+        "OK"
+      ],
+      [
+        "XRP-USDT",
+        "OK"
+      ],
+      [
+        "LTC-USDT",
+        "OK"
+      ]
+    ],
+    "target_symbols": 100,
+    "target_signals": 300
+  }
+}

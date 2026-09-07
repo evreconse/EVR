@@ -1,0 +1,223 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.7, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\user\AppData\Local\Programs\Python\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\EVRECONSE_PROJECT
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: asyncio-1.4.0, cov-7.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 114 items
+
+tests/test_async.py::TestAsyncInfrastructure::test_async_fixture_works <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  0%]
+tests/test_async.py::TestAsyncInfrastructure::test_async_mock_can_be_awaited <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  1%]
+tests/test_async.py::TestAsyncInfrastructure::test_asyncio_sleep_works <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  2%]
+tests/test_async.py::TestAsyncInfrastructure::test_concurrent_execution <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  3%]
+tests/test_async.py::TestAsyncInfrastructure::test_timeout_works <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  4%]
+tests/test_async.py::TestAsyncInfrastructure::test_run_async_helper <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  5%]
+tests/test_async.py::TestAsyncInfrastructure::test_exception_propagation <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  6%]
+tests/test_async.py::TestAsyncInfrastructure::test_async_context_manager <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  7%]
+tests/test_async.py::TestAsyncInfrastructure::test_async_for_loop <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  7%]
+tests/test_async.py::TestAsyncInfrastructure::test_asyncio_event <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  8%]
+tests/test_async.py::TestAsyncInfrastructure::test_asyncio_lock <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [  9%]
+tests/test_async.py::TestAsyncFixtures::test_fake_data_provider_is_async <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [ 10%]
+tests/test_async.py::TestAsyncFixtures::test_fake_telegram_service_is_async <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py PASSED [ 11%]
+tests/test_async.py::TestAsyncFixtures::test_fake_storage_is_sync <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_async.py SKIPPED [ 12%]
+tests/test_bootstrap.py::TestBootstrapComponents::test_create_config_manager PASSED [ 13%]
+tests/test_bootstrap.py::TestBootstrapComponents::test_create_storage_engine PASSED [ 14%]
+tests/test_bootstrap.py::TestBootstrapComponents::test_create_data_provider PASSED [ 14%]
+tests/test_bootstrap.py::TestBootstrapComponents::test_create_strategy_engine PASSED [ 15%]
+tests/test_bootstrap.py::TestBootstrapComponents::test_create_scoring_engine SKIPPED [ 16%]
+tests/test_bootstrap.py::TestBootstrapComponents::test_create_notification_engine PASSED [ 17%]
+tests/test_bootstrap.py::TestBootstrapComponents::test_create_event_engine PASSED [ 18%]
+tests/test_bootstrap.py::TestFullBootstrap::test_bootstrap_creates_context SKIPPED [ 19%]
+tests/test_bootstrap.py::TestFullBootstrap::test_bootstrap_context_immutability PASSED [ 20%]
+tests/test_bootstrap.py::TestFullBootstrap::test_bootstrap_services_registered_in_container SKIPPED [ 21%]
+tests/test_bootstrap.py::TestBootstrapShutdown::test_shutdown_order PASSED [ 21%]
+tests/test_di.py::TestServiceContainer::test_register_instance <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 22%]
+tests/test_di.py::TestServiceContainer::test_register_singleton_factory <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py SKIPPED [ 23%]
+tests/test_di.py::TestServiceContainer::test_register_factory <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py SKIPPED [ 24%]
+tests/test_di.py::TestServiceContainer::test_unregister <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 25%]
+tests/test_di.py::TestServiceContainer::test_has <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 26%]
+tests/test_di.py::TestServiceContainer::test_get_optional <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 27%]
+tests/test_di.py::TestServiceContainer::test_duplicate_registration_raises <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 28%]
+tests/test_di.py::TestServiceContainer::test_not_found_raises <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 28%]
+tests/test_di.py::TestServiceContainer::test_circular_dependency_detection <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py SKIPPED [ 29%]
+tests/test_di.py::TestServiceContainer::test_dependency_auto_resolution <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 30%]
+tests/test_di.py::TestServiceContainer::test_clear <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 31%]
+tests/test_di.py::TestServiceContainer::test_global_container <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 32%]
+tests/test_di.py::TestServiceContainer::test_get_all <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 33%]
+tests/test_di.py::TestServiceContainerIntegration::test_populated_container_fixture <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 34%]
+tests/test_di.py::TestServiceContainerIntegration::test_fresh_container_fixture <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_di.py PASSED [ 35%]
+tests/test_lifecycle.py::TestApplicationState::test_state_values <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 35%]
+tests/test_lifecycle.py::TestLifecycleMetrics::test_default_metrics <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 36%]
+tests/test_lifecycle.py::TestLifecycleMetrics::test_metrics_with_values <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 37%]
+tests/test_lifecycle.py::TestLifecycleManager::test_initial_state <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 38%]
+tests/test_lifecycle.py::TestLifecycleManager::test_initialize_success <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 39%]
+tests/test_lifecycle.py::TestLifecycleManager::test_initialize_twice_raises <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 40%]
+tests/test_lifecycle.py::TestLifecycleManager::test_initialize_from_stopped <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 41%]
+tests/test_lifecycle.py::TestLifecycleManager::test_initialize_failed_sets_failed_state <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 42%]
+tests/test_lifecycle.py::TestLifecycleManager::test_start_success <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 42%]
+tests/test_lifecycle.py::TestLifecycleManager::test_start_without_initialize_raises <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 43%]
+tests/test_lifecycle.py::TestLifecycleManager::test_stop_success <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 44%]
+tests/test_lifecycle.py::TestLifecycleManager::test_stop_not_running_returns_early <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 45%]
+tests/test_lifecycle.py::TestLifecycleManager::test_stop_timeout_raises <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 46%]
+tests/test_lifecycle.py::TestLifecycleManager::test_reload_success <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 47%]
+tests/test_lifecycle.py::TestLifecycleManager::test_reload_not_running_raises <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 48%]
+tests/test_lifecycle.py::TestLifecycleManager::test_reload_failed_sets_failed_state <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 49%]
+tests/test_lifecycle.py::TestLifecycleManager::test_state_change_callback <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 50%]
+tests/test_lifecycle.py::TestApplicationLifecycle::test_create_application <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 50%]
+tests/test_lifecycle.py::TestApplicationLifecycle::test_application_initialize <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 51%]
+tests/test_lifecycle.py::TestApplicationLifecycle::test_application_start <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 52%]
+tests/test_lifecycle.py::TestApplicationLifecycle::test_application_stop <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 53%]
+tests/test_lifecycle.py::TestApplicationLifecycle::test_application_shutdown_alias <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 54%]
+tests/test_lifecycle.py::TestApplicationLifecycle::test_application_reload <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 55%]
+tests/test_lifecycle.py::TestApplicationLifecycle::test_application_properties <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py SKIPPED [ 56%]
+tests/test_lifecycle.py::TestWaitFunctions::test_wait_for_startup <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 57%]
+tests/test_lifecycle.py::TestWaitFunctions::test_wait_for_shutdown <- ..\Users\user\Documents\Default Project\EVRECONSE\tests\test_lifecycle.py PASSED [ 57%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_register_parameter PASSED [ 58%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_register_duplicate_raises PASSED [ 59%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_unregister_parameter SKIPPED [ 60%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_get_not_found_raises PASSED [ 61%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_list_parameters PASSED [ 62%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_get_enabled PASSED [ 63%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_enable_disable SKIPPED [ 64%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_update_config PASSED [ 64%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_get_all_parameters PASSED [ 65%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_get_enabled_parameters PASSED [ 66%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_count PASSED   [ 67%]
+tests/test_scoring.py::TestScoringParameterRegistry::test_clear SKIPPED  [ 68%]
+tests/test_scoring.py::TestScoringEngine::test_initialize_loads_parameters SKIPPED [ 69%]
+tests/test_scoring.py::TestScoringEngine::test_initialize_without_parameters PASSED [ 70%]
+tests/test_scoring.py::TestScoringEngine::test_evaluate_not_initialized_raises SKIPPED [ 71%]
+tests/test_scoring.py::TestScoringEngine::test_get_parameter SKIPPED     [ 71%]
+tests/test_scoring.py::TestScoringEngine::test_get_parameter_not_found PASSED [ 72%]
+tests/test_scoring.py::TestScoringEngine::test_reload_parameters SKIPPED [ 73%]
+tests/test_scoring.py::TestScoringEngine::test_get_stats PASSED          [ 74%]
+tests/test_scoring.py::TestScoringEngine::test_close PASSED              [ 75%]
+tests/test_scoring.py::TestScoringParameters::test_lower_wick_quality_metadata SKIPPED [ 76%]
+tests/test_scoring.py::TestScoringParameters::test_candle_confirmation_metadata PASSED [ 77%]
+tests/test_scoring.py::TestScoringParameters::test_validate_config PASSED [ 78%]
+tests/test_scoring.py::TestScoringParameters::test_supports SKIPPED      [ 78%]
+tests/test_scoring.py::TestScoringParameters::test_evaluate SKIPPED      [ 79%]
+tests/test_strategy.py::TestStrategyRegistry::test_register_strategy PASSED [ 80%]
+tests/test_strategy.py::TestStrategyRegistry::test_register_duplicate_raises PASSED [ 81%]
+tests/test_strategy.py::TestStrategyRegistry::test_unregister_strategy PASSED [ 82%]
+tests/test_strategy.py::TestStrategyRegistry::test_get_not_found_raises PASSED [ 83%]
+tests/test_strategy.py::TestStrategyRegistry::test_list_strategies PASSED [ 84%]
+tests/test_strategy.py::TestStrategyRegistry::test_get_enabled PASSED    [ 85%]
+tests/test_strategy.py::TestStrategyRegistry::test_enable_disable SKIPPEDce') [ 85%]
+tests/test_strategy.py::TestStrategyRegistry::test_update_config SKIPPEDce') [ 86%]
+tests/test_strategy.py::TestStrategyRegistry::test_get_all_strategies PASSED [ 87%]
+tests/test_strategy.py::TestStrategyRegistry::test_get_enabled_strategies PASSED [ 88%]
+tests/test_strategy.py::TestStrategyRegistry::test_clear SKIPPED         [ 89%]
+tests/test_strategy.py::TestStrategyEngine::test_register_strategy SKIPPED [ 90%]
+tests/test_strategy.py::TestStrategyEngine::test_unregister_strategy PASSED [ 91%]
+tests/test_strategy.py::TestStrategyEngine::test_get_strategy PASSED     [ 92%]
+tests/test_strategy.py::TestStrategyEngine::test_list_strategies PASSED  [ 92%]
+tests/test_strategy.py::TestStrategyEngine::test_activate_deactivate PASSED [ 93%]
+tests/test_strategy.py::TestStrategyEngine::test_get_metrics PASSED      [ 94%]
+tests/test_strategy.py::TestLW001Strategy::test_strategy_metadata PASSED [ 95%]
+tests/test_strategy.py::TestLW001Strategy::test_validate_config_valid PASSED [ 96%]
+tests/test_strategy.py::TestLW001Strategy::test_validate_config_invalid_wick_ratio PASSED [ 97%]
+tests/test_strategy.py::TestLW001Strategy::test_validate_config_invalid_liq_window PASSED [ 98%]
+tests/test_strategy.py::TestLW001Strategy::test_validate_config_invalid_min_score PASSED [ 99%]
+tests/test_strategy.py::TestLW001Strategy::test_supports SKIPPED         [100%]
+
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.12.7-final-0 _______________
+
+Name                                            Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------------------
+src\application\__init__.py                         7      0      0      0   100%
+src\application\application.py                    158     77     16      0    47%   88-93, 165, 181-183, 195-197, 205, 209, 217, 221, 225, 229, 233, 238, 243-244, 249-250, 255-256, 261-262, 267-268, 273-274, 279-280, 288, 292, 296, 304-368, 372-376
+src\application\bootstrap.py                      196     88     16      4    54%   43, 75->78, 88, 138->136, 163-201, 286-293, 327-418, 439-441, 447-449, 455-457, 463-465, 471-473, 488-498
+src\application\exceptions.py                      68     23     20      5    57%   26-33, 48->50, 50->52, 78->80, 80->82, 82->84, 96-103, 127, 139, 150-154
+src\application\health.py                         198    127     44      0    29%   43, 46, 66, 70, 74, 78, 81, 119-121, 125, 128-147, 175-180, 189, 197, 201-206, 210, 227-245, 271-287, 291-304, 308-309, 313-314, 323-336, 345-360, 369-382, 391-404, 413-426, 435-448, 481-504
+src\application\lifecycle.py                      175     81     22      4    50%   91, 103-106, 111, 145-201, 211-262, 269-295, 302-311, 320-321
+src\application\service_container.py              112     15     26      8    82%   103, 111->114, 139-157, 165-166, 183, 207-208, 221, 230, 234->246, 237->246
+src\config\__init__.py                              6      0      0      0   100%
+src\config\config_manager.py                      149     52     32      4    57%   93, 97-98, 102, 112-115, 141-147, 163-165, 171, 175, 190-193, 197, 201, 205, 209, 213, 227, 239, 243, 257-260, 266-272, 329, 431, 443-449, 453-460
+src\config\exceptions.py                           50     27      6      0    41%   14-15, 28-30, 37-38, 47-51, 63-71, 78, 85-90, 97-98, 105, 112, 119-121
+src\config\loader.py                              160    118     52      0    20%   41, 51, 62, 65-82, 85, 96, 99-113, 116, 130, 133-149, 153-177, 181-192, 197-217, 220, 231, 234-242, 245, 267-269, 272-297, 301-305, 308-314, 327, 330
+src\config\types.py                               272      3      0      0    99%   73, 80-81
+src\config\validator.py                            84     16     44     17    74%   71, 81, 118, 128, 134, 141, 147, 161, 169, 175, 177, 183->196, 185, 190, 202, 213, 223
+src\core\__init__.py                                2      0      0      0   100%
+src\core\logging\__init__.py                      307    177    128     13    34%   45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 128-134, 157-158, 162-210, 231-232, 236-269, 296-307, 326-329, 347-351, 389, 401-407, 411-419, 435-436, 442-450, 464, 468, 472, 486-489, 497, 507->exit, 539-574, 584-590, 611-645, 658->exit, 659->exit, 660->exit, 661->exit, 662->exit, 663->exit, 664->exit
+src\data_provider\__init__.py                      11      0      0      0   100%
+src\data_provider\bingx_provider.py               269    213     62      0    17%   69-109, 113, 117, 122, 126, 129, 133-143, 147-156, 160-162, 166-167, 180-189, 193-194, 198-201, 223-230, 249-274, 294-295, 304-330, 334, 351-355, 359, 374, 382, 386-390, 394-401, 405-423, 427-431, 435-442, 446-468, 472-489, 493-523, 527-535, 539-561, 565, 569-581, 598
+src\data_provider\exceptions.py                    42     19      0      0    55%   14, 21-22, 29-30, 37-38, 45-46, 53-54, 61-62, 69-70, 77-78, 85, 92
+src\data_provider\heartbeat.py                    148    111     30      0    21%   42-49, 53, 57, 61-62, 66-67, 71-72, 76-86, 92-98, 102, 106-107, 111-114, 118-120, 131-167, 178-185, 188, 191, 194-195, 198-203, 206-209, 212-235
+src\data_provider\internal_models.py               94     12     12      0    77%   57-60, 81-82, 111-112, 140-141, 160-161
+src\data_provider\provider.py                      47     13      0      0    72%   25, 30, 35, 40, 54, 59, 72, 92, 102, 112, 118, 124, 130
+src\data_provider\rate_limiter.py                  98     73     22      0    21%   29-32, 47-50, 54, 59-63, 75-92, 104-116, 120, 135-138, 151-171, 175-187, 191-192
+src\data_provider\reconnect_strategy.py            75     43     14      0    36%   34-41, 56-59, 71-85, 94-97, 101-102, 106, 118-120, 131, 140-142, 145, 148, 151, 162, 171-173, 176, 179, 182
+src\data_provider\rest_client.py                  212    173     90      0    13%   45-51, 72-78, 81-82, 85, 89-97, 105-107, 116-129, 133-149, 178-242, 250, 261-271, 279-283, 292-297, 306-311, 336-348, 360-372, 384-396, 408-420, 432-435, 444-449, 472-500, 510-519, 534-550, 564-569
+src\data_provider\websocket_client.py             244    181     70      0    20%   59-66, 82-102, 106, 110, 114, 118, 122-143, 147-160, 164-166, 170-186, 190-216, 220-241, 245-256, 260-263, 267-285, 289-291, 295-296, 300-303, 307-310, 314-315, 319-321, 325-332, 337, 342, 346, 354-355, 358, 388-394, 403-404, 408-409, 413-414, 418-419, 423-424, 428-429, 433-434, 448-453, 461
+src\event_engine\__init__.py                       12      0      0      0   100%
+src\event_engine\context.py                        67     19      6      0    66%   57-62, 67, 72, 77, 81, 109-112, 116, 123, 139, 146, 149
+src\event_engine\engine_config.py                  41     12      6      0    62%   37-42, 46, 62-75, 91
+src\event_engine\enums.py                          41      0      0      0   100%
+src\event_engine\event_dispatcher.py               85     54     24      0    28%   21, 74-94, 106-112, 124-133, 146-181, 185, 189-190, 194-195, 199-200
+src\event_engine\event_engine.py                  170     66     24      0    59%   201, 209, 220-225, 234, 244, 285-304, 321-345, 357, 372-373, 387-388, 413-423, 436-444, 461-465, 479, 484, 489, 494, 499, 504, 518-521, 527-530
+src\event_engine\event_factory.py                  33      7      2      0    74%   31-32, 58-72
+src\event_engine\event_pipeline.py                284    167     30      0    37%   25, 31, 47, 65-66, 70, 74, 102, 106, 123, 127-196, 220, 224-305, 322, 326-393, 410, 413-416, 433, 437-488, 532-562, 573, 577-578, 582-587, 615-626, 630
+src\event_engine\event_processor.py                50     50      4      0     0%   7-180
+src\event_engine\event_registry.py                132     78     24      0    35%   49-50, 78-115, 119-151, 155-156, 160-164, 168-171, 175-186, 190-191, 195-196, 200-201, 205-206, 210-213, 217-220, 224-228, 232-239
+src\event_engine\event_scheduler.py               143     86     38      1    32%   40, 69, 76-104, 108, 112-124, 129-153, 157-175, 183-191, 195-205, 209-217, 221-231, 235-236, 242-246, 250-258, 262-272, 276-278, 282, 291
+src\event_engine\exceptions.py                    118     71     10      0    37%   14, 21-22, 29-30, 43-50, 57-58, 65-66, 79-87, 94-96, 110-115, 125, 132, 139-142, 151-158, 165-167, 174-175, 182-185, 194-196, 208-211, 224-225, 236-237, 248-249
+src\event_engine\lifecycle.py                     187     89     48      7    45%   83, 91, 95-97, 101-103, 107-109, 113-115, 120, 125-127, 144, 149, 152->156, 176-181, 207, 210, 214->219, 223-225, 231-234, 243-245, 260-289, 297-324, 328-329, 333-334, 338-340, 344-349, 357-361, 373-382, 386-387
+src\event_engine\metrics.py                       151     77     14      2    46%   21, 24, 37, 41, 45, 54, 57, 60, 82-84, 88-90, 94-96, 100-102, 106-113, 117, 121-123, 127-129, 133-141, 153-154, 164-168, 179-182, 186-190, 201->205, 203->205, 211-212, 217, 221, 225, 229, 233, 237, 241, 246, 250, 254, 258, 262, 266, 270, 274, 278, 282
+src\event_engine\state_machine.py                  42     31      0      0    26%   60, 65-70, 75-78, 83-86, 91-94, 99-102, 107-110, 115-118
+src\event_engine\transition_guard.py               94     53     44      0    30%   47, 52, 57, 62, 67, 72, 77, 107-117, 127-135, 148-149, 164-165, 176-177, 187-188, 198-206, 216-224, 235-237, 247-249, 259-260, 270-271, 281-282, 292-293, 303-304, 314-315, 325-326, 337
+src\exchange\__init__.py                            3      0      0      0   100%
+src\exchange\bingx_fetcher.py                      97     79     32      0    14%   35-54, 67-73, 77, 96-138, 161-209, 218-222, 231-240
+src\exchange\coinglass_fetcher.py                  37     27     14      0    20%   20-24, 49-76, 94-114
+src\main.py                                        55     55      8      0     0%   8-131
+src\models\__init__.py                              6      0      0      0   100%
+src\models\enums.py                                29      0      0      0   100%
+src\models\exceptions.py                           18      9      0      0    50%   14, 25-26, 33-37, 44
+src\models\identifiers.py                          43     16      4      0    57%   29, 34, 39, 42, 45-47, 50, 67, 72, 77, 80, 83-85, 88
+src\models\market_event.py                        384    180     92      0    43%   52, 57, 62, 180, 298, 303-306, 310, 489-519, 553-578, 587-593, 624-658, 683-703, 719-723, 754-775, 791-801, 821-851, 862-974, 988-1041, 1046, 1054, 1058, 1063-1065, 1070, 1073
+src\models\transition_guard.py                     75     38     18      0    40%   57, 62, 67, 72, 77, 82, 87, 92, 97, 131-141, 155-161, 173-174, 181-182, 193, 198-199, 204-206, 211, 216, 221, 226, 231-233, 245-247
+src\notification\__init__.py                       13      0      0      0   100%
+src\notification\delivery_result.py                71     13      4      0    77%   34-36, 62, 67, 76-78, 82, 117, 121, 125, 129
+src\notification\enums.py                          32      0      0      0   100%
+src\notification\exceptions.py                     72     35      0      0    51%   14, 21, 28-29, 36-37, 44-45, 52-53, 60-61, 68, 75-76, 90-94, 101, 108-109, 121-123, 135-137, 144-145, 152, 159, 166-167
+src\notification\formatter.py                     111     61     22      0    38%   33, 47, 67, 71, 76, 80, 85-88, 92-97, 101-103, 114-115, 119-124, 129-135, 139-143, 156-161, 165, 175-177, 185-190, 194, 212-215, 220
+src\notification\heartbeat.py                      29     14      2      0    48%   26-28, 32-33, 37, 41-42, 46-50, 54
+src\notification\notification.py                  122     70     10      0    39%   22, 28, 34, 40, 46, 52, 80, 93, 109, 119, 124, 130, 136, 148-151, 155-156, 160-161, 165-166, 170-171, 196-216, 224-227, 231-241, 245-252, 270-276
+src\notification\notification_engine.py           140    110     24      0    18%   44-84, 93-94, 98-99, 103-104, 108-109, 113-132, 136-150, 177-194, 198-244, 256-307, 313-314, 324
+src\notification\queue.py                         219    142     54      2    29%   41-44, 48-50, 72, 74, 115-149, 154-158, 175-200, 209-215, 230-241, 245-251, 263-269, 278-287, 291-297, 301, 305-306, 310-311, 315-316, 320, 324-325, 338-342, 345, 348, 356-357, 360-366, 370-371, 375-376, 380, 384, 388, 392-393, 397-398, 401, 404, 407, 410
+src\notification\rate_limiter.py                  190    146    106      4    16%   27, 29, 31, 33, 66-100, 112-139, 144-160, 165-180, 184-211, 216-231, 235-236, 240-243, 275-284, 296-310, 314-323, 327-331, 335-336, 340, 344
+src\notification\retry_policy.py                  128     84     56      6    27%   58, 60, 62, 64, 66, 68, 79-80, 94-109, 121-143, 147-152, 164-166, 170, 174, 192, 214-240, 260-283
+src\notification\telegram_service.py              286    233     84      0    14%   57-60, 73-76, 81-86, 91-97, 102-107, 112-120, 140-142, 175-183, 188, 192-214, 218-223, 226, 238-352, 373-463, 467-479, 483-490, 493, 496-501, 515-523
+src\notification\templates.py                      51     36     14      0    23%   20-22, 26-31, 35, 39-42, 58-64, 68, 72-86, 90, 94, 208, 213
+src\outcome\__init__.py                             3      0      0      0   100%
+src\outcome\exceptions.py                           5      0      0      0   100%
+src\outcome\outcome_tracker.py                    101     59     18      0    35%   33-35, 59-60, 64-66, 73-75, 83-97, 105-134, 138-139, 143-147, 151-152, 159-171
+src\scoring\__init__.py                             7      0      0      0   100%
+src\scoring\context.py                            103     33     10      0    62%   42-43, 62, 66-70, 74-78, 82-87, 102, 106-108, 154-156, 161, 165, 169, 212, 215, 222, 225
+src\scoring\exceptions.py                          39     13      0      0    67%   21-22, 29-30, 37-38, 61-62, 69-70, 77-78, 85
+src\scoring\parameter.py                           46     11      0      0    76%   27, 33, 39, 45, 51, 57, 63, 78, 93, 115, 137
+src\scoring\parameters\__init__.py                  3      0      0      0   100%
+src\scoring\parameters\candle_confirmation.py      77     53     22      0    24%   24, 28, 32, 40, 47-49, 56-115
+src\scoring\parameters\lower_wick.py               73     44     22      1    32%   38, 42, 46, 50, 53-57, 63, 69-111
+src\scoring\registry.py                           134     39     26      6    67%   75-76, 96->exit, 109-124, 157-160, 174, 192-212, 224-230, 247, 269, 295, 316-318, 334->336
+src\scoring\scoring_engine.py                     141     86     32      4    34%   17-19, 78, 96-97, 114-176, 187-192, 196-199, 203-204, 221-222, 248-268, 294-306, 324-325, 330-331, 337-339
+src\storage\__init__.py                             6      0      0      0   100%
+src\storage\exceptions.py                          45     22      0      0    51%   14, 21-22, 29-31, 38-39, 46-47, 54-55, 62-63, 70-71, 78, 85-87, 94-95
+src\storage\file_repository.py                    319    256     86      2    16%   52, 55, 58, 61-64, 67-85, 88-101, 104-112, 115-116, 119-120, 123-124, 127-128, 131-132, 135-136, 139-140, 143-148, 181->184, 185, 189-197, 201-213, 218-231, 237-255, 259-275, 287-300, 304-316, 320-338, 342-358, 362-365, 376-408, 417-431, 440-454, 463-477, 481-495, 499-502, 506-519, 523-533
+src\storage\repository.py                         280    216     36      0    20%   41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 95, 99, 103, 129-142, 151-169, 173-174, 189-194, 207-223, 238-242, 251-252, 267, 285-305, 323-345, 359-379, 392-404, 416-418, 434-446, 464-485, 497-512, 524-539, 551-566, 575-599, 608-609, 621-630, 634-636, 639, 642, 650-651, 660-670
+src\storage\serializers.py                         28     19      2      0    30%   26, 45-46, 62, 78-82, 95-96, 112-120
+src\storage\storage_engine.py                      53     20      2      0    60%   46, 68, 72, 89, 102, 114, 118, 135-137, 152, 166, 175, 184, 188, 192, 196, 204, 213, 234
+src\strategy\__init__.py                            7      0      0      0   100%
+src\strategy\context.py                           104     33     10      0    62%   42-43, 63, 67-71, 75-79, 83-88, 103, 107-109, 155-157, 162, 166, 170, 214, 217, 224, 227
+src\strategy\exceptions.py                         44     14      0      0    68%   21-22, 37-38, 45-46, 53-54, 69-70, 85-86, 93-94
+src\strategy\lw001_canonical.py                    98     76     20      0    19%   71-100, 144-174, 196, 232-467
+src\strategy\lw_001.py                             90     48     34      0    40%   66, 120-136, 162-266, 273
+src\strategy\registry.py                          133     55     28      4    53%   74-75, 95->exit, 110, 117, 156-159, 174, 184-198, 202-208, 219-221, 225-248, 262-270, 281-284, 292-293
+src\strategy\strategy.py                           42     10      0      0    76%   28, 34, 40, 46, 52, 58, 73, 89, 108, 131
+src\strategy\strategy_engine.py                   126     54     24      3    51%   92, 101-103, 117, 127, 151, 169-220, 224-259
+-------------------------------------------------------------------------------------------
+TOTAL                                            9152   5011   1896     97    39%
+Coverage HTML written to dir tests/coverage_html
+======================= 81 passed, 33 skipped in 10.15s =======================

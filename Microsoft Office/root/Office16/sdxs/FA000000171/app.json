@@ -1,0 +1,12 @@
+{
+  "components": {},
+  "runtime": {},
+  "assetsPath": ".",
+  "bundle": {
+    "fileName": "index.win32",
+    "extension": "bundle.js"
+  },
+  "packager": {
+    "fileName": "src/index"
+  }
+}

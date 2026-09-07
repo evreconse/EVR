@@ -1,0 +1,9 @@
+PLEASE NOTE:  Your use of the subscription service and software is subject to the terms and conditions of the agreement you agreed to when you signed up for the subscription and by which you acquired a license for the software.  For instance, if you are:
+
+• a volume license customer, use of this software is subject to your volume license agreement.
+• a Microsoft Online Subscription customer, use of this software is subject to the Microsoft Online Subscription agreement.
+
+You may not use the service or software if you have not validly acquired a license from Microsoft or its licensed distributors.
+
+If your organization is a Microsoft customer, it has enabled you to use certain connected services in Office 365. You may also have access to other connected services from Microsoft, which are covered by separate terms and privacy commitments.  Learn more about Microsoft’s other connected services at https://support.office.com/article/92c234f1-dc91-4dc1-925d-6c90fc3816d8
+
