@@ -1,0 +1,29 @@
+[Unit]
+Description=EVRECONSE LW-001 Realtime Monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=evreconse
+Group=evreconse
+WorkingDirectory=/home/evreconse
+ExecStart=/usr/bin/python3 realtime_lw001_monitor.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+Environment=EVRECONSE_EXCHANGE__API_KEY=LY4rJlgmbxIhuniKUTibI16IhHnu937kDdPLOBfbo7BnfjHR3g6e3dUXTWBOj4NT4ZV7l4BRUed9ryYOnFFQ
+Environment=EVRECONSE_EXCHANGE__API_SECRET=q9DmZfQGGFjqN2yC8VGXVVEw5Ecws2mSmYOHGEEXTKWKIjgcafyrvcQrhKg4YAlBrj8rWaUUVxLiaOjA
+Environment=EVRECONSE_EXCHANGE_API_KEY=LY4rJlgmbxIhuniKUTibI16IhHnu937kDdPLOBfbo7BnfjHR3g6e3dUXTWBOj4NT4ZV7l4BRUed9ryYOnFFQ
+Environment=EVRECONSE_EXCHANGE_API_SECRET=q9DmZfQGGFjqN2yC8VGXVVEw5Ecws2mSmYOHGEEXTKWKIjgcafyrvcQrhKg4YAlBrj8rWaUUVxLiaOjA
+Environment=EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN=8693203470:AAF3eRn8WHUXHiJSP0V6di02cMvgebHzmPc
+Environment=EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID=8307060083
+Environment=EVRECONSE_COINGLASS_API_KEY=eddcf24e1c8f492298d7ad7d2f8a0702
+Environment=EVRECONSE_SYSTEM__LOG_LEVEL=INFO
+Environment=EVRECONSE_SYSTEM__TIMEZONE=UTC
+Environment=EVRECONSE_STORAGE__DATA_PATH=./data
+Environment=EVRECONSE_SYSTEM__LOG_PATH=./logs/evreconse.log
+
+[Install]
+WantedBy=multi-user.target
