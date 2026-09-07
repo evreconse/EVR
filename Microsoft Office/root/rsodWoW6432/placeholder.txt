@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Ingredients>
+  <FileSystem>
+    <!--File elements here
+	This is a placeholder file to create valid export entries in the pkgclient projects in lieu of changes being done in the click2runappv branch
+	The 
+    -->
+  </FileSystem>
+  <Environment>
+    <!--Environment elements here-->
+  </Environment>
+</Ingredients>

@@ -1,0 +1,542 @@
+[
+  {
+    "symbol": "NEAR-USDT",
+    "signal_time": "2026-06-05 16:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "ONDO-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "TAO-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "ENA-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "ENA-USDT",
+    "signal_time": "2026-06-05 06:15:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "WLFI-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "DOT-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "UNI-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "ATOM-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "INJ-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "XPL-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "FARTCOIN-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "ICP-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "SIREN-USDT",
+    "signal_time": "2026-06-02 13:30:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "SIREN-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "SIREN-USDT",
+    "signal_time": "2026-06-07 18:30:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "ARB-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "APT-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "ZRO-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "KITE-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "CRV-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "WIF-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "PENGU-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "VIRTUAL-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "SEI-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "HOME-USDT",
+    "signal_time": "2026-06-04 17:45:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "RENDER-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "PENDLE-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "POL-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  },
+  {
+    "symbol": "OP-USDT",
+    "signal_time": "2026-06-04 02:00:00+00:00",
+    "timeframes": {
+      "15m": {
+        "error": "list index out of range"
+      },
+      "1h": {
+        "error": "list index out of range"
+      },
+      "4h": {
+        "error": "list index out of range"
+      },
+      "1d": {
+        "error": "list index out of range"
+      }
+    }
+  }
+]

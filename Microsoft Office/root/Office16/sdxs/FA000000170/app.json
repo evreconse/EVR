@@ -1,0 +1,22 @@
+{
+  "components": {
+    "sdx_fiodialogs.app": {
+      "displayName": "sdx_fiodialogs"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 920,
+        "height": 520
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32"
+  },
+  "packager": {
+    "fileName": "src/index"
+  }
+}

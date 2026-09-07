@@ -1,0 +1,36 @@
+{
+  "components": {
+    "start.copilot.word": {},
+    "insert.copilot.word": {},
+    "textToTable.copilot.word": {},
+    "fre.copilot.word": {},
+    "rewrite.copilot.word": {},
+    "draftWithSelection.copilot.word": {},
+    "summary.copilot.word": {},
+    "todforstarters.copilot.word": {},
+    "proactivestart.copilot.word": {},
+    "sidetrackCard.copilot.word": {},
+    "ipe.copilot.word": {},
+    "dab.copilot.word": {},
+    "summarybackstage.copilot.word": {},
+    "catchupglance.copilot.word": {},
+    "catchup.copilot.word": {},
+    "summaryglance.copilot.word": {},
+    "home.copilot.universal": {},
+    "writingCoach.copilot.word": {},
+    "vibewriting.copilot.word": {},
+    "vibewritinglocal.copilot.word": {},
+    "nudge.copilot.word": {},
+    "readaloud.copilot.word": {}
+  },
+  "runtime": {},
+  "assetsPath": ".",
+  "bundle": {
+    "fileName": "WordCopilot",
+    "extension": "js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/WordCopilot"
+  }
+}

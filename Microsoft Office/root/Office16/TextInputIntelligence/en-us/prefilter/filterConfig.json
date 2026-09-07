@@ -1,0 +1,10 @@
+{
+    "TrieType" : "PhraseTokenTrie",
+    "FilterType" : "Pre",
+    "CaseSensitivity" : {
+        "CaseSensitivityType" : "StrictlyCaseInSensitive",
+        "BuildCaseInsensitivityType" : "lower"
+     },
+    "PhraseFilterFileName" : "filter_phrase.bin",
+    "TokenFilterFileName" : "filter_token.bin"
+}

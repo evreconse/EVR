@@ -1,0 +1,24 @@
+{
+  "components": {
+    "sdx_quickstart.app": {
+      "displayName": "sdx-excel-gridsense"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 320,
+        "height": 450
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "sdx-excel-gridsense.win32",
+    "extension": "bundle.js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/sdx-excel-gridsense"
+  }
+}

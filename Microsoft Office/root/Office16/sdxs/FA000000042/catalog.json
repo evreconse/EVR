@@ -1,0 +1,8 @@
+{
+    "1.0": [
+        "mecontrol.win32.bundle",
+        "strings.resjson",
+        "mecontrol.png",
+        "manifest.xml"
+    ]
+}

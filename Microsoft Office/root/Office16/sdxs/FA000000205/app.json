@@ -1,0 +1,16 @@
+{
+  "components": {
+    "mathcreator": {
+      "displayName": "Math Creator"
+    }
+  },
+  "runtime": {},
+  "bundle": {
+    "fileName": "index.win32",
+    "extension": "bundle.js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/index"
+  }
+}

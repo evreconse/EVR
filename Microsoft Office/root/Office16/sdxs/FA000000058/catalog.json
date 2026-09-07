@@ -1,0 +1,23 @@
+{
+    "1.0": [
+        "AccCheckerStrings.resjson",
+        "AutoReplaceStrings.resjson",
+        "CatchUpStrings.resjson",
+        "CommonStrings.resjson",
+        "CritiqueExplanationStrings.resjson",
+        "CritiqueStrings.resjson",
+        "FeedbackStrings.resjson",
+        "FooterFREStrings.resjson",
+        "index.win32.bundle",
+        "InlineSuggestionsStrings.resjson",
+        "NeuralRewriteStrings.resjson",
+        "SimilarityCheckerStrings.resjson",
+        "SummarizationCommandBarStrings.resjson",
+        "TermDefinitionStrings.resjson",
+        "TextFormattingStrings.resjson",
+        "TextPenAlternates.resjson",
+        "TrackChangesStrings.resjson",
+        "StoreLogo.png",
+        "manifest.xml"
+    ]
+}

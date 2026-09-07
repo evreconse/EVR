@@ -1,0 +1,22 @@
+{
+  "components": {
+    "sdx_shared_localsavedownselldialog.app": {
+      "displayName": "sdx_shared_localsavedownselldialog"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 920,
+        "height": 580
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32"
+  },
+  "packager": {
+    "fileName": "src/index"
+  }
+}

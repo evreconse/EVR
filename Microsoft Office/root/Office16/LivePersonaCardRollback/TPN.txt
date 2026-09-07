@@ -1,0 +1,175 @@
+Third Party Notices
+
+This file is based on or incorporates material from the projects listed below (Third Party IP). The original copyright notice and the
+license under which Microsoft received such Third Party IP, are set forth below. Such licenses and notices are provided for informational
+purposes only. Microsoft licenses the Third Party IP to you under the licensing terms for the Microsoft product. Microsoft reserves all
+other rights not expressly granted under this agreement, whether by implication, estoppel or otherwise.
+
+
+===
+
+@babel/runtime 7.22.5: MIT License, Copyright (c) 2014-present Sebastian McKenzie and other contributors
+@fluentui-react-native/adapters 0.11.3: MIT License, No copyright notice
+@fluentui-react-native/button 0.11.1: MIT License, No copyright notice
+@fluentui-react-native/callout 0.12.1: MIT License, No copyright notice
+@fluentui-react-native/checkbox 0.8.1: MIT License, No copyright notice
+@fluentui-react-native/component-cache 1.1.0: MIT License, No copyright notice
+@fluentui-react-native/composition 0.4.1: MIT License, No copyright notice
+@fluentui-react-native/contextual-menu 0.5.1: MIT License, No copyright notice
+@fluentui-react-native/default-theme 0.19.7: MIT License, No copyright notice
+@fluentui-react-native/design-tokens-win32 0.53.0: MIT License, No copyright notice
+@fluentui-react-native/design-tokens-windows 0.53.0: MIT License, No copyright notice
+@fluentui-react-native/focus-trap-zone 0.5.0: MIT License, No copyright notice
+@fluentui-react-native/focus-zone 0.3.0: MIT License, No copyright notice
+@fluentui-react-native/framework 0.4.2: MIT License, No copyright notice
+@fluentui-react-native/immutable-merge 1.2.1: MIT License, No copyright notice
+@fluentui-react-native/interactive-hooks 0.7.0: MIT License, No copyright notice
+@fluentui-react-native/link 0.10.1: MIT License, No copyright notice
+@fluentui-react-native/memo-cache 1.3.1: MIT License, No copyright notice
+@fluentui-react-native/merge-props 0.2.0: MIT License, No copyright notice
+@fluentui-react-native/merge-props 0.7.1: MIT License, No copyright notice
+@fluentui-react-native/persona-coin 0.5.1: MIT License, No copyright notice
+@fluentui-react-native/persona 0.7.1: MIT License, No copyright notice
+@fluentui-react-native/pressable 0.4.0: MIT License, No copyright notice
+@fluentui-react-native/radio-group 0.8.1: MIT License, No copyright notice
+@fluentui-react-native/separator 0.7.2: MIT License, No copyright notice
+@fluentui-react-native/shimmer 0.3.3: MIT License, Microsoft <fluentuinativeowners@microsoft.com>
+@fluentui-react-native/text 0.7.1: MIT License, No copyright notice
+@fluentui-react-native/theme-tokens 0.25.1: MIT License, No copyright notice
+@fluentui-react-native/theme-types 0.32.0: MIT License, No copyright notice
+@fluentui-react-native/theme 0.9.1: MIT License, No copyright notice
+@fluentui-react-native/theming-utils 0.24.4: MIT License, No copyright notice
+@fluentui-react-native/tokens 0.21.3: MIT License, No copyright notice
+@fluentui-react-native/use-slots 0.4.0: MIT License, No copyright notice
+@fluentui-react-native/use-styling 0.4.0: MIT License, No copyright notice
+@fluentui-react-native/win32-theme 0.5.2: MIT License, No copyright notice
+@fluentui/merge-styles 8.5.15: MIT License, Copyright (c) Microsoft Corporation
+@fluentui/react-native 0.21.6: MIT License, No copyright notice
+@fluentui/utilities 8.13.24: MIT License, Copyright (c) Microsoft Corporation
+@haul-bundler/preset-0.59 0.18.0: MIT License, Copyright (c) 2017 Mike Grabowski
+@react-native-clipboard/clipboard 1.11.0: MIT License, Copyright (c) 2015-present, Facebook, Inc.
+@react-native-community/async-storage 1.12.1: MIT License, Copyright (c) 2015-present, Facebook, Inc.
+@react-native-community/clipboard 1.5.1: MIT License, Copyright (c) 2015-present, Facebook, Inc.
+@uifabricshared/foundation-composable 0.7.0: MIT License, No copyright notice
+@uifabricshared/foundation-compose 1.7.2: MIT License, No copyright notice
+@uifabricshared/foundation-settings 0.13.2: MIT License, No copyright notice
+@uifabricshared/foundation-settings 0.8.0: MIT License, No copyright notice
+@uifabricshared/foundation-tokens 0.8.0: MIT License, No copyright notice
+@uifabricshared/themed-settings 0.5.0: MIT License, No copyright notice
+@uifabricshared/theming-ramp 0.19.1: MIT License, No copyright notice
+assert-never 1.2.1: MIT License, Daniel Lytkin <dan.lytkin@gmail.com>
+base64-js 1.5.1: MIT License, Copyright (c) 2014 Jameson Little
+buffer 4.9.2: MIT License, Copyright (c) Feross Aboukhadijeh, and other contributors.
+call-bind 1.0.2: MIT License, Copyright (c) 2020 Jordan Harband
+decode-uri-component 0.2.2: MIT License, Copyright (c) 2017, Sam Verschueren <sam.verschueren@gmail.com> (github.com/SamVerschueren)
+filter-obj 1.1.0: MIT License, Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+function-bind 1.1.1: MIT License, Copyright (c) 2013 Raynos.
+get-intrinsic 1.2.0: MIT License, Copyright (c) 2020 Jordan Harband
+has-symbols 1.0.3: MIT License, Copyright (c) 2016 Jordan Harband
+has 1.0.3: MIT License, Thiago de Arruda
+hoist-non-react-statics 3.3.2: BSD-3-Clause License, Copyright (c) 2015, Yahoo! Inc. All rights reserved.
+ieee754 1.2.1: BSD-3-Clause License, Copyright 2008 Fair Oaks Labs, Inc.
+invariant 2.2.4: MIT License, Copyright (c) 2013-present, Facebook, Inc.
+isarray 1.0.0: MIT License, Julian Gruber
+just-curry-it 3.1.0: MIT License, Copyright (c) 2016 angus croll
+lodash-es 4.17.21: MIT License, Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
+object-assign 4.1.1: MIT License, Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+object-inspect 1.12.3: MIT License, Copyright (c) 2013 James Halliday
+performance-now 2.1.0: MIT License, Braveg1rl <braveg1rl@outlook.com>
+plurals-cldr 1.0.4: MIT License, Copyright (C) 2014 by Vitaly Puzrin
+process 0.11.10: MIT License, Copyright (c) 2013 Roman Shtylman <shtylman@gmail.com>
+prop-types 15.8.1: MIT License, Copyright (c) 2013-present, Facebook, Inc.
+punycode 1.4.1: MIT License, Copyright Mathias Bynens <https://mathiasbynens.be/>
+qs 6.11.2: BSD-3-Clause License, Copyright (c) 2014, Nathan LaFreniere and other [contributors](https://github.com/ljharb/qs/graphs/contributors)
+query-string 6.14.1: MIT License, Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (http://sindresorhus.com)
+querystringify 2.1.1: MIT License, Copyright (c) 2015 Unshift.io, Arnout Kazemier,  the Contributors.
+react-dom 17.0.2: MIT License, Copyright (c) Facebook, Inc. and its affiliates.
+react-is 17.0.2: MIT License, Copyright (c) Facebook, Inc. and its affiliates.
+react-native-base64 0.2.1: MIT License, Copyright (c) 2018 
+react-query 3.39.1: MIT License, Copyright (c) 2019 Tanner Linsley
+react-redux 7.2.9: MIT License, Copyright (c) 2015-present Dan Abramov
+react-router 6.3.0: MIT License, Copyright (c) React Training 2015-2019
+redux-actions 2.6.5: MIT License, Copyright (c) Andrew Clark
+redux-devtools-extension 2.13.8: MIT License, Mihail Diordiev <zalmoxisus@gmail.com> (https://github.com/zalmoxisus)
+redux 4.2.1: MIT License, Copyright (c) 2015-present Dan Abramov
+requires-port 1.0.0: MIT License, Copyright (c) 2015 Unshift.io, Arnout Kazemier,  the Contributors.
+reselect 3.0.1: MIT License, Copyright (c) 2015-2016 Reselect Contributors
+scheduler 0.15.0: MIT License, Copyright (c) Facebook, Inc. and its affiliates.
+showdown 2.1.0: MIT License, Copyright (c) 2018,2021 ShowdownJS
+side-channel 1.0.4: MIT License, Copyright (c) 2019 Jordan Harband
+singleton-state 1.0.1: MIT License, Copyright (c) 2023 Steffen Viken Valvåg
+split-on-first 1.1.0: MIT License, Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+strict-uri-encode 2.0.0: MIT License, Copyright (c) Kevin Martensson <kevinmartensson@gmail.com> (github.com/kevva)
+to-camel-case 1.0.0: MIT License, No copyright notice
+to-no-case 1.0.2: MIT License, No copyright notice
+to-space-case 1.0.0: MIT License, No copyright notice
+tslib 2.5.0: 0BSD License, Copyright (c) Microsoft Corporation.
+url-parse 1.5.10: MIT License, Copyright (c) 2015 Unshift.io, Arnout Kazemier,  the Contributors.
+url 0.11.3: MIT License, Copyright 2014 Joyent, Inc. and other Node contributors.
+validator 13.7.0: MIT License, Copyright (c) 2018 Chris O'Hara <cohara87@gmail.com>
+
+===
+
+# Apache-2.0 License
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+===
+
+# BSD-3-Clause License
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation and/or
+other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+may be used to endorse or promote products derived from this software without
+specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+===
+
+# MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

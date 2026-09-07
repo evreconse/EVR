@@ -1,0 +1,13 @@
+{
+  "components": {},
+  "runtime": {},
+  "assetsPath": ".",
+  "bundle": {
+    "fileName": "ExcelDab",
+    "extension": "js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/ExcelDab"
+  }
+}

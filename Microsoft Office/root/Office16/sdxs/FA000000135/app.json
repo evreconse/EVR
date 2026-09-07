@@ -1,0 +1,25 @@
+{
+  "components": {
+    "sdx-gdpr.app": {
+      "displayName": "Privacy Settings"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 784,
+        "height": 630
+      }
+    }
+  },
+  "assetsPath": "assets",
+  "bundle": {
+    "fileName": "privacy-sdx",
+    "extension": "win32.bundle.js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/privacy-sdx"
+  }
+}

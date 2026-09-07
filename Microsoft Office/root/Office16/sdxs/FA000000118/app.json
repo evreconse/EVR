@@ -1,0 +1,22 @@
+{
+  "components": {
+    "sdx_excel_python_center.app": {
+      "displayName": "sdx_excel_python_center"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "taskpane"
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32",
+    "extension": "bundle.js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/index"
+  }
+}

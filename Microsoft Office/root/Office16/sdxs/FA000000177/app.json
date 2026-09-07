@@ -1,0 +1,16 @@
+{
+  "components": {
+    "sdx_excel_experiences.app": {
+      "displayName": "sdx_excel_experiences"
+    }
+  },
+  "runtime": {},
+  "assetsPath": ".",
+  "bundle": {
+    "fileName": "index.win32",
+    "extension": "bundle.js"
+  },
+  "packager": {
+    "fileName": "src/index"
+  }
+}

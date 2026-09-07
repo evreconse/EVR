@@ -1,0 +1,262 @@
+{
+  "target_metrics": {
+    "range_percent": 4.0,
+    "body_percent": 1.8,
+    "lower_wick_body_ratio": 2.0,
+    "lower_wick_range_ratio": 0.6,
+    "open_to_low_percent": -5.0,
+    "volume_ratio": 2.0
+  },
+  "selected_signals": [
+    {
+      "symbol": "STG-USDT",
+      "event_time": "07.08.2026 03:30 UTC",
+      "event_time_msk": "07.08.2026 03:30 MSK",
+      "timestamp_ms": 1786073400000,
+      "open": 0.1764,
+      "high": 0.1764,
+      "low": 0.1679,
+      "close": 0.1732,
+      "volume": 168817.0,
+      "metrics": {
+        "body_percent": 1.8475750577367254,
+        "range_percent": 4.907621247113168,
+        "lower_wick_body_ratio": 1.6562499999999953,
+        "lower_wick_range_ratio": 0.6235294117647052,
+        "open_to_low_percent": -4.818594104308394,
+        "volume_ratio": 1.6865096312680168
+      },
+      "deviation": 1.8173719810381925,
+      "performance": {
+        "result": "SL",
+        "time_to_result_candles": 1,
+        "max_adverse": 3.060046189376443
+      }
+    },
+    {
+      "symbol": "SIREN-USDT",
+      "event_time": "08.08.2026 02:15 UTC",
+      "event_time_msk": "08.08.2026 02:15 MSK",
+      "timestamp_ms": 1786155300000,
+      "open": 0.03915,
+      "high": 0.03925,
+      "low": 0.03765,
+      "close": 0.03848,
+      "volume": 1611321.9,
+      "metrics": {
+        "body_percent": 1.7411642411642332,
+        "range_percent": 4.15800415800415,
+        "lower_wick_body_ratio": 1.2388059701492555,
+        "lower_wick_range_ratio": 0.5187499999999993,
+        "open_to_low_percent": -3.8314176245210585,
+        "volume_ratio": 1.8522105078463895
+      },
+      "deviation": 2.3756558143232143,
+      "performance": {
+        "result": "SL",
+        "time_to_result_candles": 2,
+        "max_adverse": 27.72869022869023
+      }
+    },
+    {
+      "symbol": "ALICE-USDT",
+      "event_time": "12.08.2026 21:15 UTC",
+      "event_time_msk": "12.08.2026 21:15 MSK",
+      "timestamp_ms": 1786569300000,
+      "open": 0.1172,
+      "high": 0.1173,
+      "low": 0.1128,
+      "close": 0.1158,
+      "volume": 159060.4,
+      "metrics": {
+        "body_percent": 1.2089810017271143,
+        "range_percent": 3.886010362694304,
+        "lower_wick_body_ratio": 2.1428571428571472,
+        "lower_wick_range_ratio": 0.6666666666666666,
+        "open_to_low_percent": -3.754266211604097,
+        "volume_ratio": 1.5142933087177988
+      },
+      "deviation": 2.6459729247804997,
+      "performance": {
+        "result": "NO_REVERSAL",
+        "time_to_result_candles": null,
+        "max_adverse": 2.5906735751295358
+      }
+    },
+    {
+      "symbol": "STORJ-USDT",
+      "event_time": "14.08.2026 07:00 UTC",
+      "event_time_msk": "14.08.2026 07:00 MSK",
+      "timestamp_ms": 1786690800000,
+      "open": 0.04532,
+      "high": 0.04532,
+      "low": 0.04326,
+      "close": 0.04418,
+      "volume": 1146569.0,
+      "metrics": {
+        "body_percent": 2.5803531009506617,
+        "range_percent": 4.662743322770483,
+        "lower_wick_body_ratio": 0.8070175438596452,
+        "lower_wick_range_ratio": 0.4466019417475716,
+        "open_to_low_percent": -4.545454545454544,
+        "volume_ratio": 2.176295522577019
+      },
+      "deviation": 3.420317915236403,
+      "performance": {
+        "result": "TP",
+        "time_to_result_candles": 2,
+        "max_adverse": 2.082390221819822
+      }
+    },
+    {
+      "symbol": "GALA-USDT",
+      "event_time": "12.08.2026 21:15 UTC",
+      "event_time_msk": "12.08.2026 21:15 MSK",
+      "timestamp_ms": 1786569300000,
+      "open": 0.001668,
+      "high": 0.001672,
+      "low": 0.001612,
+      "close": 0.001641,
+      "volume": 22049438.0,
+      "metrics": {
+        "body_percent": 1.6453382084095,
+        "range_percent": 3.656307129798912,
+        "lower_wick_body_ratio": 1.0740740740740842,
+        "lower_wick_range_ratio": 0.4833333333333348,
+        "open_to_low_percent": -3.3573141486810587,
+        "volume_ratio": 1.5678332542872808
+      },
+      "deviation": 3.6157998514158294,
+      "performance": {
+        "result": "NO_REVERSAL",
+        "time_to_result_candles": null,
+        "max_adverse": 1.7672151127361462
+      }
+    },
+    {
+      "symbol": "HOME-USDT",
+      "event_time": "14.08.2026 09:00 UTC",
+      "event_time_msk": "14.08.2026 09:00 MSK",
+      "timestamp_ms": 1786698000000,
+      "open": 0.011164,
+      "high": 0.011201,
+      "low": 0.010588,
+      "close": 0.010913,
+      "volume": 12696942.0,
+      "metrics": {
+        "body_percent": 2.300009163383116,
+        "range_percent": 5.617153853202592,
+        "lower_wick_body_ratio": 1.2948207171314792,
+        "lower_wick_range_ratio": 0.530179445350736,
+        "open_to_low_percent": -5.159441060551774,
+        "volume_ratio": 1.4188603277933554
+      },
+      "deviation": 3.632743586861912,
+      "performance": {
+        "result": "SL",
+        "time_to_result_candles": 13,
+        "max_adverse": 4.370933748740034
+      }
+    },
+    {
+      "symbol": "BOME-USDT",
+      "event_time": "15.08.2026 18:00 UTC",
+      "event_time_msk": "15.08.2026 18:00 MSK",
+      "timestamp_ms": 1786816800000,
+      "open": 0.0008774,
+      "high": 0.0008816,
+      "low": 0.0008423,
+      "close": 0.0008578,
+      "volume": 211568256.0,
+      "metrics": {
+        "body_percent": 2.284914898577749,
+        "range_percent": 4.581487526229881,
+        "lower_wick_body_ratio": 0.7908163265306147,
+        "lower_wick_range_ratio": 0.39440203562341036,
+        "open_to_low_percent": -4.000455892409384,
+        "volume_ratio": 1.84092542518608
+      },
+      "deviation": 3.639802745058141,
+      "performance": {
+        "result": "TP",
+        "time_to_result_candles": 6,
+        "max_adverse": 1.8069480065283279
+      }
+    },
+    {
+      "symbol": "ONE-USDT",
+      "event_time": "15.08.2026 08:15 UTC",
+      "event_time_msk": "15.08.2026 08:15 MSK",
+      "timestamp_ms": 1786781700000,
+      "open": 0.000758,
+      "high": 0.000763,
+      "low": 0.000734,
+      "close": 0.000744,
+      "volume": 20300298.0,
+      "metrics": {
+        "body_percent": 1.881720430107529,
+        "range_percent": 3.897849462365599,
+        "lower_wick_body_ratio": 0.7142857142857154,
+        "lower_wick_range_ratio": 0.3448275862068968,
+        "open_to_low_percent": -3.1662269129287655,
+        "volume_ratio": 1.8192593937782566
+      },
+      "deviation": 3.7392713605422956,
+      "performance": {
+        "result": "SL",
+        "time_to_result_candles": 7,
+        "max_adverse": 3.360215053763435
+      }
+    },
+    {
+      "symbol": "VET-USDT",
+      "event_time": "12.08.2026 22:00 UTC",
+      "event_time_msk": "12.08.2026 22:00 MSK",
+      "timestamp_ms": 1786572000000,
+      "open": 0.00448,
+      "high": 0.004483,
+      "low": 0.004343,
+      "close": 0.004415,
+      "volume": 10163946.0,
+      "metrics": {
+        "body_percent": 1.4722536806342006,
+        "range_percent": 3.1710079275198275,
+        "lower_wick_body_ratio": 1.1076923076923086,
+        "lower_wick_range_ratio": 0.514285714285713,
+        "open_to_low_percent": -3.058035714285714,
+        "volume_ratio": 1.8773582602913983
+      },
+      "deviation": 4.199366395290838,
+      "performance": {
+        "result": "TP",
+        "time_to_result_candles": 82,
+        "max_adverse": 1.630804077010193
+      }
+    },
+    {
+      "symbol": "JTO-USDT",
+      "event_time": "06.08.2026 08:30 UTC",
+      "event_time_msk": "06.08.2026 08:30 MSK",
+      "timestamp_ms": 1786005000000,
+      "open": 0.4938,
+      "high": 0.4943,
+      "low": 0.4784,
+      "close": 0.4876,
+      "volume": 148021.038,
+      "metrics": {
+        "body_percent": 1.2715340442986134,
+        "range_percent": 3.260869565217397,
+        "lower_wick_body_ratio": 1.483870967741924,
+        "lower_wick_range_ratio": 0.5786163522012561,
+        "open_to_low_percent": -3.118671526933986,
+        "volume_ratio": 2.6182112242976987
+      },
+      "deviation": 4.304648767904522,
+      "performance": {
+        "result": "SL",
+        "time_to_result_candles": 42,
+        "max_adverse": 3.650533223954057
+      }
+    }
+  ]
+}

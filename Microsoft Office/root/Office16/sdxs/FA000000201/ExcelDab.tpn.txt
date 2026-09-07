@@ -1,0 +1,255 @@
+@babel/runtime 7.28.4
+--
+MIT License
+
+Copyright (c) 2014-present Sebastian McKenzie and other contributors
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+========================================================================
+
+@fluentui-react-native/adapters 0.13.5
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/composition 0.11.12
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/default-theme 0.26.13
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/design-tokens-win32 0.53.0
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/design-tokens-windows 0.53.0
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/divider 0.7.19
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/focus-zone 0.21.11
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/framework 0.14.13
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/framework-base 0.2.1
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/icon 0.21.19
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/interactive-hooks 0.27.15
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/text 0.24.17
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/theme 0.11.12
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/theme-tokens 0.27.7
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/theme-types 0.40.0
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/themed-stylesheet 1.7.11
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/theming-utils 0.26.7
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/tokens 0.23.7
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/use-slot 0.6.12
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/use-slots 0.10.12
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/use-styling 0.13.12
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/use-tokens 0.6.12
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@fluentui-react-native/win32-theme 0.35.0
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@uifabricshared/foundation-composable 0.13.11
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@uifabricshared/foundation-compose 1.15.13
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@uifabricshared/foundation-settings 0.15.11
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@uifabricshared/foundation-tokens 0.15.13
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@uifabricshared/themed-settings 0.12.11
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+@uifabricshared/theming-ramp 0.20.13
+--
+Licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+assert-never 1.2.1
+--
+Copyright Daniel Lytkin <dan.lytkin@gmail.com>; licensed under MIT (https://spdx.org/licenses/MIT.html)
+
+========================================================================
+
+he 1.2.0
+--
+Copyright Mathias Bynens <https://mathiasbynens.be/>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+========================================================================
+
+invariant 2.2.4
+--
+MIT License
+
+Copyright (c) 2013-present, Facebook, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

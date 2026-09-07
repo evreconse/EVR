@@ -1,0 +1,24 @@
+{
+  "components": {
+    "sdx-uxpp-headless.app": {
+      "displayName": "Headless UXPP"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 450,
+        "height": 400,
+        "showOkButton": true,
+        "showCancelButton": true
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32"
+  },
+  "packager": {
+    "fileName": "src/HeadlessApp/index"
+  }
+}

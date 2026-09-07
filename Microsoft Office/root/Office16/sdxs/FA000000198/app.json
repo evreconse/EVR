@@ -1,0 +1,24 @@
+{
+  "components": {
+    "sdx_cloudcreateonboarding.app": {
+      "displayName": "sdx-cloudcreateonboarding"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 400,
+        "height": 580
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "sdx-cloudcreateonboarding.win32",
+    "extension": "bundle.js"
+  },
+  "packager": {
+    "host": "localhost:8081",
+    "fileName": "src/sdx-cloudcreateonboarding"
+  }
+}

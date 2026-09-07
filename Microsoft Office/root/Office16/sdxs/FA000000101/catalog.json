@@ -1,0 +1,11 @@
+{
+    "1.0": [
+        "app.json",
+        "assets\\assets\\UCVisualDark.png",
+        "assets\\assets\\UCVisualWhite.png",
+        "tester.win32.bundle",
+        "unified_consent_ui.win32.bundle",
+        "StoreLogo.png",
+        "manifest.xml"
+    ]
+}

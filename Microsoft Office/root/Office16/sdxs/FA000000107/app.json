@@ -1,0 +1,28 @@
+{
+  "components": {
+    "sdx_memory.app": {
+      "displayName": "sdx_memory"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "dialog",
+        "width": 450,
+        "height": 400,
+        "showOkButton": true,
+        "showCancelButton": true
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32"
+  },
+  "resources": {
+    "win32": [
+      "assets/strings.resjson",
+      "dist/win32/ship/assets",
+      "dist/win32/ship/index.win32.bundle"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "components": {
+    "sdx_excel_guided_reapply.app": {
+      "displayName": "sdx_excel_guided_reapply"
+    }
+  },
+  "runtime": {
+    "win32": {
+      "container": {
+        "type": "taskpane"
+      }
+    }
+  },
+  "bundle": {
+    "fileName": "index.win32"
+  },
+  "packager": {
+    "fileName": "src/index"
+  }
+}

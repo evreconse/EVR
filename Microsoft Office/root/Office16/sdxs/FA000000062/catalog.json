@@ -1,0 +1,16 @@
+{
+    "1.0": [
+        "CritiqueCategoryStrings.resjson",
+        "DrillInPaneStrings.resjson",
+        "GiveFeedbackStrings.resjson",
+        "GoalsStrings.resjson",
+        "index.win32.bundle",
+        "MultilingualTagsStrings.resjson",
+        "PremiumPreviewStrings.resjson",
+        "ProofingStrings.resjson",
+        "SimilarityStrings.resjson",
+        "WritingAnalyticsStrings.resjson",
+        "StoreLogo.png",
+        "manifest.xml"
+    ]
+}
