@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 
-from core import get_logger
+from src.core import get_logger
 
 from .bootstrap import BootstrapContext, bootstrap, shutdown
 from .exceptions import (

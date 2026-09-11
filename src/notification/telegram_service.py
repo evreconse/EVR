@@ -20,7 +20,7 @@ from pathlib import Path
 import aiohttp
 from aiohttp import ClientSession, ClientTimeout
 
-from core import get_logger
+from src.core import get_logger
 
 from .exceptions import (
     AuthenticationError,

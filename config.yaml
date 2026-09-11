@@ -98,3 +98,21 @@ risk:
   monitoring:
     max_duration_hours: 24
     expire_after_hours: 48
+
+cmc:
+  enabled: true
+  api_key: ""  # Set via EVRECONSE_CMC_API_KEY
+  base_url: "https://pro-api.coinmarketcap.com"
+  timeout_seconds: 10
+  max_retries: 3
+  retry_base_delay: 2.0
+  retry_max_delay: 30.0
+  rate_limit_rpm: 30
+  universe_refresh_cron: "0 0 * * *"  # daily 00:00 UTC
+  validation:
+    max_stale_hours: 72
+  cache:
+    db_path: "./data/cmc_universe.db"
+    ttl_hours: 24
+    max_stale_hours: 72
+    fallback_file: "./data/last_good_universe.json"

@@ -3,7 +3,7 @@
 Real-time LW-001 Monitor
 
 Monitors 15m candles in real-time and sends signals to Telegram when conditions are met.
-Uses fixed parameters from Production Spec.
+Uses fixed parameters from Production Spec with dynamic CMC Universe.
 """
 
 import sys
@@ -95,59 +95,6 @@ def load_sent_signals_to_memory():
 # Load sent signals into memory for fast checks
 SENT_SIGNALS = load_sent_signals_to_memory()
 
-# Top-20 symbols to exclude
-TOP_20_EXCLUDE = {
-    "BTC-USDT", "ETH-USDT", "BNB-USDT", "SOL-USDT", "XRP-USDT",
-    "DOGE-USDT", "ADA-USDT", "TRX-USDT", "TON-USDT", "AVAX-USDT",
-    "SHIB-USDT", "DOT-USDT", "LINK-USDT", "MATIC-USDT", "PEPE-USDT",
-    "LTC-USDT", "ATOM-USDT", "NEAR-USDT", "OP-USDT", "ARB-USDT"
-}
-
-# Mid-tier symbols (rank 21-250 from CoinMarketCap, filtered)
-MID_TIER_SYMBOLS = [
-    "GRAM-USDT", "HBAR-USDT", "SUI-USDT", "UNI-USDT", "CRO-USDT",
-    "TAO-USDT", "M-USDT", "OKB-USDT", "AAVE-USDT", "ASTER-USDT",
-    "PUMP-USDT", "WLFI-USDT", "ONDO-USDT", "MNT-USDT", "SKY-USDT",
-    "ENA-USDT", "WLD-USDT", "BGB-USDT", "ICP-USDT", "MORPHO-USDT",
-    "U-USDT", "ETC-USDT", "POL-USDT", "PI-USDT", "KCS-USDT",
-    "GT-USDT", "LIT-USDT", "VVV-USDT", "KAS-USDT", "ALGO-USDT",
-    "JST-USDT", "JUP-USDT", "RENDER-USDT", "QNT-USDT", "TRUMP-USDT",
-    "VET-USDT", "XDC-USDT", "PENGU-USDT", "FIL-USDT", "FLR-USDT",
-    "NEXO-USDT", "CAKE-USDT", "ETHFI-USDT", "INJ-USDT", "SPX-USDT",
-    "AERO-USDT", "DASH-USDT", "CRV-USDT", "STX-USDT", "APT-USDT",
-    "VIRTUAL-USDT", "ZRO-USDT", "PYTH-USDT", "FET-USDT", "SEI-USDT",
-    "BSV-USDT", "NIGHT-USDT", "MON-USDT", "SUN-USDT", "TIA-USDT",
-    "GNO-USDT", "KITE-USDT", "LDO-USDT", "PENDLE-USDT", "PIEVERSE-USDT",
-    "LUNC-USDT", "BTT-USDT", "FF-USDT", "BONK-USDT", "IMX-USDT",
-    "JTO-USDT", "FLOKI-USDT", "XTZ-USDT", "DCR-USDT", "ENS-USDT",
-    "CFX-USDT", "XPL-USDT", "JASMY-USDT", "CVX-USDT", "RAY-USDT",
-    "SYRUP-USDT", "WIF-USDT", "ZBCN-USDT", "KAIA-USDT", "FARTCOIN-USDT",
-    "2Z-USDT", "COMP-USDT", "TWT-USDT", "IOTA-USDT", "GRT-USDT",
-    "STRK-USDT", "TEL-USDT", "THETA-USDT", "EIGEN-USDT", "DEXE-USDT",
-    "TRAC-USDT", "RUNE-USDT", "MX-USDT", "AXS-USDT", "AKT-USDT",
-    "NEO-USDT", "H-USDT", "VSN-USDT", "MANA-USDT", "CHZ-USDT",
-    "KMNO-USDT", "APE-USDT", "XEC-USDT", "AR-USDT", "XCN-USDT",
-    "EDGE-USDT", "GOMINING-USDT", "B-USDT", "SFP-USDT", "A-USDT",
-    "1INCH-USDT", "AWE-USDT", "SOON-USDT", "MELANIA-USDT", "MET-USDT",
-    "ZAMA-USDT", "SAND-USDT", "GLM-USDT", "FLUID-USDT", "CAP-USDT",
-    "BAT-USDT", "EGLD-USDT", "WEMIX-USDT", "CHEEMS-USDT", "GEOD-USDT",
-    "AB-USDT", "ATH-USDT", "DYDX-USDT", "ZEN-USDT", "GENIUS-USDT",
-    "PROM-USDT", "FORM-USDT", "SENT-USDT", "CHIP-USDT", "RSR-USDT",
-    "NEX-USDT", "GALA-USDT", "S-USDT", "TAG-USDT", "BANANAS31-USDT",
-    "PLUME-USDT", "QTUM-USDT", "XPR-USDT", "DGB-USDT", "ZK-USDT",
-    "GRASS-USDT", "BEAM-USDT", "ORDI-USDT", "GAS-USDT", "RE-USDT",
-    "YFI-USDT", "ZRX-USDT", "RAIN-USDT", "DEL-USDT", "HTX-USDT",
-    "BTW-USDT", "CTM-USDT", "JLP-USDT", "GHO-USDT", "BDX-USDT",
-    "UB-USDT", "TIBBIR-USDT", "APEPE-USDT", "AUSD-USDT", "KOGE-USDT",
-    "AKE-USDT", "BORG-USDT", "WFI-USDT", "ANSEM-USDT", "LIGHT-USDT",
-    "JSM-USDT", "STRCX-USDT", "ALE-USDT", "SHFL-USDT", "NPC-USDT",
-    "ZANO-USDT", "RLB-USDT", "DRV-USDT", "VCNT-USDT", "CRCLon-USDT",
-    "BP-USDT", "CYS-USDT", "SOSO-USDT", "Q-USDT", "REAL-USDT",
-    "AVV-USDT", "PONS-USDT", "ANTFUN-USDT", "YZY-USDT"
-]
-
-# Filter out Top-20
-MONITOR_SYMBOLS = [s for s in MID_TIER_SYMBOLS if s not in TOP_20_EXCLUDE]
 
 # FIXED LW-001 thresholds (Production Spec)
 FIXED_THRESHOLDS = {
@@ -327,7 +274,7 @@ async def send_signal_to_telegram(signal, results):
         return False
 
 
-async def check_latest_candle(symbol):
+async def check_latest_candle(symbol, universe_provider):
     """Check the latest completed 15m candle for a symbol."""
     from src.exchange.bingx_fetcher import BingXFetcher
     fetcher = BingXFetcher()
@@ -386,13 +333,13 @@ async def check_latest_candle(symbol):
         return None
 
 
-async def monitor_symbols():
+async def monitor_symbols(universe_provider):
     """Monitor all symbols for signals."""
     print("="*100)
     print("LW-001 REAL-TIME MONITOR")
     print("="*100)
     print()
-    print(f"Monitoring {len(MONITOR_SYMBOLS)} symbols")
+    print(f"Universe: Dynamic CMC 20-250 + BingX")
     print(f"Timeframe: 15m")
     print(f"Thresholds: Range >= 4.5%, Body >= 0.8%, LW/Body >= 1.3x, LW/Range >= 55%")
     print(f"           Open->Low <= -2.5%, Volume Ratio >= 1.5x")
@@ -408,9 +355,11 @@ async def monitor_symbols():
     
     try:
         while True:
-            print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}] Checking symbols...")
+            # Get fresh universe from provider
+            universe = await universe_provider.get_universe()
+            print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}] Checking {len(universe)} symbols...")
             
-            for symbol in MONITOR_SYMBOLS:
+            for symbol in universe_provider.get_universe():
                 signal = await check_latest_candle(symbol)
                 
                 if signal:
@@ -432,11 +381,8 @@ async def monitor_symbols():
                         signals_sent += 1
                         print(f"    [OK] Sent to Telegram")
                     else:
-                        # Telegram failed - but we already claimed it
-                        # This is the SAFE trade-off: prefer no-duplicate over no-loss
-                        # If Telegram actually received it but HTTP failed, we accept potential loss
                         print(f"    [ERROR] Failed to send - signal already claimed to prevent duplicate")
-                    
+            
             print(f"  Total signals found: {signals_found}, Sent: {signals_sent}")
             print()
             
@@ -473,7 +419,12 @@ async def monitor_symbols():
 
 async def main():
     """Main function."""
-    await monitor_symbols()
+    # Initialize universe provider
+    from src.data_provider.universe_provider import get_universe_provider
+    universe_provider = get_universe_provider()
+    await universe_provider.initialize()
+    
+    await monitor_symbols(universe_provider)
 
 
 if __name__ == "__main__":
