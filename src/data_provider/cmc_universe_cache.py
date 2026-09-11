@@ -66,6 +66,9 @@ class CMCUniverseCache:
                     cmc_raw_count INTEGER,
                     target_count INTEGER,
                     filtered_count INTEGER,
+                    filtered_stablecoin INTEGER DEFAULT 0,
+                    filtered_wrapped INTEGER DEFAULT 0,
+                    filtered_leveraged INTEGER DEFAULT 0,
                     eligible_count INTEGER,
                     exact_matches INTEGER,
                     base_asset_matches INTEGER,
@@ -115,6 +118,9 @@ class CMCUniverseCache:
         cmc_raw_count: int,
         target_count: int,
         filtered_count: int,
+        filtered_stablecoin: int,
+        filtered_wrapped: int,
+        filtered_leveraged: int,
         eligible_count: int,
         exact_matches: int,
         base_asset_matches: int,
@@ -150,13 +156,15 @@ class CMCUniverseCache:
             cursor.execute("""
                 INSERT INTO cmc_universe_cache (
                     universe_json, cmc_raw_count, target_count, filtered_count,
+                    filtered_stablecoin, filtered_wrapped, filtered_leveraged,
                     eligible_count, exact_matches, base_asset_matches,
                     ambiguous_count, no_match_count, final_count,
                     bingx_active_contracts, fetched_at, version_hash,
                     validation_status, validation_errors, is_active
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
             """, (
                 universe_json, cmc_raw_count, target_count, filtered_count,
+                filtered_stablecoin, filtered_wrapped, filtered_leveraged,
                 eligible_count, exact_matches, base_asset_matches,
                 ambiguous_count, no_match_count, final_count,
                 bingx_active_contracts, fetched_at, version_hash,

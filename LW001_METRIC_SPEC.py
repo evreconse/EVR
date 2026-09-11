@@ -255,14 +255,14 @@ def validate_metric_units(metric_value: float, metric_unit: str, threshold_value
     return True
 
 
-# Canonical thresholds for LW-001
+# Canonical thresholds for LW-001 (Production Spec)
 LW001_THRESHOLDS = {
-    "range_pct": {"value": 6.0, "unit": "%", "operator": ">="},
-    "body_pct": {"value": 1.9, "unit": "%", "operator": ">="},
-    "lower_wick_body_ratio": {"value": 2.5, "unit": "x", "operator": ">="},
-    "lower_wick_range_pct": {"value": 63.0, "unit": "%", "operator": ">="},
-    "open_to_low_pct": {"value": -5.0, "unit": "%", "operator": "<="},
-    "volume_ratio": {"value": 2.6, "unit": "x", "operator": ">="}
+    "range_pct": {"value": 4.5, "unit": "%", "operator": ">="},
+    "body_pct": {"value": 0.8, "unit": "%", "operator": ">="},
+    "lower_wick_body_ratio": {"value": 1.3, "unit": "x", "operator": ">="},
+    "lower_wick_range_pct": {"value": 55.0, "unit": "%", "operator": ">="},
+    "open_to_low_pct": {"value": -2.5, "unit": "%", "operator": "<="},
+    "volume_ratio": {"value": 1.5, "unit": "x", "operator": ">="}
 }
 
 
@@ -282,7 +282,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
     """
     failures = []
     
-    # Range >= 6%
+    # Range >= 4.5%
     try:
         validate_metric_units(
             metrics.range_pct, "%",
@@ -293,7 +293,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
     except ValueError as e:
         failures.append(str(e))
     
-    # Body >= 1.9%
+    # Body >= 0.8%
     try:
         validate_metric_units(
             metrics.body_pct, "%",
@@ -304,7 +304,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
     except ValueError as e:
         failures.append(str(e))
     
-    # LW/Body >= 2.5x
+    # LW/Body >= 1.3x
     try:
         validate_metric_units(
             metrics.lower_wick_body_ratio, "x",
@@ -315,7 +315,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
     except ValueError as e:
         failures.append(str(e))
     
-    # LW/Range >= 63%
+    # LW/Range >= 55%
     try:
         validate_metric_units(
             metrics.lower_wick_range_pct, "%",
@@ -326,7 +326,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
     except ValueError as e:
         failures.append(str(e))
     
-    # Open→Low <= -5%
+    # Open→Low <= -2.5%
     try:
         validate_metric_units(
             metrics.open_to_low_pct, "%",
@@ -337,7 +337,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
     except ValueError as e:
         failures.append(str(e))
     
-    # Volume Ratio >= 2.6x
+    # Volume Ratio >= 1.5x
     try:
         if metrics.volume_ratio is None:
             failures.append("Volume Ratio is None")
