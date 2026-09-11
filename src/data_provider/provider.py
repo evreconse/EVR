@@ -9,7 +9,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
 
-from models import MarketEvent
+from src.models import MarketEvent
 
 
 class MarketDataProvider(ABC):

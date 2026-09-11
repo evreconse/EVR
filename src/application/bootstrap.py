@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from config import AppConfig, ConfigurationManager, MultiSourceConfigLoader
 from config.exceptions import ConfigurationError
-from core import LoggingConfig, LogLevel, get_logger, init_logging
+from src.core import LoggingConfig, LogLevel, get_logger, init_logging
 from data_provider import (
     BingXDataProvider,
     DataProvider,

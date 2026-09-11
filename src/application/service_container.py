@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Generic, TypeVar, get_type_hints
 
-from core import get_logger
+from src.core import get_logger
 
 from .exceptions import ServiceNotFoundError, ServiceRegistrationError
 

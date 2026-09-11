@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from application import create_application
-from core import LoggingConfig, LogLevel, init_logging, shutdown_logging
+from src.core import LoggingConfig, LogLevel, init_logging, shutdown_logging
 
 
 def parse_args() -> argparse.Namespace:

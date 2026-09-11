@@ -13,7 +13,7 @@ from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from typing import Any
 
-from core import get_logger
+from src.core import get_logger
 
 from .exceptions import (
     ConnectionError,
@@ -30,7 +30,7 @@ from .rate_limiter import RateLimitConfig, RateLimiter
 from .reconnect_strategy import ReconnectConfig, ReconnectStrategy
 
 # Import BingX fetcher
-from exchange import BingXFetcher
+from src.exchange import BingXFetcher
 
 logger = get_logger(__name__)
 

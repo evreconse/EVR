@@ -10,7 +10,7 @@ import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from core import get_logger
+from src.core import get_logger
 
 from .bootstrap import BootstrapContext
 from .health import (
