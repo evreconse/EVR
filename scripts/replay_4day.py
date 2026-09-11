@@ -23,6 +23,15 @@ FIXED_THRESHOLDS = {
     "volume_ratio": 1.5
 }
 
+THRESHOLD_ORDER = [
+    ("range_pct", "Range >= 4.5%"),
+    ("body_pct", "Body >= 0.8%"),
+    ("lw_body_ratio", "LW/Body >= 1.3x"),
+    ("lw_range_pct", "LW/Range >= 55%"),
+    ("open_low_pct", "Open->Low <= -2.5%"),
+    ("volume_ratio", "Volume Ratio >= 1.5x"),
+]
+
 def check_red_candle(open_price, close_price):
     return close_price < open_price
 
@@ -63,7 +72,7 @@ async def replay_4day():
     provider = get_universe_provider()
     await provider.initialize()
     universe = await provider.get_universe()
-    print(f"Universe: {len(universe)} symbols")
+    print(f"Universe: {len(universe)} symbols (current dynamic CMC 20-250 + BingX)")
     print()
     
     fetcher = BingXFetcher()
@@ -75,14 +84,20 @@ async def replay_4day():
     print(f"Period: {start_time.strftime('%Y-%m-%d %H:%M UTC')} to {end_time.strftime('%Y-%m-%d %H:%M UTC')}")
     print()
     
-    total_candles_checked = 0
-    total_red_candles = 0
-    total_passed = 0
-    condition_passes = {k: 0 for k in FIXED_THRESHOLDS.keys()}
+    # Sequential funnel counters
+    funnel_counts = {k: 0 for k in FIXED_THRESHOLDS.keys()}
+    funnel_counts["total_candles"] = 0
+    funnel_counts["red_candles"] = 0
+    
+    # Independent condition counts
+    independent_counts = {k: 0 for k in FIXED_THRESHOLDS.keys()}
+    independent_counts["total_candles"] = 0
+    independent_counts["red_candles"] = 0
+    
     near_misses = []
     valid_signals = []
     
-    for symbol in universe[:50]:  # Limit to first 50 for speed
+    for symbol in universe:
         try:
             candles = await fetcher.get_klines(
                 symbol=symbol,
@@ -97,7 +112,8 @@ async def replay_4day():
             # Check each completed candle (skip the last one which might be incomplete)
             for i in range(20, len(candles) - 1):
                 candle = candles[i]
-                total_candles_checked += 1
+                funnel_counts["total_candles"] += 1
+                independent_counts["total_candles"] += 1
                 
                 open_price = float(candle['open'])
                 high_price = float(candle['high'])
@@ -110,10 +126,12 @@ async def replay_4day():
                     continue
                 
                 # Check if red candle
-                if not check_red_candle(open_price, close_price):
+                is_red = check_red_candle(open_price, close_price)
+                if not is_red:
                     continue
                 
-                total_red_candles += 1
+                funnel_counts["red_candles"] += 1
+                independent_counts["red_candles"] += 1
                 
                 # Calculate average volume from previous 20 candles
                 avg_volume_20 = calculate_avg_volume_20(candles, i)
@@ -131,10 +149,21 @@ async def replay_4day():
                 # Check thresholds
                 passed, results = check_thresholds(metrics, FIXED_THRESHOLDS)
                 
-                # Track condition passes
+                # INDEPENDENT CONDITION COUNTS (each condition checked independently)
                 for k, v in results.items():
                     if v:
-                        condition_passes[k] += 1
+                        independent_counts[k] += 1
+                
+                # SEQUENTIAL FUNNEL (each stage filters the previous)
+                # Start with all red candles
+                sequential_candidates = 1
+                for k, label in THRESHOLD_ORDER:
+                    if results[k]:
+                        funnel_counts[k] += 1
+                        sequential_candidates += 0
+                    else:
+                        sequential_candidates = 0
+                        break
                 
                 # Track near misses (4+ conditions pass)
                 pass_count = sum(1 for v in results.values() if v)
@@ -153,7 +182,6 @@ async def replay_4day():
                     })
                 
                 if passed:
-                    total_passed += 1
                     valid_signals.append({
                         'symbol': symbol,
                         'timestamp': timestamp,
@@ -170,27 +198,46 @@ async def replay_4day():
             print(f"Error processing {symbol}: {e}")
             continue
     
-    # Print funnel
+    # Print SEQUENTIAL FUNNEL
     print("="*80)
-    print("FUNNEL ANALYSIS")
+    print("SEQUENTIAL FUNNEL (each stage filters previous)")
     print("="*80)
-    print(f"Total candles checked:      {total_candles_checked}")
-    print(f"Red candles:                {total_red_candles}")
-    for k, v in condition_passes.items():
-        print(f"  {k:20s} >= threshold: {v}")
-    print(f"ALL 6 CONDITIONS PASS:      {total_passed}")
+    prev = funnel_counts["red_candles"]
+    print(f"Total candles checked:      {funnel_counts['total_candles']}")
+    print(f"Red candles (Close < Open): {funnel_counts['red_candles']} (100.0%)")
+    for k, label in THRESHOLD_ORDER:
+        count = funnel_counts[k]
+        pct = (count / prev * 100) if prev > 0 else 0
+        print(f"  {label:25s}: {count:6d} ({pct:5.1f}% of prev)")
+        prev = count
+    print(f"ALL 6 CONDITIONS PASS:      {prev:6d} ({(prev/funnel_counts['red_candles']*100) if funnel_counts['red_candles'] > 0 else 0:5.1f}% of red)")
+    print()
+    
+    # Print INDEPENDENT CONDITION COUNTS
+    print("="*80)
+    print("INDEPENDENT CONDITION COUNTS (each condition vs all red candles)")
+    print("="*80)
+    red = independent_counts["red_candles"]
+    for k, label in THRESHOLD_ORDER:
+        count = independent_counts[k]
+        pct = (count / red * 100) if red > 0 else 0
+        print(f"  {label:25s}: {count:6d} ({pct:5.1f}% of red)")
     print()
     
     # Print valid signals
     if valid_signals:
         print("="*80)
-        print("VALID LW-001 SIGNALS FOUND")
+        print(f"VALID LW-001 SIGNALS FOUND ({len(valid_signals)})")
         print("="*80)
         for sig in valid_signals:
             m = sig['metrics']
+            r = sig['results']
             print(f"\n{sig['symbol']} @ {format_timestamp_utc(sig['timestamp'])}")
-            print(f"  O={sig['open']:.6f} H={sig['high']:.6f} L={sig['low']:.6f} C={sig['close']:.6f} V={sig['volume']:.2f}")
+            print(f"  OHLCV: O={sig['open']:.6f} H={sig['high']:.6f} L={sig['low']:.6f} C={sig['close']:.6f} V={sig['volume']:.2f}")
             print(f"  Range={m.range_pct:.2f}% Body={m.body_pct:.2f}% LW/Body={m.lower_wick_body_ratio:.2f}x LW/Range={m.lower_wick_range_pct:.2f}% Open->Low={m.open_to_low_pct:.2f}% VolRatio={m.volume_ratio:.2f}x")
+            for k, label in THRESHOLD_ORDER:
+                status = "PASS" if r[k] else "FAIL"
+                print(f"    {label}: {status}")
     else:
         print("NO VALID LW-001 SIGNALS FOUND IN 4 DAYS")
     
