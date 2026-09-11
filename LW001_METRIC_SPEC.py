@@ -43,7 +43,7 @@ def calculate_range_pct(open_price: float, high_price: float, low_price: float) 
         low_price: Candle low price
     
     Returns:
-        Range in percentage points (e.g., 6.00 for 6%)
+        Range in percentage points (e.g., 4.50 for 4.5%)
     
     Unit: %
     """
@@ -64,7 +64,7 @@ def calculate_body_pct(open_price: float, close_price: float) -> float:
         close_price: Candle close price
     
     Returns:
-        Body in percentage points (e.g., 1.90 for 1.9%)
+        Body in percentage points (e.g., 0.80 for 0.8%)
     
     Unit: %
     """
@@ -105,7 +105,7 @@ def calculate_lower_wick_body_ratio(open_price: float, close_price: float, low_p
         low_price: Candle low price
     
     Returns:
-        LW/Body ratio (e.g., 2.50 for 2.5x)
+        LW/Body ratio (e.g., 1.30 for 1.3x)
     
     Unit: x
     """
@@ -131,7 +131,7 @@ def calculate_lower_wick_range_pct(open_price: float, high_price: float, low_pri
         close_price: Candle close price
     
     Returns:
-        LW/Range in percentage points (e.g., 63.00 for 63%)
+        LW/Range in percentage points (e.g., 55.00 for 55%)
     
     Unit: %
     """
@@ -155,7 +155,7 @@ def calculate_open_to_low_pct(open_price: float, low_price: float) -> float:
         low_price: Candle low price
     
     Returns:
-        Open→Low in percentage points (e.g., -5.00 for -5%)
+        Open→Low in percentage points (e.g., -2.50 for -2.5%)
     
     Unit: %
     """
@@ -175,7 +175,7 @@ def calculate_volume_ratio(candle_volume: float, reference_average_volume: float
         reference_average_volume: Average volume from reference period
     
     Returns:
-        Volume Ratio (e.g., 2.60 for 2.6x)
+        Volume Ratio (e.g., 1.50 for 1.5x)
     
     Unit: x
     
