@@ -11,6 +11,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List
 
+# Import authoritative thresholds from LW001_METRIC_SPEC
+from LW001_METRIC_SPEC import LW001_THRESHOLDS as _SPEC_THRESHOLDS
+
+# Map spec keys to canonical keys used in this module
+LW001_THRESHOLDS = {
+    "range_pct": _SPEC_THRESHOLDS["range_pct"]["value"],
+    "body_pct": _SPEC_THRESHOLDS["body_pct"]["value"],
+    "lw_body_ratio": _SPEC_THRESHOLDS["lower_wick_body_ratio"]["value"],
+    "lw_range_pct": _SPEC_THRESHOLDS["lower_wick_range_pct"]["value"],
+    "open_to_low_pct": _SPEC_THRESHOLDS["open_to_low_pct"]["value"],
+    "volume_ratio": _SPEC_THRESHOLDS["volume_ratio"]["value"],
+}
+
 
 @dataclass(frozen=True, slots=True)
 class LW001Metrics:
@@ -30,17 +43,6 @@ class LW001CheckResult:
     qualified: bool
     metrics: LW001Metrics
     failed_conditions: List[str]
-
-
-# Production thresholds - DO NOT MODIFY WITHOUT SPEC UPDATE
-LW001_THRESHOLDS = {
-    "range_pct": 4.5,           # >= %
-    "body_pct": 0.8,            # >= %
-    "lw_body_ratio": 1.3,       # >= x
-    "lw_range_pct": 55.0,       # >= %
-    "open_to_low_pct": -2.5,    # <= %
-    "volume_ratio": 1.5,        # >= x
-}
 
 
 def calculate_lw001_metrics(
