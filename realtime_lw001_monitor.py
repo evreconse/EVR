@@ -359,8 +359,8 @@ async def monitor_symbols(universe_provider):
             universe = await universe_provider.get_universe()
             print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}] Checking {len(universe)} symbols...")
             
-            for symbol in universe_provider.get_universe():
-                signal = await check_latest_candle(symbol)
+            for symbol in universe:
+                signal = await check_latest_candle(symbol, universe_provider)
                 
                 if signal:
                     signals_found += 1
