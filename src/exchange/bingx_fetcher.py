@@ -8,7 +8,7 @@ import aiohttp
 import hashlib
 import hmac
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 import os
 from pathlib import Path
