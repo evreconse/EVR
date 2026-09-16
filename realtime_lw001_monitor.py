@@ -242,8 +242,9 @@ Volume Ratio: {metrics.volume_ratio:.2f}x
 
 async def send_signal_to_telegram(signal, results):
     """Send a single signal to Telegram (plain text)."""
-    bot_token = os.getenv("EVRECONSE_TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("EVRECONSE_TELEGRAM_CHAT_ID")
+    # Support both naming conventions for compatibility
+    bot_token = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN") or os.getenv("EVRECONSE_TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID") or os.getenv("EVRECONSE_TELEGRAM_CHAT_ID")
     
     if not bot_token or not chat_id:
         print("ERROR: Telegram credentials not found")
@@ -381,7 +382,18 @@ async def monitor_symbols(universe_provider):
                         signals_sent += 1
                         print(f"    [OK] Sent to Telegram")
                     else:
-                        print(f"    [ERROR] Failed to send - signal already claimed to prevent duplicate")
+                        print(f"    [ERROR] Failed to send to Telegram - rolling back claim")
+                        # Rollback: Remove from DB and memory since send failed
+                        conn = sqlite3.connect(SENT_SIGNALS_DB)
+                        try:
+                            conn.execute(
+                                "DELETE FROM sent_signals WHERE symbol = ? AND candle_timestamp = ?",
+                                (signal['symbol'], signal['timestamp'])
+                            )
+                            conn.commit()
+                        finally:
+                            conn.close()
+                        SENT_SIGNALS.discard(signal_key)
             
             print(f"  Total signals found: {signals_found}, Sent: {signals_sent}")
             print()
