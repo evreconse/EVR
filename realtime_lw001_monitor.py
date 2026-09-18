@@ -30,40 +30,51 @@ SENT_SIGNALS_DB = Path("/home/evreconse/sent_signals.db")
 
 def init_sent_signals_db():
     """Initialize SQLite database for sent signals with unique constraint."""
-    conn = sqlite3.connect(SENT_SIGNALS_DB)
     try:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS sent_signals (
-                symbol TEXT NOT NULL,
-                candle_timestamp INTEGER NOT NULL,
-                sent_at INTEGER NOT NULL,
-                PRIMARY KEY (symbol, candle_timestamp)
-            )
-        """)
-        conn.commit()
-    finally:
-        conn.close()
+        conn = sqlite3.connect(SENT_SIGNALS_DB)
+        try:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS sent_signals (
+                    symbol TEXT NOT NULL,
+                    candle_timestamp INTEGER NOT NULL,
+                    sent_at INTEGER NOT NULL,
+                    PRIMARY KEY (symbol, candle_timestamp)
+                )
+            """)
+            conn.commit()
+            print(f"[DB INIT] Database initialized at {SENT_SIGNALS_DB}, table created/verified")
+        finally:
+            conn.close()
+    except Exception as e:
+        print(f"[DB INIT ERROR] Failed to initialize database: {e}")
+        raise
 
 def claim_signal(symbol, candle_timestamp):
     """
     Atomically claim a signal for sending.
     Returns True if claim succeeded (signal not sent before), False if already sent.
     """
-    conn = sqlite3.connect(SENT_SIGNALS_DB)
     try:
-        cursor = conn.cursor()
-        # Atomic claim with unique constraint - fails if already exists
-        cursor.execute(
-            "INSERT INTO sent_signals (symbol, candle_timestamp, sent_at) VALUES (?, ?, ?)",
-            (symbol, candle_timestamp, int(time.time()))
-        )
-        conn.commit()
-        return True  # Claim successful - not sent before
-    except sqlite3.IntegrityError:
-        # Already exists - duplicate prevented
-        return False
-    finally:
-        conn.close()
+        conn = sqlite3.connect(SENT_SIGNALS_DB)
+        try:
+            cursor = conn.cursor()
+            # Atomic claim with unique constraint - fails if already exists
+            cursor.execute(
+                "INSERT INTO sent_signals (symbol, candle_timestamp, sent_at) VALUES (?, ?, ?)",
+                (symbol, candle_timestamp, int(time.time()))
+            )
+            conn.commit()
+            print(f"[CLAIM] SUCCESS: Claimed signal for {symbol} at {candle_timestamp}")
+            return True  # Claim successful - not sent before
+        except sqlite3.IntegrityError:
+            # Already exists - duplicate prevented
+            print(f"[CLAIM] DUPLICATE: Signal already exists for {symbol} at {candle_timestamp}")
+            return False
+        finally:
+            conn.close()
+    except Exception as e:
+        print(f"[CLAIM ERROR] Failed to claim signal for {symbol}: {e}")
+        raise
 
 def is_signal_sent(symbol, candle_timestamp):
     """Check if signal was already sent (read-only check)."""
@@ -241,19 +252,22 @@ Volume Ratio: {metrics.volume_ratio:.2f}x
 
 
 async def send_signal_to_telegram(signal, results):
-    """Send a single signal to Telegram (plain text)."""
+    """Send a single signal to Telegram (plain text) with explicit UTF-8 encoding."""
     # Support both naming conventions for compatibility
     bot_token = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN") or os.getenv("EVRECONSE_TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID") or os.getenv("EVRECONSE_TELEGRAM_CHAT_ID")
     
+    print(f"  [TELEGRAM] Preparing to send: bot_token={'SET' if bot_token else 'MISSING'}, chat_id={'SET' if chat_id else 'MISSING'}")
+    
     if not bot_token or not chat_id:
-        print("ERROR: Telegram credentials not found")
+        print("  [TELEGRAM ERROR] Telegram credentials not found")
         return False
     
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     
     message = format_telegram_message(signal, results)
     
+    # Use explicit UTF-8 encoding with form data to ensure emojis are preserved
     payload = {
         "chat_id": chat_id,
         "text": message,
@@ -261,17 +275,30 @@ async def send_signal_to_telegram(signal, results):
     }
     
     try:
+        print(f"  [TELEGRAM] Sending request to Telegram API...")
+        import json
+        payload_bytes = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+        headers = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Content-Length": str(len(payload_bytes))
+        }
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload) as resp:
+            async with session.post(url, data=payload_bytes, headers=headers) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    return data.get('ok', False)
+                    ok = data.get('ok', False)
+                    if ok:
+                        msg_id = data.get('result', {}).get('message_id')
+                        print(f"  [TELEGRAM SUCCESS] Message sent successfully, message_id={msg_id}")
+                    else:
+                        print(f"  [TELEGRAM ERROR] API returned ok=false: {data}")
+                    return ok
                 else:
                     text = await resp.text()
-                    print(f"ERROR: Telegram API returned status {resp.status}: {text}")
+                    print(f"  [TELEGRAM ERROR] API returned status {resp.status}: {text}")
                     return False
     except Exception as e:
-        print(f"ERROR sending to Telegram: {e}")
+        print(f"  [TELEGRAM ERROR] Exception: {type(e).__name__}: {e}")
         return False
 
 
@@ -312,6 +339,7 @@ async def check_latest_candle(symbol, universe_provider):
         passed, metrics, results, reason = verify_signal_comprehensive(latest_candle, avg_volume_20)
         
         if passed:
+            print(f"[SIGNAL DETECTED] {symbol} at {format_timestamp_utc(timestamp)} | O={float(latest_candle['open']):.6f} H={float(latest_candle['high']):.6f} L={float(latest_candle['low']):.6f} C={float(latest_candle['close']):.6f} V={float(latest_candle['volume']):.2f}")
             return {
                 'symbol': symbol,
                 'timestamp': timestamp,
@@ -354,18 +382,33 @@ async def monitor_symbols(universe_provider):
     signals_found = 0
     signals_sent = 0
     
+    # Semaphore to limit concurrent API requests (avoid rate limits)
+    MAX_CONCURRENT_REQUESTS = 10
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+    
+    async def check_symbol_with_semaphore(symbol):
+        """Check a single symbol with semaphore for rate limiting."""
+        async with semaphore:
+            return await check_latest_candle(symbol, universe_provider)
+    
     try:
         while True:
             # Get fresh universe from provider
             universe = await universe_provider.get_universe()
-            print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}] Checking {len(universe)} symbols...")
+            print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}] Checking {len(universe)} symbols (max {MAX_CONCURRENT_REQUESTS} concurrent)...")
             
-            for symbol in universe:
-                signal = await check_latest_candle(symbol, universe_provider)
+            # Create tasks for all symbols
+            tasks = [check_symbol_with_semaphore(symbol) for symbol in universe]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            for symbol, signal in zip(universe, results):
+                if isinstance(signal, Exception):
+                    print(f"  [ERROR] Error checking {symbol}: {signal}")
+                    continue
                 
                 if signal:
                     signals_found += 1
-                    print(f"  SIGNAL FOUND: {signal['symbol']} at {format_timestamp_utc(signal['timestamp'])}")
+                    print(f"  [SIGNAL FOUND] {signal['symbol']} at {format_timestamp_utc(signal['timestamp'])}")
                     
                     # ATOMIC CLAIM: Try to claim this signal (atomic, prevents duplicates)
                     signal_key = (signal['symbol'], signal['timestamp'])
@@ -375,12 +418,14 @@ async def monitor_symbols(universe_provider):
                     
                     # Add to memory set for fast subsequent checks
                     SENT_SIGNALS.add(signal_key)
+                    print(f"  [MEMORY] Added to SENT_SIGNALS: {signal_key}")
                     
                     # Send to Telegram with actual PASS/FAIL results
+                    print(f"  [TELEGRAM] Attempting to send signal for {signal['symbol']}...")
                     success = await send_signal_to_telegram(signal, signal['results'])
                     if success:
                         signals_sent += 1
-                        print(f"    [OK] Sent to Telegram")
+                        print(f"    [OK] Sent to Telegram successfully")
                     else:
                         print(f"    [ERROR] Failed to send to Telegram - rolling back claim")
                         # Rollback: Remove from DB and memory since send failed
@@ -391,9 +436,11 @@ async def monitor_symbols(universe_provider):
                                 (signal['symbol'], signal['timestamp'])
                             )
                             conn.commit()
+                            print(f"    [ROLLBACK] Removed from database: {signal_key}")
                         finally:
                             conn.close()
                         SENT_SIGNALS.discard(signal_key)
+                        print(f"    [ROLLBACK] Removed from memory: {signal_key}")
             
             print(f"  Total signals found: {signals_found}, Sent: {signals_sent}")
             print()
