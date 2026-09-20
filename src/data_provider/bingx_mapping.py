@@ -386,7 +386,7 @@ class BingXMapper:
         
         for asset in cmc_assets:
             rank = asset.get("cmc_rank", 0)
-            if not (20 <= asset.get("cmc_rank", 0) <= 250):
+            if not (1 <= asset.get("cmc_rank", 0) <= 500):
                 continue
             
             stats["target_count"] += 1

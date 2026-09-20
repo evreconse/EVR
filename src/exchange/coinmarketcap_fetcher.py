@@ -101,25 +101,25 @@ class CoinMarketCapFetcher:
     
     async def fetch_target_universe(self) -> List[Dict[str, Any]]:
         """
-        Fetch the target universe (CMC ranks 20-250).
+        Fetch the target universe (CMC ranks 1-500 inclusive).
         
         Returns:
-            List of 231 assets with ranks 20-250
+            List of 500 assets with ranks 1-500
         """
-        # Fetch all 250 assets (ranks 1-250)
-        all_assets = await self.fetch_rankings(start=1, limit=250)
+        # Fetch all 500 assets (ranks 1-500)
+        all_assets = await self.fetch_rankings(start=1, limit=500)
         
-        # Filter to ranks 20-250 inclusive (231 assets)
+        # Filter to ranks 1-500 inclusive (500 assets)
         target_assets = [
             asset for asset in all_assets
-            if 20 <= asset.get("cmc_rank", 0) <= 250
+            if 1 <= asset.get("cmc_rank", 0) <= 500
         ]
         
-        if len(target_assets) != 231:
+        if len(target_assets) != 500:
             import logging
             logger = logging.getLogger(__name__)
             logger.warning(
-                f"Expected 231 assets in rank 20-250, got {len(target_assets)}. "
+                f"Expected 500 assets in rank 1-500, got {len(target_assets)}. "
                 "Proceeding with available assets."
             )
         

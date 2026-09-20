@@ -267,6 +267,9 @@ async def send_signal_to_telegram(signal, results):
     
     message = format_telegram_message(signal, results)
     
+    # PRE-SEND DIAGNOSTIC: Show text representation to debug UTF-8 issues
+    print(f"  [TELEGRAM PRE-SEND] text_repr={repr(message[:200])}... len={len(message)} chars")
+    
     # Use explicit UTF-8 encoding with form data to ensure emojis are preserved
     payload = {
         "chat_id": chat_id,
@@ -302,6 +305,37 @@ async def send_signal_to_telegram(signal, results):
         return False
 
 
+def get_last_completed_candle(candles):
+    """
+    Identify the last completed candle from the fetched candles.
+    
+    BingX returns candles in chronological order (oldest first).
+    The last candle may be incomplete (current period).
+    We need to find the last COMPLETED candle.
+    
+    A candle is complete if its close time (timestamp + 15min) <= current time.
+    """
+    if not candles or len(candles) < 2:
+        return None, None
+    
+    now = datetime.now(timezone.utc)
+    now_ms = int(now.timestamp() * 1000)
+    
+    # Check from the end backwards to find the last completed candle
+    for i in range(len(candles) - 1, -1, -1):
+        candle = candles[i]
+        timestamp = candle.get('time', candle.get('timestamp', 0))
+        if timestamp <= 0:
+            continue
+        # Candle close time = timestamp + 15 minutes (in ms)
+        candle_close_time = timestamp + (15 * 60 * 1000)
+        if candle_close_time <= now_ms:
+            # This candle is complete
+            return candle, i
+    
+    return None, None
+
+
 async def check_latest_candle(symbol, universe_provider):
     """Check the latest completed 15m candle for a symbol."""
     from src.exchange.bingx_fetcher import BingXFetcher
@@ -322,8 +356,12 @@ async def check_latest_candle(symbol, universe_provider):
         if not candles or len(candles) < 21:
             return None
         
-        # Get the most recent completed candle (second to last, as last might be incomplete)
-        latest_candle = candles[-2]
+        # Get the last completed candle using timestamp-based logic
+        latest_candle, candle_index = get_last_completed_candle(candles)
+        
+        if latest_candle is None:
+            return None
+            
         timestamp = latest_candle.get('time', latest_candle.get('timestamp', 0))
         
         # Check if this candle was already processed (persistent check)
@@ -332,7 +370,6 @@ async def check_latest_candle(symbol, universe_provider):
             return None
         
         # Calculate average volume from previous 20 candles
-        candle_index = len(candles) - 2
         avg_volume_20 = calculate_avg_volume_20(candles, candle_index)
         
         # Verify signal
@@ -368,7 +405,7 @@ async def monitor_symbols(universe_provider):
     print("LW-001 REAL-TIME MONITOR")
     print("="*100)
     print()
-    print(f"Universe: Dynamic CMC 20-250 + BingX")
+    print(f"Universe: Dynamic CMC 1-500 + BingX")
     print(f"Timeframe: 15m")
     print(f"Thresholds: Range >= 4.5%, Body >= 0.8%, LW/Body >= 1.3x, LW/Range >= 55%")
     print(f"           Open->Low <= -2.5%, Volume Ratio >= 1.5x")
