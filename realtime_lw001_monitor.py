@@ -10,6 +10,7 @@ import sys
 import json
 import os
 import sqlite3
+import platform
 from pathlib import Path
 
 sys.path.insert(0, ".")
@@ -25,8 +26,23 @@ import time
 # Load environment variables
 load_dotenv()
 
+# ===== AUTO-TRADER INTEGRATION =====
+# Import auto-trader components
+try:
+    from src.exchange.bingx_trader import AutoTraderManager
+    AUTO_TRADER_AVAILABLE = True
+except ImportError:
+    AUTO_TRADER_AVAILABLE = False
+    print("[WARNING] Auto-trader module not available, trading disabled")
+# =====================================
+
 # Persistent deduplication database
-SENT_SIGNALS_DB = Path("/home/evreconse/sent_signals.db")
+# Use local path on Windows, production path on Linux
+import platform
+if platform.system() == "Windows":
+    SENT_SIGNALS_DB = Path("C:/EVRECONSE_PROJECT/sent_signals.db")
+else:
+    SENT_SIGNALS_DB = Path("/home/evreconse/sent_signals.db")
 
 def init_sent_signals_db():
     """Initialize SQLite database for sent signals with unique constraint."""
@@ -145,25 +161,8 @@ def check_thresholds(metrics, thresholds):
     return passed, results
 
 
-def calculate_avg_volume_20(candles, index):
-    """Calculate average volume of previous 20 candles."""
-    start_idx = max(0, index - 20)
-    if start_idx >= index:
-        return 1.0
-    
-    volumes = []
-    for i in range(start_idx, index):
-        vol = float(candles[i].get('volume', candles[i].get('vol', 0)))
-        volumes.append(vol)
-    
-    if not volumes:
-        return 1.0
-    
-    return sum(volumes) / len(volumes)
-
-
 def verify_signal_comprehensive(candle_data, avg_volume_20):
-    """Comprehensive verification of a signal. Returns (passed, metrics, results_dict, reason)."""
+    """Comprehensive verification of a signal (OLD - uses avg 20). Returns (passed, metrics, results_dict, reason)."""
     from LW001_METRIC_SPEC import calculate_all_metrics
     
     open_price = float(candle_data['open'])
@@ -189,6 +188,44 @@ def verify_signal_comprehensive(candle_data, avg_volume_20):
         close_price=close_price,
         volume=volume,
         reference_average_volume=avg_volume_20
+    )
+    
+    # 4. Check all thresholds
+    passed, results = check_thresholds(metrics, FIXED_THRESHOLDS)
+    
+    if not passed:
+        return False, metrics, results, "Metrics do not pass thresholds"
+    
+    return True, metrics, results, "OK"
+
+
+def verify_signal_comprehensive_new(candle_data, volume_3_candles_ago):
+    """Comprehensive verification of a signal (NEW - uses N/N-3 volume ratio). Returns (passed, metrics, results_dict, reason)."""
+    from LW001_METRIC_SPEC import calculate_all_metrics
+    
+    open_price = float(candle_data['open'])
+    high_price = float(candle_data['high'])
+    low_price = float(candle_data['low'])
+    close_price = float(candle_data['close'])
+    volume = float(candle_data['volume'])
+    timestamp = candle_data.get('time', candle_data.get('timestamp', 0))
+    
+    # 1. Check timestamp is valid
+    if timestamp <= 0:
+        return False, None, None, "Invalid timestamp"
+    
+    # 2. Check candle is red (Close < Open)
+    if not check_red_candle(open_price, close_price):
+        return False, None, None, "Candle is not red (Close >= Open)"
+    
+    # 3. Calculate metrics with NEW volume ratio formula
+    metrics = calculate_all_metrics(
+        open_price=open_price,
+        high_price=high_price,
+        low_price=low_price,
+        close_price=close_price,
+        volume=volume,
+        volume_3_candles_ago=volume_3_candles_ago
     )
     
     # 4. Check all thresholds
@@ -341,9 +378,9 @@ async def check_latest_candle(symbol, universe_provider):
     from src.exchange.bingx_fetcher import BingXFetcher
     fetcher = BingXFetcher()
     
-    # Fetch last 25 candles (to have 20 for volume average + 5 latest)
+    # Fetch last 15 candles (need at least 4 for N/N-3: N, N-1, N-2, N-3, plus extra for closed candle detection)
     end_time = datetime.now(timezone.utc)
-    start_time = end_time - timedelta(hours=6)  # 6 hours = 24 candles
+    start_time = end_time - timedelta(hours=4)  # 4 hours = 16 candles
     
     try:
         candles = await fetcher.get_klines(
@@ -353,27 +390,31 @@ async def check_latest_candle(symbol, universe_provider):
             end_time=int(end_time.timestamp() * 1000)
         )
         
-        if not candles or len(candles) < 21:
-            return None
+        if not candles or len(candles) < 5:  # Need at least 5 candles for N-3 + closed candle logic
+            return None, "insufficient_candles"
         
         # Get the last completed candle using timestamp-based logic
         latest_candle, candle_index = get_last_completed_candle(candles)
         
         if latest_candle is None:
-            return None
+            return None, "no_completed_candle"
             
         timestamp = latest_candle.get('time', latest_candle.get('timestamp', 0))
         
         # Check if this candle was already processed (persistent check)
         signal_key = (symbol, timestamp)
         if signal_key in SENT_SIGNALS:
-            return None
+            return None, "already_processed"
         
-        # Calculate average volume from previous 20 candles
-        avg_volume_20 = calculate_avg_volume_20(candles, candle_index)
+        # Need at least 4 candles before current for N-3 reference
+        if candle_index < 3:
+            return None, "insufficient_history_for_n_minus_3"
         
-        # Verify signal
-        passed, metrics, results, reason = verify_signal_comprehensive(latest_candle, avg_volume_20)
+        # Get volume 3 candles ago (N-3)
+        volume_3_ago = float(candles[candle_index - 3].get('volume', candles[candle_index - 3].get('vol', 0)))
+        
+        # Verify signal with NEW volume ratio formula (N/N-3)
+        passed, metrics, results, reason = verify_signal_comprehensive_new(latest_candle, volume_3_ago)
         
         if passed:
             print(f"[SIGNAL DETECTED] {symbol} at {format_timestamp_utc(timestamp)} | O={float(latest_candle['open']):.6f} H={float(latest_candle['high']):.6f} L={float(latest_candle['low']):.6f} C={float(latest_candle['close']):.6f} V={float(latest_candle['volume']):.2f}")
@@ -387,29 +428,30 @@ async def check_latest_candle(symbol, universe_provider):
                 'volume': float(latest_candle['volume']),
                 'metrics': metrics,
                 'results': results,
-            }
+            }, "success"
         
-        return None
+        return None, reason
         
     except Exception as e:
         try:
             print(f"Error checking {symbol}: {e}")
         except UnicodeEncodeError:
             print(f"Error checking {symbol}: API error (rate limit or temporary issue)")
-        return None
+        return None, "exception"
 
 
-async def monitor_symbols(universe_provider):
-    """Monitor all symbols for signals."""
+async def monitor_symbols(universe_provider, auto_trader=None):
+    """Monitor all symbols for signals with transparent statistics."""
     print("="*100)
     print("LW-001 REAL-TIME MONITOR")
     print("="*100)
     print()
-    print(f"Universe: Dynamic CMC 1-500 + BingX")
+    print(f"Universe: ALL active USDT Perpetual contracts from BingX (NO TOP-500 limit)")
     print(f"Timeframe: 15m")
     print(f"Thresholds: Range >= 4.5%, Body >= 0.8%, LW/Body >= 1.3x, LW/Range >= 55%")
-    print(f"           Open->Low <= -2.5%, Volume Ratio >= 1.5x")
+    print(f"           Open->Low <= -2.5%, Volume Ratio >= 1.5x (N/N-3)")
     print(f"Candle direction: RED only (Close < Open)")
+    print(f"Only CLOSED candles used")
     print()
     print("Press Ctrl+C to stop")
     print()
@@ -418,6 +460,7 @@ async def monitor_symbols(universe_provider):
     
     signals_found = 0
     signals_sent = 0
+    cycle_count = 0
     
     # Semaphore to limit concurrent API requests (avoid rate limits)
     MAX_CONCURRENT_REQUESTS = 10
@@ -430,9 +473,27 @@ async def monitor_symbols(universe_provider):
     
     try:
         while True:
+            cycle_count += 1
             # Get fresh universe from provider
             universe = await universe_provider.get_universe()
-            print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}] Checking {len(universe)} symbols (max {MAX_CONCURRENT_REQUESTS} concurrent)...")
+            final_universe_count = len(universe)
+            
+            print(f"\n{'='*100}")
+            print(f"CYCLE #{cycle_count} - {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
+            print(f"{'='*100}")
+            
+            # UNIVERSE STATISTICS
+            print(f"[UNIVERSE] FINAL_UNIVERSE count: {final_universe_count}")
+            print(f"[UNIVERSE] First 5: {[s for s in universe[:5]]}")
+            print(f"[UNIVERSE] Last 5:  {[s for s in universe[-5:]]}")
+            
+            # MONITORING STATISTICS
+            planned = final_universe_count
+            processed = 0
+            success = 0
+            errors = 0
+            skipped = 0
+            skip_reasons = {}
             
             # Create tasks for all symbols
             tasks = [check_symbol_with_semaphore(symbol) for symbol in universe]
@@ -440,27 +501,53 @@ async def monitor_symbols(universe_provider):
             
             for symbol, signal in zip(universe, results):
                 if isinstance(signal, Exception):
-                    print(f"  [ERROR] Error checking {symbol}: {signal}")
+                    errors += 1
+                    skip_reasons["exception"] = skip_reasons.get("exception", 0) + 1
+                    print(f"  [ERROR] {symbol}: {signal}")
                     continue
                 
-                if signal:
+                # signal is a tuple (signal_data, reason) or (None, reason)
+                signal_data, reason = signal
+                
+                if signal_data is None:
+                    skipped += 1
+                    skip_reasons[reason] = skip_reasons.get(reason, 0) + 1
+                    continue
+                
+                # Successfully got OHLCV and processed
+                success += 1
+                processed += 1
+                
+                # Check if signal passed all thresholds
+                if signal_data:
                     signals_found += 1
-                    print(f"  [SIGNAL FOUND] {signal['symbol']} at {format_timestamp_utc(signal['timestamp'])}")
+                    print(f"  [SIGNAL FOUND] {signal_data['symbol']} at {format_timestamp_utc(signal_data['timestamp'])}")
                     
                     # ATOMIC CLAIM: Try to claim this signal (atomic, prevents duplicates)
-                    signal_key = (signal['symbol'], signal['timestamp'])
-                    if not claim_signal(signal['symbol'], signal['timestamp']):
+                    signal_key = (signal_data['symbol'], signal_data['timestamp'])
+                    if not claim_signal(signal_data['symbol'], signal_data['timestamp']):
                         print(f"  [SKIP] Already sent: {signal_key}")
+                        skipped += 1
+                        skip_reasons["already_sent"] = skip_reasons.get("already_sent", 0) + 1
+                        # Don't double count - we already counted as success
+                        success -= 1
                         continue
                     
                     # Add to memory set for fast subsequent checks
                     SENT_SIGNALS.add(signal_key)
                     print(f"  [MEMORY] Added to SENT_SIGNALS: {signal_key}")
                     
+                    # ===== AUTO-TRADING INTEGRATION =====
+                    # Execute auto-trade on VST (demo) - non-blocking
+                    if auto_trader:
+                        print(f"  [AUTO-TRADE] Executing auto-trade for {signal_data['symbol']}...")
+                        asyncio.create_task(auto_trader.process_signal(signal_data))
+                    # =======================================
+                    
                     # Send to Telegram with actual PASS/FAIL results
-                    print(f"  [TELEGRAM] Attempting to send signal for {signal['symbol']}...")
-                    success = await send_signal_to_telegram(signal, signal['results'])
-                    if success:
+                    print(f"  [TELEGRAM] Attempting to send signal for {signal_data['symbol']}...")
+                    success_send = await send_signal_to_telegram(signal_data, signal_data['results'])
+                    if success_send:
                         signals_sent += 1
                         print(f"    [OK] Sent to Telegram successfully")
                     else:
@@ -470,7 +557,7 @@ async def monitor_symbols(universe_provider):
                         try:
                             conn.execute(
                                 "DELETE FROM sent_signals WHERE symbol = ? AND candle_timestamp = ?",
-                                (signal['symbol'], signal['timestamp'])
+                                (signal_data['symbol'], signal_data['timestamp'])
                             )
                             conn.commit()
                             print(f"    [ROLLBACK] Removed from database: {signal_key}")
@@ -479,8 +566,26 @@ async def monitor_symbols(universe_provider):
                         SENT_SIGNALS.discard(signal_key)
                         print(f"    [ROLLBACK] Removed from memory: {signal_key}")
             
-            print(f"  Total signals found: {signals_found}, Sent: {signals_sent}")
-            print()
+            # STATISTICS SUMMARY
+            print(f"\n[STATS] CYCLE #{cycle_count} SUMMARY:")
+            print(f"  FINAL_UNIVERSE:    {final_universe_count}")
+            print(f"  Planned (total):   {planned}")
+            print(f"  Processed (OK):    {success}")
+            print(f"  Errors (API):      {errors}")
+            print(f"  Skipped:           {skipped}")
+            for reason, count in skip_reasons.items():
+                print(f"    - {reason}: {count}")
+            print(f"  Signals Found:     {signals_found} (cumulative)")
+            print(f"  Signals Sent:      {signals_sent} (cumulative)")
+            
+            # VERIFICATION: planned == success + errors + skipped
+            total_accounted = success + errors + skipped
+            if total_accounted != planned:
+                print(f"  [WARNING] ACCOUNTING MISMATCH: planned={planned}, accounted={total_accounted} (diff={planned - total_accounted})")
+            else:
+                print(f"  [VERIFIED] planned == success + errors + skipped ({planned} == {success} + {errors} + {skipped})")
+            
+            print(f"{'='*100}")
             
             # Wait until next 15m candle completes
             now = datetime.now(timezone.utc)
@@ -515,12 +620,31 @@ async def monitor_symbols(universe_provider):
 
 async def main():
     """Main function."""
+    # ===== AUTO-TRADER INITIALIZATION =====
+    auto_trader = None
+    if AUTO_TRADER_AVAILABLE:
+        from src.exchange.bingx_trader import AutoTraderManager
+        auto_trader = AutoTraderManager()
+        print("[ROBOT] Initializing auto-trader in DEMO mode (VST)...")
+        await auto_trader.start(is_demo=True)
+        print("[OK] Auto-trader started in DEMO mode (VST)")
+    else:
+        print("[WARNING] Auto-trader not available, trading disabled")
+    # =======================================
+    
     # Initialize universe provider
     from src.data_provider.universe_provider import get_universe_provider
     universe_provider = get_universe_provider()
     await universe_provider.initialize()
     
-    await monitor_symbols(universe_provider)
+    try:
+        await monitor_symbols(universe_provider, auto_trader)
+    finally:
+        # Cleanup auto-trader on exit
+        if auto_trader:
+            print("[STOP] Stopping auto-trader...")
+            await auto_trader.stop()
+            print("[OK] Auto-trader stopped")
 
 
 if __name__ == "__main__":

@@ -210,16 +210,35 @@ class BingXFetcher:
     
     async def get_contracts(self) -> List[Dict[str, Any]]:
         """
-        Fetch all perpetual contract specifications.
+        Fetch all perpetual contract specifications with pagination support.
         
         Returns:
             List of contract info dictionaries
         """
-        data = await self._request("/openApi/swap/v2/quote/contracts", "GET")
+        all_contracts = []
+        page = 1
+        limit = 100  # Page size
         
-        if isinstance(data, list):
-            return data
-        return []
+        while True:
+            params = {
+                "page": page,
+                "limit": limit,
+            }
+            
+            data = await self._request("/openApi/swap/v2/quote/contracts", "GET", params)
+            
+            if isinstance(data, list) and data:
+                all_contracts.extend(data)
+                
+                # If we got less than limit, we've reached the end
+                if len(data) < limit:
+                    break
+                    
+                page += 1
+            else:
+                break
+        
+        return all_contracts
     
     async def get_usdt_perpetual_symbols(self) -> List[str]:
         """

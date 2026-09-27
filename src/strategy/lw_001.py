@@ -33,16 +33,17 @@ class LW001Strategy:
     """
     LW-001: Long Lower Wick Reversal Strategy.
 
-    Identifies bullish reversal patterns based on 6 canonical conditions:
+    Identifies bullish reversal patterns based on 7 canonical conditions:
     1. Close < Open (red candle)
     2. Range % >= 4.5%
     3. Body % >= 0.8%
     4. LW/Body >= 1.3x
     5. LW/Range % >= 55.0%
     6. Open->Low % <= -2.5%
-    7. Volume Ratio >= 1.5x (Current / Avg of Previous 20)
+    7. Volume Ratio >= 1.5x (Current / Volume 3 candles ago)
 
     Only operates on M15 timeframe with real BingX data.
+    Only uses CLOSED candles.
     """
 
     # =========================================================================
@@ -64,10 +65,10 @@ class LW001Strategy:
     @property
     def description(self) -> str:
         return (
-            "Identifies bullish reversal patterns using 6 canonical conditions: "
+            "Identifies bullish reversal patterns using 7 canonical conditions: "
             "red candle, Range>=4.5%, Body>=0.8%, LW/Body>=1.3x, "
-            "LW/Range>=55%, Open->Low<=-2.5%, Volume Ratio>=1.5x (avg prev 20). "
-            "Only operates on M15 timeframe with real BingX data."
+            "LW/Range>=55%, Open->Low<=-2.5%, Volume Ratio>=1.5x (N/N-3). "
+            "Only operates on M15 timeframe with real BingX data. Only closed candles."
         )
 
     @property
@@ -189,15 +190,15 @@ class LW001Strategy:
             close_price = market_data.close
             volume = market_data.volume
 
-            # Get previous 20 volumes for volume ratio calculation
+            # Get volume 3 candles ago for volume ratio calculation (NEW FORMULA: N/N-3)
             # This requires access to historical data - passed via context or data provider
-            previous_20_volumes = getattr(context, "previous_20_volumes", None)
-            if previous_20_volumes is None:
+            volume_3_candles_ago = getattr(context, "volume_3_candles_ago", None)
+            if volume_3_candles_ago is None:
                 # Fallback: try to get from data provider if available
                 # For now, raise error - volume ratio is required
                 raise StrategyExecutionError(
-                    "Previous 20 volumes not available in context. "
-                    "Volume ratio is required for LW-001 qualification."
+                    "Volume 3 candles ago not available in context. "
+                    "Volume ratio (N/N-3) is required for LW-001 qualification."
                 )
 
             # Use CANONICAL check function - single source of truth
@@ -207,7 +208,7 @@ class LW001Strategy:
                 low_price=low_price,
                 close_price=close_price,
                 current_volume=volume,
-                previous_20_volumes=previous_20_volumes,
+                volume_3_candles_ago=volume_3_candles_ago,
             )
 
             qualified = result.qualified
@@ -218,7 +219,7 @@ class LW001Strategy:
             if qualified:
                 explanation = (
                     f"LW-001 Result: QUALIFIED\n"
-                    f"All 6 conditions PASSED\n\n"
+                    f"All 7 conditions PASSED\n\n"
                     f"Candle Data: O={open_price:.6f} H={high_price:.6f} L={low_price:.6f} C={close_price:.6f}\n"
                     f"Volume: {volume:,.0f}\n\n"
                     f"Metrics:\n"
@@ -227,7 +228,7 @@ class LW001Strategy:
                     f"  LW/Body: {metrics.lw_body_ratio:.2f}x (threshold: >= 1.3x)\n"
                     f"  LW/Range: {metrics.lw_range_pct:.2f}% (threshold: >= 55.0%)\n"
                     f"  Open->Low: {metrics.open_to_low_pct:.2f}% (threshold: <= -2.5%)\n"
-                    f"  Volume Ratio: {metrics.volume_ratio:.2f}x (threshold: >= 1.5x, avg prev 20)\n"
+                    f"  Volume Ratio: {metrics.volume_ratio:.2f}x (threshold: >= 1.5x, N/N-3)\n"
                 )
             else:
                 explanation = (
@@ -242,7 +243,7 @@ class LW001Strategy:
                     f"  LW/Body: {metrics.lw_body_ratio:.2f}x (threshold: >= 1.3x)\n"
                     f"  LW/Range: {metrics.lw_range_pct:.2f}% (threshold: >= 55.0%)\n"
                     f"  Open->Low: {metrics.open_to_low_pct:.2f}% (threshold: <= -2.5%)\n"
-                    f"  Volume Ratio: {metrics.volume_ratio:.2f}x (threshold: >= 1.5x, avg prev 20)\n"
+                    f"  Volume Ratio: {metrics.volume_ratio:.2f}x (threshold: >= 1.5x, N/N-3)\n"
                 )
 
             execution_time_ms = (time.perf_counter() - start_time) * 1000

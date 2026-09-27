@@ -164,15 +164,15 @@ def calculate_open_to_low_pct(open_price: float, low_price: float) -> float:
     return ((low_price - open_price) / open_price) * 100
 
 
-def calculate_volume_ratio(candle_volume: float, reference_average_volume: float) -> float:
+def calculate_volume_ratio(candle_volume: float, volume_3_candles_ago: float) -> float:
     """
     Calculate Volume Ratio.
     
-    Formula: Candle_Volume / Reference_Average_Volume
+    Formula: Candle_Volume / Volume_3_Candles_Ago
     
     Args:
-        candle_volume: Volume of the signal candle
-        reference_average_volume: Average volume from reference period
+        candle_volume: Volume of the signal candle (N)
+        volume_3_candles_ago: Volume of the candle exactly 3 candles before (N-3)
     
     Returns:
         Volume Ratio (e.g., 1.50 for 1.5x)
@@ -180,13 +180,13 @@ def calculate_volume_ratio(candle_volume: float, reference_average_volume: float
     Unit: x
     
     Note:
-        Reference Average Volume is calculated from the last 20 candles
-        BEFORE the signal candle (not including the signal candle itself).
+        Comparison is with exactly ONE candle - the one 3 candles ago (45 minutes on M15).
+        NOT an average. NOT 20 candles. NOT N-1 or N-2.
     """
-    if reference_average_volume == 0:
+    if volume_3_candles_ago == 0:
         return 0.0
     
-    return candle_volume / reference_average_volume
+    return candle_volume / volume_3_candles_ago
 
 
 def calculate_all_metrics(
@@ -195,7 +195,7 @@ def calculate_all_metrics(
     low_price: float,
     close_price: float,
     volume: float,
-    reference_average_volume: float
+    volume_3_candles_ago: float
 ) -> LW001Metrics:
     """
     Calculate all LW-001 metrics from OHLCV data.
@@ -207,8 +207,8 @@ def calculate_all_metrics(
         high_price: Candle high price
         low_price: Candle low price
         close_price: Candle close price
-        volume: Candle volume
-        reference_average_volume: Average volume from reference period
+        volume: Candle volume (N)
+        volume_3_candles_ago: Volume of candle N-3 (exactly 3 candles ago)
     
     Returns:
         LW001Metrics object with all calculated metrics
@@ -227,7 +227,7 @@ def calculate_all_metrics(
         lower_wick_body_ratio=calculate_lower_wick_body_ratio(open_price, close_price, low_price),
         lower_wick_range_pct=calculate_lower_wick_range_pct(open_price, high_price, low_price, close_price),
         open_to_low_pct=calculate_open_to_low_pct(open_price, low_price),
-        volume_ratio=calculate_volume_ratio(volume, reference_average_volume)
+        volume_ratio=calculate_volume_ratio(volume, volume_3_candles_ago)
     )
 
 

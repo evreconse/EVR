@@ -69,6 +69,8 @@ class CMCUniverseCache:
                     filtered_stablecoin INTEGER DEFAULT 0,
                     filtered_wrapped INTEGER DEFAULT 0,
                     filtered_leveraged INTEGER DEFAULT 0,
+                    filtered_synthetic INTEGER DEFAULT 0,
+                    excluded_non_trading INTEGER DEFAULT 0,
                     eligible_count INTEGER,
                     exact_matches INTEGER,
                     base_asset_matches INTEGER,
@@ -121,15 +123,17 @@ class CMCUniverseCache:
         filtered_stablecoin: int,
         filtered_wrapped: int,
         filtered_leveraged: int,
-        eligible_count: int,
-        exact_matches: int,
-        base_asset_matches: int,
-        ambiguous_count: int,
-        no_match_count: int,
-        final_count: int,
-        bingx_active_contracts: int,
-        fetched_at: str,
-        validation_status: str,
+        filtered_synthetic: int = 0,
+        excluded_non_trading: int = 0,
+        eligible_count: int = 0,
+        exact_matches: int = 0,
+        base_asset_matches: int = 0,
+        ambiguous_count: int = 0,
+        no_match_count: int = 0,
+        final_count: int = 0,
+        bingx_active_contracts: int = 0,
+        fetched_at: str = "",
+        validation_status: str = "PENDING",
         validation_errors: List[str] = None
     ) -> int:
         """
@@ -157,14 +161,16 @@ class CMCUniverseCache:
                 INSERT INTO cmc_universe_cache (
                     universe_json, cmc_raw_count, target_count, filtered_count,
                     filtered_stablecoin, filtered_wrapped, filtered_leveraged,
+                    filtered_synthetic, excluded_non_trading,
                     eligible_count, exact_matches, base_asset_matches,
                     ambiguous_count, no_match_count, final_count,
                     bingx_active_contracts, fetched_at, version_hash,
                     validation_status, validation_errors, is_active
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
             """, (
                 universe_json, cmc_raw_count, target_count, filtered_count,
                 filtered_stablecoin, filtered_wrapped, filtered_leveraged,
+                filtered_synthetic, excluded_non_trading,
                 eligible_count, exact_matches, base_asset_matches,
                 ambiguous_count, no_match_count, final_count,
                 bingx_active_contracts, fetched_at, version_hash,
