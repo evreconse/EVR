@@ -152,12 +152,12 @@ class PipelineStageStrategy:
             volume=context.volume,
         )
 
-        # Get previous 20 volumes for volume ratio calculation
+        # Get volume 3 candles ago for NEW volume ratio formula (N/N-3)
         # This would ideally come from data provider - for now we pass from context
-        previous_20_volumes = getattr(context, "previous_20_volumes", None)
+        volume_3_candles_ago = getattr(context, "volume_3_candles_ago", None)
 
-        if previous_20_volumes is None:
-            logger.warning(f"[PIPELINE] Strategy stage: Previous 20 volumes not available, cannot compute volume ratio")
+        if volume_3_candles_ago is None:
+            logger.warning(f"[PIPELINE] Strategy stage: Volume 3 candles ago not available, cannot compute volume ratio (N/N-3)")
             # We'll still run the strategy engine which will handle the error
             pass
 
@@ -172,7 +172,7 @@ class PipelineStageStrategy:
             low_price=context.low_price,
             close_price=context.close_price,
             current_volume=context.volume,
-            previous_20_volumes=previous_20_volumes or [],
+            volume_3_candles_ago=volume_3_candles_ago or 0.0,
         )
 
         qualified = canonical_result.qualified

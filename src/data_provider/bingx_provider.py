@@ -285,13 +285,14 @@ class BingXDataProvider(MarketDataProvider):
         Args:
             symbol: Trading symbol
             timeframe: Timeframe for candles
-            limit: Number of recent candles to retrieve (plus 20 for volume reference)
+            limit: Number of recent candles to retrieve (plus 4 for N-3 volume reference)
         
         Returns:
             List of candle data dictionaries
         """
-        # Fetch limit + 20 to have previous 20 for volume ratio
-        total_limit = limit + 20
+        # Fetch limit + 4 to have N-3 for volume ratio (need at least 4 candles: N, N-1, N-2, N-3)
+        # Add extra for closed candle detection safety
+        total_limit = limit + 10
         return await self.async_get_snapshot(symbol, timeframe, total_limit)
     
     async def stream(self) -> AsyncGenerator[MarketDataMessage, None]:
@@ -370,8 +371,8 @@ class BingXDataProvider(MarketDataProvider):
         Returns:
             List of dicts with time, open, high, low, close, volume
         """
-        # Need limit + 20 for volume reference
-        return await self.async_get_snapshot(symbol, timeframe, limit + 20)
+        # Need limit + 4 for N-3 volume reference, plus extra for closed candle detection
+        return await self.async_get_snapshot(symbol, timeframe, limit + 10)
 
     # =========================================================================
     # Health Monitoring & Heartbeat
