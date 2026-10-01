@@ -50,18 +50,23 @@ STABLECOINS = frozenset({
     "USDT6", "USDT7", "USDT8", "USDT9",
 })
 
-# Wrapped tokens
-WRAPPED_PREFIXES = frozenset(["w", "w.", "w_"])
-WRAPPED_SUFFIXES = frozenset(["w", ".w", "-w", "W", ".W"])
-
-# Leveraged tokens patterns
-LEVERAGED_PATTERNS = frozenset([
-    "3L", "3S", "2L", "2S", "1L", "1S",
-    "UP", "DOWN", "BULL", "BEAR",
-    "5L", "5S", "3XL", "3XS", "2XL", "2XS",
+# Wrapped tokens - only exclude known wrapped versions, not tokens that happen to start with W
+WRAPPED_TOKENS = frozenset([
+    "WBTC", "WETH", "WBNB", "WMATIC", "WAVAX", "WSOL", "WFTM", "WONE", "WHE",
+    "WTRX", "WDOGE", "WSHIB", "WLTC", "WBCH", "WXRP", "WADA", "WDOT", "WLINK",
+    "WUNI", "WAAVE", "WCOMP", "WMKR", "WSNX", "WYFI", "WCRV", "WBAL", "WREN",
+    "WSTETH", "WFRXETH", "WCBETH", "WRSETH", "WANKR", "WUSDC", "WUSDT", "WDAI",
 ])
 
-# Synthetic/tokenized assets (NCSK*, NCCO* prefixes)
+# Leveraged tokens patterns - only exclude known leveraged tokens
+LEVERAGED_TOKENS = frozenset([
+    "BTC3L", "BTC3S", "ETH3L", "ETH3S", "BNB3L", "BNB3S",
+    "BTC2L", "BTC2S", "ETH2L", "ETH2S",
+    "BTCUP", "BTCDOWN", "ETHUP", "ETHDOWN",
+    "BNBBULL", "BNBBEAR",
+])
+
+# Synthetic/tokenized assets (NCSK*, NCCO* prefixes) - these are tokenized stocks/indices
 SYNTHETIC_PREFIXES = frozenset([
     "NCSK", "NCCO", "NCSIN", "NCSISP", "NCSKNBIS", "NCSKGLW", "NCCO724",
     "NCSKSOXX", "NCSKBTDR", "NCSKAMC", "NCSKMSTR", "NCSKCOST", "NCSKARKK",
@@ -87,24 +92,13 @@ def is_stablecoin(base_symbol: str) -> bool:
 
 
 def is_wrapped(base_symbol: str) -> bool:
-    """Check if token is wrapped."""
-    base = base_symbol.upper()
-    for prefix in WRAPPED_PREFIXES:
-        if base.startswith(prefix):
-            return True
-    for suffix in WRAPPED_SUFFIXES:
-        if base.endswith(suffix):
-            return True
-    return False
+    """Check if token is a known wrapped token."""
+    return base_symbol.upper() in WRAPPED_TOKENS
 
 
 def is_leveraged(base_symbol: str) -> bool:
-    """Check if token is leveraged."""
-    base = base_symbol.upper()
-    for pattern in LEVERAGED_PATTERNS:
-        if pattern in base:
-            return True
-    return False
+    """Check if token is a known leveraged token."""
+    return base_symbol.upper() in LEVERAGED_TOKENS
 
 
 def is_synthetic(base_symbol: str) -> bool:
@@ -304,7 +298,7 @@ class UniverseProvider:
             
             for contract in trading_contracts:
                 symbol = contract.get("symbol", "")
-                base_symbol = contract.get("baseAsset", symbol.replace("-USDT", ""))
+                base_symbol = contract.get("asset", symbol.replace("-USDT", ""))
                 
                 # Apply filters
                 if is_stablecoin(base_symbol):
