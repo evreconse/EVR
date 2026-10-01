@@ -152,15 +152,7 @@ class PipelineStageStrategy:
             volume=context.volume,
         )
 
-        # Get volume 3 candles ago for NEW volume ratio formula (N/N-3)
-        # This would ideally come from data provider - for now we pass from context
-        volume_3_candles_ago = getattr(context, "volume_3_candles_ago", None)
-
-        if volume_3_candles_ago is None:
-            logger.warning(f"[PIPELINE] Strategy stage: Volume 3 candles ago not available, cannot compute volume ratio (N/N-3)")
-            # We'll still run the strategy engine which will handle the error
-            pass
-
+        # Volume Ratio REMOVED - not part of LW-001 strategy
         # Add strategy data to the event - use canonical check for qualification
         from strategy.lw001_canonical import check_lw001_signal
         from models.market_event import StrategyData
@@ -171,8 +163,6 @@ class PipelineStageStrategy:
             high_price=context.high_price,
             low_price=context.low_price,
             close_price=context.close_price,
-            current_volume=context.volume,
-            volume_3_candles_ago=volume_3_candles_ago or 0.0,
         )
 
         qualified = canonical_result.qualified
@@ -190,7 +180,7 @@ class PipelineStageStrategy:
         event = replace(event, strategy_data=strategy_data)
 
         logger.info(f"[PIPELINE] Strategy stage: MarketEvent reconstructed - O:{context.open_price} H:{context.high_price} L:{context.low_price} C:{context.close_price}")
-        logger.info(f"[PIPELINE] Strategy stage: LW-001 check - qualified={qualified}, ratio={metrics.lw_body_ratio:.2f}x, vol_ratio={metrics.volume_ratio:.2f}x")
+        logger.info(f"[PIPELINE] Strategy stage: LW-001 check - qualified={qualified}, ratio={metrics.lw_body_ratio:.2f}x")
 
         # Update context with strategy results
         return context.with_updates(
@@ -356,7 +346,7 @@ class PipelineStageNotifier:
                         'lw_body_ratio': context.wick_body_ratio or 0,
                         'lw_range_pct': (min(context.open_price, context.close_price) - context.low_price) / (context.high_price - context.low_price) * 100 if context.high_price != context.low_price else 0,
                         'open_to_low_pct': (context.low_price - context.open_price) / context.open_price * 100 if context.open_price else 0,
-                        'volume_ratio': 0,  # Will be calculated properly in strategy stage
+                        # Volume Ratio REMOVED - not part of LW-001 strategy
                         'is_red': context.close_price < context.open_price,
                     })(),
                 )

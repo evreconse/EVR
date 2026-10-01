@@ -28,7 +28,7 @@ class LW001Metrics:
     lower_wick_body_ratio: float  # Unit: x
     lower_wick_range_pct: float  # Unit: %
     open_to_low_pct: float  # Unit: %
-    volume_ratio: Optional[float]  # Unit: x
+    # Volume Ratio REMOVED - not part of LW-001 strategy
 
 
 def calculate_range_pct(open_price: float, high_price: float, low_price: float) -> float:
@@ -164,31 +164,6 @@ def calculate_open_to_low_pct(open_price: float, low_price: float) -> float:
     return ((low_price - open_price) / open_price) * 100
 
 
-def calculate_volume_ratio(candle_volume: float, volume_3_candles_ago: float) -> float:
-    """
-    Calculate Volume Ratio.
-    
-    Formula: Candle_Volume / Volume_3_Candles_Ago
-    
-    Args:
-        candle_volume: Volume of the signal candle (N)
-        volume_3_candles_ago: Volume of the candle exactly 3 candles before (N-3)
-    
-    Returns:
-        Volume Ratio (e.g., 1.50 for 1.5x)
-    
-    Unit: x
-    
-    Note:
-        Comparison is with exactly ONE candle - the one 3 candles ago (45 minutes on M15).
-        NOT an average. NOT 20 candles. NOT N-1 or N-2.
-    """
-    if volume_3_candles_ago == 0:
-        return 0.0
-    
-    return candle_volume / volume_3_candles_ago
-
-
 def calculate_all_metrics(
     open_price: float,
     high_price: float,
@@ -219,7 +194,6 @@ def calculate_all_metrics(
         lower_wick_body_ratio: x
         lower_wick_range_pct: %
         open_to_low_pct: %
-        volume_ratio: x
     """
     return LW001Metrics(
         range_pct=calculate_range_pct(open_price, high_price, low_price),
@@ -227,7 +201,6 @@ def calculate_all_metrics(
         lower_wick_body_ratio=calculate_lower_wick_body_ratio(open_price, close_price, low_price),
         lower_wick_range_pct=calculate_lower_wick_range_pct(open_price, high_price, low_price, close_price),
         open_to_low_pct=calculate_open_to_low_pct(open_price, low_price),
-        volume_ratio=calculate_volume_ratio(volume, volume_3_candles_ago)
     )
 
 
@@ -262,7 +235,6 @@ LW001_THRESHOLDS = {
     "lower_wick_body_ratio": {"value": 1.3, "unit": "x", "operator": ">="},
     "lower_wick_range_pct": {"value": 55.0, "unit": "%", "operator": ">="},
     "open_to_low_pct": {"value": -2.5, "unit": "%", "operator": "<="},
-    "volume_ratio": {"value": 1.5, "unit": "x", "operator": ">="}
 }
 
 
@@ -334,20 +306,6 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
         )
         if metrics.open_to_low_pct > LW001_THRESHOLDS["open_to_low_pct"]["value"]:
             failures.append(f"Open to Low {metrics.open_to_low_pct:.2f}% > {LW001_THRESHOLDS['open_to_low_pct']['value']}%")
-    except ValueError as e:
-        failures.append(str(e))
-    
-    # Volume Ratio >= 1.5x
-    try:
-        if metrics.volume_ratio is None:
-            failures.append("Volume Ratio is None")
-        else:
-            validate_metric_units(
-                metrics.volume_ratio, "x",
-                LW001_THRESHOLDS["volume_ratio"]["value"], LW001_THRESHOLDS["volume_ratio"]["unit"]
-            )
-            if metrics.volume_ratio < LW001_THRESHOLDS["volume_ratio"]["value"]:
-                failures.append(f"Volume Ratio {metrics.volume_ratio:.2f}x < {LW001_THRESHOLDS['volume_ratio']['value']}x")
     except ValueError as e:
         failures.append(str(e))
     

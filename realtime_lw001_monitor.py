@@ -3,7 +3,7 @@
 Real-time LW-001 Monitor
 
 Monitors 15m candles in real-time and sends signals to Telegram when conditions are met.
-Uses fixed parameters from Production Spec with dynamic CMC Universe.
+Uses fixed parameters from Production Spec with dynamic BingX Universe (ALL active USDT Perpetuals).
 """
 
 import sys
@@ -130,7 +130,6 @@ FIXED_THRESHOLDS = {
     "lw_body_ratio": 1.3,
     "lw_range_pct": 55.0,  # FIXED: was 45.0, now 55.0 per Production Spec
     "open_low_pct": -2.5,
-    "volume_ratio": 1.5
 }
 
 
@@ -155,7 +154,7 @@ def check_thresholds(metrics, thresholds):
     results["lw_body_ratio"] = metrics.lower_wick_body_ratio >= thresholds["lw_body_ratio"]
     results["lw_range_pct"] = metrics.lower_wick_range_pct >= thresholds["lw_range_pct"]
     results["open_low_pct"] = metrics.open_to_low_pct <= thresholds["open_low_pct"]
-    results["volume_ratio"] = metrics.volume_ratio >= thresholds["volume_ratio"]
+    # Volume Ratio REMOVED - not part of LW-001 strategy
     
     passed = all(results.values())
     return passed, results
@@ -199,8 +198,8 @@ def verify_signal_comprehensive(candle_data, avg_volume_20):
     return True, metrics, results, "OK"
 
 
-def verify_signal_comprehensive_new(candle_data, volume_3_candles_ago):
-    """Comprehensive verification of a signal (NEW - uses N/N-3 volume ratio). Returns (passed, metrics, results_dict, reason)."""
+def verify_signal_comprehensive_new(candle_data):
+    """Comprehensive verification of a signal (NEW - Volume Ratio removed). Returns (passed, metrics, results_dict, reason)."""
     from LW001_METRIC_SPEC import calculate_all_metrics
     
     open_price = float(candle_data['open'])
@@ -218,14 +217,14 @@ def verify_signal_comprehensive_new(candle_data, volume_3_candles_ago):
     if not check_red_candle(open_price, close_price):
         return False, None, None, "Candle is not red (Close >= Open)"
     
-    # 3. Calculate metrics with NEW volume ratio formula
+    # 3. Calculate metrics (Volume Ratio removed)
     metrics = calculate_all_metrics(
         open_price=open_price,
         high_price=high_price,
         low_price=low_price,
         close_price=close_price,
         volume=volume,
-        volume_3_candles_ago=volume_3_candles_ago
+        volume_3_candles_ago=0.0  # Not used, kept for compatibility
     )
     
     # 4. Check all thresholds
@@ -256,7 +255,7 @@ def format_telegram_message(signal, results):
         format_condition_line("LW/Body", "≥ 1.3x", results["lw_body_ratio"]),
         format_condition_line("LW/Range", "≥ 55%", results["lw_range_pct"]),
         format_condition_line("Open→Low", "≤ -2.5%", results["open_low_pct"]),
-        format_condition_line("Volume Ratio", "≥ 1.5x", results["volume_ratio"]),
+        # Volume Ratio REMOVED - not part of LW-001 strategy
     ]
     
     message = f"""📌 LW-001 SIGNAL
@@ -278,7 +277,7 @@ Body: {metrics.body_pct:.2f}%
 LW/Body: {metrics.lower_wick_body_ratio:.2f}x
 LW/Range: {metrics.lower_wick_range_pct:.2f}%
 Open→Low: {metrics.open_to_low_pct:.2f}%
-Volume Ratio: {metrics.volume_ratio:.2f}x
+# Volume Ratio REMOVED - not part of LW-001 strategy
 
 ✅ Conditions
 {chr(10).join(conditions)}
@@ -390,7 +389,7 @@ async def check_latest_candle(symbol, universe_provider):
             end_time=int(end_time.timestamp() * 1000)
         )
         
-        if not candles or len(candles) < 5:  # Need at least 5 candles for N-3 + closed candle logic
+        if not candles or len(candles) < 2:  # Need at least 2 candles for closed candle logic
             return None, "insufficient_candles"
         
         # Get the last completed candle using timestamp-based logic
@@ -406,15 +405,13 @@ async def check_latest_candle(symbol, universe_provider):
         if signal_key in SENT_SIGNALS:
             return None, "already_processed"
         
-        # Need at least 4 candles before current for N-3 reference
-        if candle_index < 3:
-            return None, "insufficient_history_for_n_minus_3"
+        # Need at least 1 completed candle before current (not needed anymore since Volume Ratio removed)
+        # but keep for safety
+        if candle_index < 1:
+            return None, "insufficient_history"
         
-        # Get volume 3 candles ago (N-3)
-        volume_3_ago = float(candles[candle_index - 3].get('volume', candles[candle_index - 3].get('vol', 0)))
-        
-        # Verify signal with NEW volume ratio formula (N/N-3)
-        passed, metrics, results, reason = verify_signal_comprehensive_new(latest_candle, volume_3_ago)
+        # Verify signal (Volume Ratio removed)
+        passed, metrics, results, reason = verify_signal_comprehensive_new(latest_candle)
         
         if passed:
             print(f"[SIGNAL DETECTED] {symbol} at {format_timestamp_utc(timestamp)} | O={float(latest_candle['open']):.6f} H={float(latest_candle['high']):.6f} L={float(latest_candle['low']):.6f} C={float(latest_candle['close']):.6f} V={float(latest_candle['volume']):.2f}")
@@ -449,7 +446,7 @@ async def monitor_symbols(universe_provider, auto_trader=None):
     print(f"Universe: ALL active USDT Perpetual contracts from BingX (NO TOP-500 limit)")
     print(f"Timeframe: 15m")
     print(f"Thresholds: Range >= 4.5%, Body >= 0.8%, LW/Body >= 1.3x, LW/Range >= 55%")
-    print(f"           Open->Low <= -2.5%, Volume Ratio >= 1.5x (N/N-3)")
+    print(f"           Open->Low <= -2.5%")
     print(f"Candle direction: RED only (Close < Open)")
     print(f"Only CLOSED candles used")
     print()

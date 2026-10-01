@@ -218,7 +218,6 @@ class StrategyConditionConfig:
     - LW/Body >= 1.3x
     - LW/Range >= 55.0%
     - Open->Low <= -2.5%
-    - Volume Ratio >= 1.5x (current / volume 3 candles ago)
     - Red candle only (Close < Open)
 
     No configurable thresholds needed.
