@@ -202,7 +202,36 @@ def load_sent_signals_to_memory():
 SENT_SIGNALS = load_sent_signals_to_memory()
 
 
-# FIXED Capitulation/Absorption thresholds
+# Import the Capitulation Detector (single source of truth)
+from strategy.capitulation_detector import (
+    FIXED_THRESHOLDS,
+    check_red_candle,
+    calculate_metrics,
+    check_thresholds,
+    get_fail_reason,
+    get_last_completed_candle,
+    SignalMetrics,
+    FilterResult,
+    SignalCandidate,
+    calculate_metrics,
+    check_thresholds,
+    get_fail_reason,
+    get_last_completed_candle,
+    check_red_candle,
+    check_thresholds as check_thresholds_detector,
+    get_fail_reason as get_fail_reason_detector,
+    get_last_completed_candle,
+    check_red_candle,
+    SignalMetrics,
+    FilterResult,
+    SignalCandidate,
+)
+
+# Import threshold spec
+from LW001_METRIC_SPEC import LW001_THRESHOLDS as LW001_THRESHOLDS_SPEC
+# Note: FIXED_THRESHOLDS for Capitulation strategy are defined below
+
+# FIXED Capitulation/Absorption thresholds (AUDITED VALUES)
 FIXED_THRESHOLDS = {
     "drop_pct": -2.5,       # Open→Low ≤ -2.5%
     "wick_body_ratio": 1.0, # LW/Body ≥ 1.0x
@@ -210,26 +239,16 @@ FIXED_THRESHOLDS = {
     "volume_30_ratio": 2.0, # Volume30Ratio ≥ 2.0x
 }
 
+# Bot token and chat ID will be loaded from environment
+BOT_TOKEN = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN") or os.getenv("EVRECONSE_TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID") or os.getenv("EVRECONSE_TELEGRAM_CHAT_ID")
+
 def format_timestamp_utc(timestamp_ms):
     """Convert raw candle timestamp to UTC format ONLY."""
     timestamp_sec = timestamp_ms / 1000
     dt_utc = datetime.fromtimestamp(timestamp_sec, timezone.utc)
     utc_str = dt_utc.strftime("%d.%m.%Y %H:%M UTC")
     return utc_str
-
-def check_red_candle(open_price, close_price):
-    """Check if candle is red (Close < Open)."""
-    return close_price < open_price
-
-def check_thresholds(metrics):
-    """Check if metrics pass all thresholds. Returns (passed, results_dict)."""
-    results = {}
-    results["drop_pct"] = metrics.open_to_low_pct <= FIXED_THRESHOLDS["drop_pct"]
-    results["wick_body_ratio"] = metrics.lw_body_ratio >= FIXED_THRESHOLDS["wick_body_ratio"]
-    results["reclaim_pct"] = metrics.reclaim_pct >= FIXED_THRESHOLDS["reclaim_pct"]
-    results["volume_30_ratio"] = metrics.volume_30_ratio >= FIXED_THRESHOLDS["volume_30_ratio"]
-    passed = all(results.values())
-    return passed, results
 
 def format_condition_line(condition_name, threshold_str, passed):
     """Format a single condition line with PASS/FAIL."""
@@ -251,9 +270,9 @@ def format_telegram_message(signal, results):
 
     message = f"""🟢 LONG CAPITULATION / ABSORPTION
 
-🪙 Symbol: {symbol}
+🪙 Symbol: {signal['symbol']}
 
-⏰ Time: {format_timestamp_utc(timestamp)}
+⏰ Time: {format_timestamp_utc(signal['timestamp'])}
 
 💰 OHLCV
 Open: {signal['open']:.6f}
@@ -298,108 +317,72 @@ async def send_signal_to_telegram(signal_data, test_type: str = "LIVE"):
 
     print(f"  [TELEGRAM PRE-SEND] text_repr={repr(message[:200])}... len={len(message)} chars")
 
-    payload = {
-        "chat_id": chat_id,
-        "text": message,
-    }
-
     try:
-        print(f"  [TELEGRAM] Sending request to Telegram API...")
-        import json
-        payload_bytes = json.dumps(payload, ensure_ascii=False).encode('utf-8')
-        headers = {
-            "Content-Type": "application/json; charset=utf-8",
-            "Content-Length": str(len(payload_bytes))
-        }
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=payload_bytes, headers=headers) as resp:
+            async with session.post(url, json={"chat_id": chat_id, "text": message}) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    ok = data.get('ok', False)
-                    if ok:
+                    if data.get('ok'):
                         msg_id = data.get('result', {}).get('message_id')
-                        print(f"  [TELEGRAM SUCCESS] Message sent successfully, message_id={msg_id}")
+                        print(f"  [TELEGRAM] Sent successfully, message_id={msg_id}")
                         return True, msg_id
                     else:
-                        print(f"  [TELEGRAM ERROR] API returned ok=false: {data}")
+                        error_text = await resp.text()
+                        print(f"  [TELEGRAM ERROR] API error: {data}")
                         return False, None
                 else:
-                    text = await resp.text()
-                    print(f"  [TELEGRAM ERROR] API returned status {resp.status}: {text}")
+                    error_text = await resp.text()
+                    print(f"  [TELEGRAM ERROR] HTTP {resp.status}: {error_text}")
                     return False, None
     except Exception as e:
-        print(f"  [TELEGRAM ERROR] Exception: {type(e).__name__}: {e}")
+        print(f"  [TELEGRAM ERROR] Exception: {e}")
         return False, None
 
 
-def verify_signal_comprehensive(candle_data, prev_30_volumes):
-    """Comprehensive verification of a signal. Returns (passed, metrics, results_dict, reason)."""
-    from src.strategy.capitulation_detector import check_capitulation_signal
-
-    open_price = float(candle_data['open'])
-    high_price = float(candle_data['high'])
-    low_price = float(candle_data['low'])
-    close_price = float(candle_data['close'])
-    volume = float(candle_data['volume'])
-    timestamp = candle_data.get('time', candle_data.get('timestamp', 0))
-
-    if timestamp <= 0:
-        return False, None, None, "Invalid timestamp"
-
-    if not check_red_candle(open_price, close_price):
-        return False, None, None, "Candle is not red (Close >= Open)"
-
-    if len(prev_30_volumes) < 30:
-        return False, None, None, "Insufficient history for Volume30"
-
-    result = check_capitulation_signal(
-        open_price=open_price,
-        high_price=high_price,
-        low_price=low_price,
-        close_price=close_price,
-        volume=volume,
-        timestamp=timestamp,
-        prev_30_volumes=prev_30_volumes
-    )
-
-    metrics = result.metrics
-    passed, results = check_thresholds(metrics)
-
-    if not passed:
-        return False, metrics, results, "Metrics do not pass thresholds"
-
-    return True, metrics, results, "OK"
-
-
-def get_last_completed_candle(candles):
-    """Identify the last completed candle from the fetched candles."""
-    if not candles or len(candles) < 2:
-        return None, None
-
-    now = datetime.now(timezone.utc)
-    now_ms = int(now.timestamp() * 1000)
-
-    for i in range(len(candles) - 1, -1, -1):
-        candle = candles[i]
-        timestamp = candle.get('time', candle.get('timestamp', 0))
-        if timestamp <= 0:
-            continue
-        candle_close_time = timestamp + (15 * 60 * 1000)
-        if candle_close_time <= now_ms:
-            return candle, i
-
-    return None, None
-
-
-async def check_latest_candle(symbol, universe_provider):
-    """Check the latest completed 15m candle for a symbol."""
-    from src.exchange.bingx_fetcher import BingXFetcher
-    fetcher = BingXFetcher()
-
-    end_time = datetime.now(timezone.utc)
-    start_time = end_time - timedelta(hours=4)
-
+async def send_test_telegram_message():
+    """Send a test message to verify Telegram connectivity."""
+    bot_token = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN") or os.getenv("EVRECONSE_TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID") or os.getenv("EVRECONSE_TELEGRAM_CHAT_ID")
+    
+    if not bot_token or not chat_id:
+        print("  [TELEGRAM] Credentials not found, skipping test message")
+        return
+    
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    message = "🔧 EVRECONSE TEST MESSAGE\n\nThis is a test message to verify Telegram connectivity.\nIf you receive this, Telegram integration is working correctly."
+    
     try:
+        async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                    json={"chat_id": chat_id, "text": message}
+                ) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        if data.get('ok'):
+                            msg_id = data.get('result', {}).get('message_id')
+                            print(f"  [TELEGRAM TEST] Sent successfully, message_id={msg_id}")
+                        else:
+                            print(f"  [TELEGRAM TEST ERROR] {data}")
+                    else:
+                        error_text = await resp.text()
+                        print(f"  [TELEGRAM TEST ERROR] HTTP {resp.status}: {error_text}")
+    except Exception as e:
+        print(f"  [TELEGRAM TEST ERROR] Exception: {e}")
+
+
+async def check_latest_candle(symbol: str, universe_provider):
+    """Check the latest completed M15 candle for a symbol using the Capitulation Detector."""
+    from src.exchange.bingx_fetcher import BingXFetcher
+    
+    fetcher = BingXFetcher()
+    
+    try:
+        # Fetch recent M15 candles (last 4 hours + extra for history)
+        end_time = datetime.now(timezone.utc)
+        start_time = end_time - timedelta(hours=4)
+
         candles = await fetcher.get_klines(
             symbol=symbol,
             interval="15m",
@@ -427,23 +410,66 @@ async def check_latest_candle(symbol, universe_provider):
 
         prev_30_volumes = [float(candles[candle_index - 30 + j]['volume']) for j in range(30)]
 
-        passed, metrics, results, reason = verify_signal_comprehensive(latest_candle, prev_30_volumes)
-
-        if passed:
-            print(f"[SIGNAL DETECTED] {symbol} at {format_timestamp_utc(timestamp)} | O={float(latest_candle['open']):.6f} H={float(latest_candle['high']):.6f} L={float(latest_candle['low']):.6f} C={float(latest_candle['close']):.6f} V={float(latest_candle['volume']):.2f}")
-            return {
-                'symbol': symbol,
-                'timestamp': timestamp,
-                'open': float(latest_candle['open']),
-                'high': float(latest_candle['high']),
-                'low': float(latest_candle['low']),
-                'close': float(latest_candle['close']),
-                'volume': float(latest_candle['volume']),
-                'metrics': metrics,
-                'results': results,
-            }, "success"
-
-        return None, reason
+        # Use the Capitulation Detector
+        from strategy.capitulation_detector import check_red_candle, calculate_metrics, check_thresholds, get_fail_reason
+        
+        # Extract OHLCV
+        if isinstance(latest_candle, dict):
+            open_price = float(latest_candle['open'])
+            high_price = float(latest_candle['high'])
+            low_price = float(latest_candle['low'])
+            close_price = float(latest_candle['close'])
+            volume = float(latest_candle['volume'])
+        else:
+            # Handle if it's a list/tuple
+            open_price = float(latest_candle[1])
+            high_price = float(latest_candle[2])
+            low_price = float(latest_candle[3])
+            close_price = float(latest_candle[4])
+            volume = float(latest_candle[5])
+        
+        timestamp = latest_candle.get('time', latest_candle.get('timestamp', 0))
+        
+        # Check red candle
+        if not check_red_candle(latest_candle.get('open', 0), latest_candle.get('close', 0)):
+            return None, "not_red"
+        
+        # Calculate metrics using the Capitulation Detector
+        prev_30_volumes = [float(candles[candle_index - 30 + j]['volume']) for j in range(30)]
+        
+        metrics = calculate_metrics(
+            open_price=float(latest_candle.get('open', 0)),
+            high_price=float(latest_candle.get('high', 0)),
+            low_price=float(latest_candle.get('low', 0)),
+            close_price=float(latest_candle.get('close', 0)),
+            volume=float(latest_candle.get('volume', 0)),
+            timestamp=timestamp,
+            prev_30_volumes=[float(candles[candle_index - 30 + j]['volume']) for j in range(30)]
+        )
+        
+        passed, results = check_thresholds(metrics)
+        reason = get_fail_reason(metrics, {'drop_pct': True, 'volume_30_ratio': True, 'wick_body_ratio': True, 'reclaim_pct': True, 'is_red': True}) if not passed else None
+        
+        if not passed:
+            return None, reason
+        
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'open': float(latest_candle.get('open', 0)),
+            'high': float(latest_candle.get('high', 0)),
+            'low': float(latest_candle.get('low', 0)),
+            'close': float(latest_candle.get('close', 0)),
+            'volume': float(latest_candle.get('volume', 0)),
+            'metrics': metrics,
+            'results': {
+                'drop_pct': True,
+                'volume_30_ratio': True,
+                'wick_body_ratio': True,
+                'reclaim_pct': True,
+                'is_red': True,
+            },
+        }, "success"
 
     except Exception as e:
         try:
@@ -497,10 +523,17 @@ async def monitor_symbols(universe_provider):
 
             planned = final_universe_count
             processed = 0
+
             success = 0
             errors = 0
             skipped = 0
             skip_reasons = {}
+
+            semaphore = asyncio.Semaphore(10)
+
+            async def check_symbol_with_semaphore(symbol):
+                async with semaphore:
+                    return await check_latest_candle(symbol, universe_provider)
 
             tasks = [check_symbol_with_semaphore(symbol) for symbol in universe]
             results = await asyncio.gather(*tasks, return_exceptions=True)

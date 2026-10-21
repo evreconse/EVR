@@ -23,7 +23,16 @@ sys.path.insert(0, "/home/evreconse/src/strategy")
 
 from src.exchange.bingx_fetcher import BingXFetcher
 from src.data_provider.universe_provider import get_universe_provider
-from src.strategy.capitulation_detector import check_capitulation_signal
+from strategy.capitulation_detector import (
+    calculate_metrics,
+    check_thresholds,
+    get_fail_reason,
+    get_last_completed_candle,
+    FIXED_THRESHOLDS,
+    SignalMetrics,
+    FilterResult,
+    SignalCandidate,
+)
 from signal_storage import save_forward_observations
 
 # Telegram imports
@@ -38,6 +47,7 @@ END_UTC = datetime.now(timezone.utc)  # Current time
 # Output files
 DRY_RUN_REPORT = "/home/evreconse/backfill_dry_run_report.json"
 BACKFILL_REPORT = "/home/evreconse/backfill_report.json"
+
 
 class BackfillEngine:
     def __init__(self, send_telegram=False, dry_run=False):
@@ -127,6 +137,7 @@ class BackfillEngine:
                 return None, "already_sent_in_production"
         finally:
             conn.close()
+        
         o = float(candle['open'])
         h = float(candle['high'])
         l = float(candle['low'])
@@ -141,9 +152,27 @@ class BackfillEngine:
         median30 = statistics.median(prev_30)
         
         # Use production detector
-        result = check_capitulation_signal(o, h, l, c, v, ts, prev_30)
+        from strategy.capitulation_detector import check_red_candle, calculate_metrics, check_thresholds, get_fail_reason
         
-        return result, "ok"
+        o = float(candle['open'])
+        h = float(candle['high'])
+        l = float(candle['low'])
+        c = float(candle['close'])
+        v = float(candle['volume'])
+        
+        # Check red candle
+        if not check_red_candle(o, c):
+            return None, "not_red"
+        
+        # Calculate metrics
+        metrics = calculate_metrics(o, h, l, c, v, ts, prev_30)
+        
+        # Check thresholds
+        passed, results = check_thresholds(metrics)
+        if not passed:
+            return None, get_fail_reason(metrics, results)
+        
+        return metrics, "ok"
     
     def format_telegram_message(self, symbol, event_time_utc, result, is_historical=True):
         """Format message for Telegram with HISTORICAL BACKFILL label."""
@@ -199,300 +228,111 @@ class BackfillEngine:
                         data = await resp.json()
                         return data.get('ok', False), data.get('result', {}).get('message_id')
                     else:
-                        text = await resp.text()
-                        return False, f"HTTP {resp.status}: {text}"
+                        error_text = await resp.text()
+                        return False, f"HTTP {resp.status}: {error_text}"
         except Exception as e:
-            return False, str(e)
+            return False, f"Exception: {e}"
     
-    def save_signal_with_symbol(self, result, symbol):
-        """Save signal with explicit symbol (fix for save_signal expecting m.symbol)."""
-        if not result.qualified:
-            return None
-        
-        m = result.metrics
-        timestamp_utc = datetime.fromtimestamp(m.timestamp / 1000, tz=timezone.utc).strftime("%d.%m.%Y %H:%M UTC")
-        created_at = int(datetime.now(timezone.utc).timestamp())
-        
-        try:
-            import sqlite3
-            conn = sqlite3.connect("/home/evreconse/capitulation_signals.db")
-            try:
-                cursor = conn.cursor()
-                # Debug: print table schema
-                cursor.execute("PRAGMA table_info(signals)")
-                cols = cursor.fetchall()
-                print(f"[DEBUG] Table schema: {[(c[1], c[2]) for c in cols]}")
-                print(f"[DEBUG] Column count: {len(cols)}")
-                
-                # Drop and recreate table with correct schema to ensure correct column count
-                cursor.execute("DROP TABLE IF EXISTS signals")
-                conn.commit()
-                cursor.execute("""
-                    CREATE TABLE signals (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        symbol TEXT NOT NULL,
-                        candle_timestamp INTEGER NOT NULL,
-                        timestamp_utc TEXT NOT NULL,
-                        open REAL NOT NULL,
-                        high REAL NOT NULL,
-                        low REAL NOT NULL,
-                        close REAL NOT NULL,
-                        volume REAL NOT NULL,
-                        range_pct REAL NOT NULL,
-                        open_to_low_pct REAL NOT NULL,
-                        body_pct REAL NOT NULL,
-                        lower_wick REAL NOT NULL,
-                        lw_body_ratio REAL NOT NULL,
-                        lw_range_pct REAL NOT NULL,
-                        reclaim_pct REAL NOT NULL,
-                        close_position_pct REAL NOT NULL,
-                        volume_30_median REAL NOT NULL,
-                        volume_30_ratio REAL NOT NULL,
-                        signal_direction TEXT NOT NULL DEFAULT 'LONG',
-                        signal_type TEXT NOT NULL DEFAULT 'CAPITULATION_ABSORPTION',
-                        mode TEXT NOT NULL DEFAULT 'SHADOW',
-                        created_at INTEGER NOT NULL,
-                        UNIQUE(symbol, candle_timestamp)
-                    )
-                """)
-                conn.commit()
-                
-                cursor.execute("""
-                    INSERT OR IGNORE INTO signals (
-                        symbol, candle_timestamp, timestamp_utc,
-                        open, high, low, close, volume,
-                        range_pct, open_to_low_pct,
-                        body_pct,
-                        lower_wick, lw_body_ratio, lw_range_pct,
-                        reclaim_pct, close_position_pct,
-                        volume_30_median, volume_30_ratio,
-                        signal_direction, signal_type, mode,
-                        created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    symbol,
-                    m.timestamp,
-                    timestamp_utc,
-                    m.open,
-                    m.high,
-                    m.low,
-                    m.close,
-                    m.volume,
-                    m.range_pct,
-                    m.open_to_low_pct,
-                    m.body_pct,
-                    m.lower_wick,
-                    m.lw_body_ratio,
-                    m.lw_range_pct,
-                    m.reclaim_pct,
-                    m.close_position_pct,
-                    m.volume_30_median,
-                    m.volume_30_ratio,
-                    result.signal_direction,
-                    result.signal_type,
-                    "SHADOW",
-                    int(datetime.now(timezone.utc).timestamp())
-                ))
-                conn.commit()
-                
-                if cursor.rowcount > 0:
-                    return cursor.lastrowid
-                else:
-                    # Duplicate - get existing
-                    cursor.execute(
-                        "SELECT id FROM signals WHERE symbol = ? AND candle_timestamp = ?",
-                        (symbol, m.timestamp)
-                    )
-                    row = cursor.fetchone()
-                    return row[0] if row else None
-            finally:
-                conn.close()
-        except Exception as e:
-            print(f"[SIGNAL DB ERROR] Failed to save signal: {e}")
-            return None
-    
-    async def process_symbol(self, symbol, semaphore):
-        """Process all candles for a single symbol."""
-        async with semaphore:
-            candles = await self.fetch_symbol_data(symbol)
-            
-            if not candles:
-                self.stats['symbols_failed'] += 1
-                self.stats['symbol_details'][symbol] = {'error': 'No data'}
-                return
-            
-            self.stats['symbols_loaded'] += 1
-            self.stats['total_candles'] += len(candles)
-            
-            now_ms = int(END_UTC.timestamp() * 1000)
-            completed = self.find_completed_candles(candles, int(END_UTC.timestamp() * 1000))
-            
-            # Filter to our time range
-            start_ms = int(START_UTC.timestamp() * 1000)
-            end_ms = int(END_UTC.timestamp() * 1000)
-            
-            in_range = [(i, c) for i, c in completed 
-                       if start_ms <= c.get('time', c.get('timestamp', 0)) <= end_ms]
-            
-            symbol_signals = 0
-            symbol_evals = 0
-            
-            for idx, candle in in_range:
-                if idx < 30:
-                    continue
-                
-                symbol_evals += 1
-                self.stats['total_evaluations'] += 1
-                
-                result, reason = self.evaluate_candle(symbol, idx, candle, candles)
-                
-                if result is None:
-                    continue
-                
-                if result.qualified:
-                    symbol_signals += 1
-                    self.stats['signals_found'] += 1
-                    
-                    ts = candle.get('time', candle.get('timestamp', 0))
-                    event_time_utc = datetime.fromtimestamp(ts/1000, tz=timezone.utc).strftime("%d.%m.%Y %H:%M UTC")
-                    
-                    # Store in database
-                    if not self.dry_run:
-                        signal_id = self.save_signal_with_symbol(result, symbol)
-                        if signal_id:
-                            self.stats['signals_stored'] += 1
-                            # Save forward observations
-                            future_candles = candles[idx+1:]
-                            if future_candles:
-                                save_forward_observations(signal_id, future_candles, [1, 2, 4, 8, 16, 32])
-                    
-                    # Send to Telegram
-                    if self.send_telegram and not self.dry_run:
-                        message = self.format_telegram_message(symbol, event_time_utc, result, is_historical=True)
-                        success, msg_id = await self.send_telegram(message)
-                        if success:
-                            self.stats['signals_telegram_sent'] += 1
-                            print(f"  [TELEGRAM] Sent {symbol} @ {event_time_utc} (msg_id={msg_id})")
-                        else:
-                            self.stats['signals_telegram_failed'] += 1
-                            print(f"  [TELEGRAM FAILED] {symbol} @ {event_time_utc}: {msg_id}")
-                    elif self.dry_run:
-                        print(f"  [DRY RUN] Signal: {symbol} @ {event_time_utc}")
-            
-            self.stats['symbol_details'][symbol] = {
-                'candles_fetched': len(candles),
-                'candles_evaluated': symbol_evals,
-                'signals_found': symbol_signals
-            }
-            
-            if symbol_signals > 0:
-                print(f"  {symbol}: {symbol_signals} signals from {symbol_evals} evaluations")
-    
-    async def run(self, max_concurrent=10):
-        """Run the backfill."""
+    async def run_backfill(self):
+        """Run the complete backfill process."""
         print("=" * 80)
-        print("EVRECONSE HISTORICAL BACKFILL")
-        print("=" * 80)
-        print(f"Period: {START_UTC.strftime('%Y-%m-%d %H:%M UTC')} → {END_UTC.strftime('%Y-%m-%d %H:%M UTC')}")
-        print(f"Universe: {len(self.universe)} symbols")
-        print(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE' + (' + TELEGRAM' if self.send_telegram else '')}")
+        print(f"EVRECONSE BACKFILL ENGINE")
+        print(f"Period: {START_UTC} to {END_UTC}")
+        print(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE'}")
+        print(f"Telegram: {'ENABLED' if self.send_telegram else 'DISABLED'}")
         print("=" * 80)
         
         await self.initialize()
         
-        semaphore = asyncio.Semaphore(10)
+        signals = []
         
-        # Process symbols in batches to avoid memory issues
-        batch_size = 50
-        for i in range(0, len(self.universe), batch_size):
-            batch = self.universe[i:i+batch_size]
-            print(f"\nProcessing batch {i//batch_size + 1}: {len(batch)} symbols...")
-            
-            tasks = [self.process_symbol(symbol, asyncio.Semaphore(10)) for symbol in batch]
-            await asyncio.gather(*tasks, return_exceptions=True)
-            
-            # Small delay between batches
-            await asyncio.sleep(1)
+        semaphore = asyncio.Semaphore(5)
         
-        self.print_summary()
-        self.save_report()
-    
-    def print_summary(self):
-        print("\n" + "=" * 80)
-        print("BACKFILL SUMMARY")
-        print("=" * 80)
-        print(f"Symbols requested:    {self.stats['symbols_requested']}")
-        print(f"Symbols loaded:       {self.stats['symbols_loaded']}")
-        print(f"Symbols failed:       {self.stats['symbols_failed']}")
-        print(f"Total candles:        {self.stats['total_candles']:,}")
-        print(f"Total evaluations:    {self.stats['total_evaluations']:,}")
-        print(f"Signals found:        {self.stats['signals_found']}")
+        async def process_symbol(symbol):
+            async with semaphore:
+                candles = await self.fetch_symbol_data(symbol)
+                if not candles:
+                    return []
+                
+                now_ms = int(END_UTC.timestamp() * 1000)
+                completed = self.find_completed_candles(candles, now_ms)
+                
+                symbol_signals = []
+                for idx, candle in completed:
+                    self.stats['total_evaluations'] += 1
+                    result, reason = self.evaluate_candle(symbol, idx, candle, candles)
+                    if result:
+                        ts = candle.get('time', candle.get('timestamp', 0))
+                        event_time_utc = datetime.fromtimestamp(ts / 1000, tz=timezone.utc).strftime("%d.%m.%Y %H:%M UTC")
+                        
+                        signal = {
+                            'symbol': symbol,
+                            'timestamp': ts,
+                            'event_time_utc': event_time_utc,
+                            'metrics': {
+                                'open': float(result.open),
+                                'high': float(result.high),
+                                'low': float(result.low),
+                                'close': float(result.close),
+                                'volume': float(result.volume),
+                                'open_to_low_pct': result.open_to_low_pct,
+                                'lw_body_ratio': result.lw_body_ratio,
+                                'reclaim_pct': result.reclaim_pct,
+                                'volume_30_ratio': result.volume_30_ratio,
+                            },
+                        }
+                        signals.append(signal)
+                        self.stats['signals_found'] += 1
+                        
+                        if self.send_telegram and not self.dry_run:
+                            message = self.format_telegram_message(symbol, event_time_utc, result)
+                            success, msg_id = await self.send_telegram(
+                                f"🔍 HISTORICAL BACKFILL\n\nSymbol: {symbol}\n\nTime: {event_time_utc}\n\nOHLCV\nOpen: {result.open:.6f}\nHigh: {result.high:.6f}\nLow: {result.low:.6f}\nClose: {result.close:.6f}\nVolume: {result.volume:,.0f}\n\nMetrics\nRange: {result.range_pct:.2f}%\nOpen→Low: {result.open_to_low_pct:.2f}%\nBody: {result.body_pct:.2f}%\nLower Wick: {result.lower_wick:.6f}\nLW/Body: {result.lw_body_ratio:.2f}x\nLW/Range: {result.lw_range_pct:.2f}%\nReclaim: {result.reclaim_pct:.2f}%\nClose Position: {result.close_position_pct:.2f}%\n\nVolume\nMedian30: {result.volume_30_median:,.0f}\nVolume Ratio: {result.volume_30_ratio:.2f}x\n\n✅ Conditions\nOpen→Low ≤ -2.5% — PASS\nVolume30Ratio ≥ 2.0x — PASS\nLW/Body ≥ 1.0x — PASS\nReclaim ≥ 30% — PASS\n\nDirection: LONG\nType: CAPITULATION_ABSORPTION\nMode: HISTORICAL BACKFILL"
+                            )
+                            if success:
+                                self.stats['signals_telegram_sent'] += 1
+                            else:
+                                self.stats['signals_telegram_failed'] += 1
+                
+        await asyncio.gather(*[process_symbol(s) for s in self.universe])
         
-        if not self.dry_run:
-            print(f"Signals stored:       {self.stats['signals_stored']}")
-            if self.send_telegram:
-                print(f"Telegram sent:        {self.stats['signals_telegram_sent']}")
-                print(f"Telegram failed:      {self.stats['signals_telegram_failed']}")
-        
-        # Signal distribution
-        signal_counts = defaultdict(int)
-        for sym, details in self.stats['symbol_details'].items():
-            signal_counts[details['signals_found']] += 1
-        
-        print(f"\nSignal distribution:")
-        for count in sorted(signal_counts.keys()):
-            print(f"  {count} signal(s): {signal_counts[count]} symbols")
-        
-        # Top symbols
-        top_symbols = sorted(
-            [(s, d['signals_found']) for s, d in self.stats['symbol_details'].items() if d['signals_found'] > 0],
-            key=lambda x: -x[1]
-        )[:20]
-        
-        if top_symbols:
-            print(f"\nTop 20 symbols by signal count:")
-            for sym, count in top_symbols:
-                print(f"  {sym}: {count}")
-    
-    def save_report(self):
+        # Save report
         report = {
-            'start_utc': START_UTC.isoformat(),
-            'end_utc': END_UTC.isoformat(),
-            'run_time_utc': datetime.now(timezone.utc).isoformat(),
+            'period': {'start': START_UTC.isoformat(), 'end': END_UTC.isoformat()},
+            'stats': self.stats,
             'dry_run': self.dry_run,
-            'send_telegram': self.send_telegram,
-            'universe_count': len(self.universe),
-            'universe_hash': '4fb2eec904843c0173e80f6e27f625e95c14682d1ed102865cecd37b46b543d9',
-            'stats': self.stats
+            'telegram_enabled': self.send_telegram,
         }
         
-        output_file = DRY_RUN_REPORT if self.dry_run else BACKFILL_REPORT
-        with open(output_file, 'w') as f:
+        with open(BACKFILL_REPORT, 'w') as f:
             json.dump(report, f, indent=2, default=str)
-        print(f"\nReport saved to: {output_file}")
+        
+        print(f"\n{'='*80}")
+        print(f"BACKFILL COMPLETE")
+        print(f"Signals found: {self.stats['signals_found']}")
+        print(f"Signals sent: {self.stats['signals_telegram_sent']}")
+        print(f"Signals failed: {self.stats['signals_telegram_failed']}")
+        print(f"Report saved to: {BACKFILL_REPORT}")
+        print("=" * 80)
 
 
 async def main():
-    parser = argparse.ArgumentParser(description='EVRECONSE Historical Backfill for CAPITULATION/ABSORPTION Signals')
+    parser = argparse.ArgumentParser(description="EVRECONSE Historical Backfill for CAPITULATION/ABSORPTION")
     parser.add_argument('--send-telegram', action='store_true', help='Send signals to Telegram')
-    parser.add_argument('--dry-run', action='store_true', help='Run in dry-run mode (no DB/Telegram)')
-    parser.add_argument('--verify-doge', action='store_true', help='Verify DOGE-USDT 08.10.2026 04:15 signal')
-    
+    parser.add_argument('--dry-run', action='store_true', help='Run without sending to Telegram')
+    parser.add_argument('--start', type=str, help='Start date (YYYY-MM-DD)')
+    parser.add_argument('--end', type=str, help='End date (YYYY-MM-DD)')
     args = parser.parse_args()
     
-    # Force dry-run if verify-doge is set
-    if args.verify_doge:
-        args.dry_run = True
+    global START_UTC, END_UTC
+    if args.start:
+        START_UTC = datetime.fromisoformat(args.start).replace(tzinfo=timezone.utc)
+    if args.end:
+        END_UTC = datetime.fromisoformat(args.end).replace(tzinfo=timezone.utc)
     
     engine = BackfillEngine(send_telegram=args.send_telegram, dry_run=args.dry_run)
-    
-    if args.verify_doge:
-        # Quick verification of DOGE signal
-        await engine.initialize()
-        print("Verifying DOGE-USDT 08.10.2026 04:15 UTC...")
-        await engine.process_symbol("DOGE-USDT", asyncio.Semaphore(1))
-    else:
-        await engine.run()
+    await engine.run_backfill()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
