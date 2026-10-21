@@ -6,6 +6,7 @@ Tests demonstrating application bootstrap works correctly.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -25,6 +26,55 @@ from application.bootstrap import (
 )
 from application.service_container import ServiceContainer
 from config import AppConfig, ConfigurationManager
+from config.types import StorageConfig, SystemConfig
+
+
+async def _bootstrap_with_fakes(
+    app_config: AppConfig,
+    temp_storage_dir: Path,
+) -> tuple[BootstrapContext, MagicMock]:
+    """Run the real bootstrap orchestration with filesystem/network boundaries faked."""
+    from storage import FileStorageRepository
+    from storage.storage_engine import StorageEngine
+
+    test_config = replace(
+        app_config,
+        storage=StorageConfig(data_path=str(temp_storage_dir)),
+        system=SystemConfig(log_level="INFO", log_path=""),
+    )
+    manager = ConfigurationManager()
+    manager._config = test_config
+    manager._is_initialized = True
+
+    storage_repository = FileStorageRepository(storage_dir=temp_storage_dir)
+    storage_engine = StorageEngine(storage_repository)
+    await storage_engine.startup()
+
+    provider = MagicMock()
+    provider.connect = AsyncMock()
+    provider.disconnect = AsyncMock()
+    provider.set_market_event_handler = MagicMock()
+    provider.get_symbols = AsyncMock(return_value=list(test_config.exchange.symbols))
+    provider.subscribe_symbols = AsyncMock()
+    provider.is_connected = True
+
+    with (
+        patch(
+            "application.bootstrap.create_config_manager",
+            new=AsyncMock(return_value=manager),
+        ),
+        patch(
+            "application.bootstrap.create_storage_engine",
+            new=AsyncMock(return_value=storage_engine),
+        ),
+        patch(
+            "application.bootstrap.create_data_provider",
+            new=AsyncMock(return_value=provider),
+        ),
+    ):
+        context = await bootstrap()
+
+    return context, provider
 
 
 class TestBootstrapComponents:
@@ -116,11 +166,17 @@ class TestBootstrapComponents:
         assert engine is not None
         assert "LW-001" in engine.list_strategies()
 
-    @pytest.mark.skip(reason="ExceptionGroup warnings during scoring engine initialization")
     @pytest.mark.asyncio
     async def test_create_scoring_engine(self, app_config: AppConfig) -> None:
         """Test creating ScoringEngine."""
-        pass
+        from scoring.registry import reset_registry
+
+        reset_registry()
+        engine = await create_scoring_engine(app_config)
+
+        assert engine.is_initialized() is True
+        parameter_ids = {param.parameter_id for param in engine.get_parameters()}
+        assert parameter_ids == {"lower_wick_quality", "candle_confirmation"}
 
     @pytest.mark.asyncio
     async def test_create_notification_engine(self, app_config: AppConfig) -> None:
@@ -152,11 +208,24 @@ class TestBootstrapComponents:
 class TestFullBootstrap:
     """Tests for the full bootstrap process."""
 
-    @pytest.mark.skip(reason="Permission issues with temp directories on Windows")
     @pytest.mark.asyncio
-    async def test_bootstrap_creates_context(self, app_config: AppConfig, temp_storage_dir: Path) -> None:
+    async def test_bootstrap_creates_context(
+        self, app_config: AppConfig, temp_storage_dir: Path
+    ) -> None:
         """Test that bootstrap returns a BootstrapContext."""
-        pass
+        context, provider = await _bootstrap_with_fakes(app_config, temp_storage_dir)
+
+        assert isinstance(context, BootstrapContext)
+        assert context.config.exchange.symbols == app_config.exchange.symbols
+        assert context.config.storage.data_path == str(temp_storage_dir)
+        assert context.data_provider is provider
+        assert context.event_engine.is_running is True
+        assert len(context.strategy_engine.list_strategies()) == 1
+        assert context.scoring_engine.is_initialized() is True
+        assert context.storage_engine.repository is not None
+
+        failed = await shutdown(context)
+        assert failed == []
 
     def test_bootstrap_context_immutability(self, app_config: AppConfig) -> None:
         """Test that BootstrapContext is immutable."""
@@ -174,13 +243,34 @@ class TestFullBootstrap:
             outcome_tracker=MagicMock(),
         )
         with pytest.raises(FrozenInstanceError):
-            context.config = MagicMock()
+            context.config = MagicMock()  # type: ignore[misc]
 
-    @pytest.mark.skip(reason="Permission issues with temp directories on Windows")
     @pytest.mark.asyncio
-    async def test_bootstrap_services_registered_in_container(self, app_config: AppConfig, temp_storage_dir: Path) -> None:
+    async def test_bootstrap_services_registered_in_container(
+        self, app_config: AppConfig, temp_storage_dir: Path
+    ) -> None:
         """Test that all services are registered in the container."""
-        pass
+        from event_engine import EventEngine
+        from notification import NotificationEngine
+        from outcome import OutcomeTracker
+        from scoring import ScoringEngine
+        from storage import StorageEngine
+        from strategy import StrategyEngine
+
+        context, _ = await _bootstrap_with_fakes(app_config, temp_storage_dir)
+        container = context.container
+
+        assert container.has(AppConfig)
+        assert container.has(ConfigurationManager)
+        assert container.has(StorageEngine)
+        assert container.has(StrategyEngine)
+        assert container.has(ScoringEngine)
+        assert container.has(NotificationEngine)
+        assert container.has(EventEngine)
+        assert container.has(OutcomeTracker)
+
+        failed = await shutdown(context)
+        assert failed == []
 
 
 class TestBootstrapShutdown:

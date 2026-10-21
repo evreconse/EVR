@@ -13,60 +13,34 @@ Architecture:
 from __future__ import annotations
 
 import asyncio
-import concurrent.futures
 import threading
 import time
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
 from models import MarketEvent
+
 from .context import EventContext
+from .engine_config import EngineStatsAccumulator
 from .enums import EventStatus
 from .event_dispatcher import EventDispatcher
 from .event_factory import EventFactory
 from .event_pipeline import (
     EventPipeline,
     PipelineResult,
-    PipelineStageStrategy,
-    PipelineStageScorer,
     PipelineStageNotifier,
+    PipelineStageScorer,
     PipelineStageStorage,
+    PipelineStageStrategy,
 )
 from .event_registry import EventRegistry
 from .event_scheduler import EventScheduler
 from .exceptions import (
-    EventEngineError,
-    EventEngineNotInitializedError,
     EventEngineShutdownError,
-    EventNotFoundError,
-    EventProcessingError,
     EventValidationError,
 )
 from .lifecycle import EngineConfig, EngineStats, LifecycleManager
 from .metrics import MetricsCollector
-
-
-@dataclass(frozen=True, slots=True)
-class EngineConfig:
-    """Configuration for Event Engine."""
-    max_concurrent_events: int = 10
-    execution_timeout: float = 30.0
-    enable_metrics: bool = True
-    enable_persistence: bool = True
-    enable_recovery: bool = True
-
-
-@dataclass(frozen=True, slots=True)
-class EngineStats:
-    """Engine statistics snapshot."""
-    processed: int = 0
-    succeeded: int = 0
-    failed: int = 0
-    rejected: int = 0
-    active_events: int = 0
-    queued_events: int = 0
-    avg_processing_time_ms: float = 0.0
 
 
 class EventEngine:
@@ -99,7 +73,7 @@ class EventEngine:
         self._lock = threading.RLock()
 
         # Public stats (thread-safe)
-        self._stats = {
+        self._stats: EngineStatsAccumulator = {
             "processed": 0,
             "succeeded": 0,
             "failed": 0,
@@ -149,7 +123,6 @@ class EventEngine:
         Raises:
             EventEngineError: If not initialized or start fails
         """
-        print(f"[DEBUG-EE] start() called with engines: strategy={strategy_engine is not None}, scoring={scoring_engine is not None}, notification={notification_engine is not None}, outcome={outcome_tracker is not None}, storage={storage_service is not None}")
         # Store engines on the instance for pipeline stages to access
         self._strategy_engine = strategy_engine
         self._scoring_engine = scoring_engine
@@ -160,7 +133,6 @@ class EventEngine:
         # Create pipeline stages with dependencies
         pipeline = self._lifecycle.pipeline
         from event_engine.event_pipeline import create_default_pipeline
-        print(f"[DEBUG-EE] Calling create_default_pipeline with engines: strategy={strategy_engine is not None}, scoring={scoring_engine is not None}, notification={notification_engine is not None}, outcome={outcome_tracker is not None}, storage={storage_service is not None}")
         default_pipeline = create_default_pipeline(
             strategy_engine=strategy_engine,
             scoring_engine=scoring_engine,
@@ -168,23 +140,20 @@ class EventEngine:
             outcome_tracker=outcome_tracker,
             storage_service=storage_service,
         )
-        print(f"[DEBUG-EE] default_pipeline created with {len(default_pipeline._stages)} stages")
         # Replace pipeline stages with default ones that have dependencies
         pipeline._stages = default_pipeline._stages
         pipeline._stages_dict = default_pipeline._stages_dict
-        print(f"[DEBUG-EE] Pipeline stages replaced, count={len(pipeline._stages)}")
 
         # Ensure engines are injected into pipeline stages (defense in depth)
         for stage in pipeline._stages:
             if isinstance(stage, PipelineStageStrategy):
                 stage._strategy_engine = strategy_engine
-                print(f"[DEBUG-EE] Injected strategy_engine into PipelineStageStrategy: {strategy_engine is not None}")
             elif isinstance(stage, PipelineStageScorer):
                 stage._scoring_engine = scoring_engine
             elif isinstance(stage, PipelineStageNotifier):
                 stage._notification_engine = notification_engine
             elif isinstance(stage, PipelineStageStorage):
-                stage._storage_service = storage_service
+                stage._storage = storage_service
 
         self._lifecycle.start()
 
@@ -319,14 +288,13 @@ class EventEngine:
             EventEngineNotInitializedError: If engine not initialized
         """
         start_time = time.monotonic()
-        print(f"[DEBUG-EE] process_event called for event {event.metadata.event_id}")
 
         # Create processing context
         context = self._create_context(event)
 
         # Execute pipeline - check if we're already in an event loop
         try:
-            loop = asyncio.get_running_loop()
+            asyncio.get_running_loop()
             # We're in an event loop, run the coroutine in a separate thread
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -336,7 +304,6 @@ class EventEngine:
             # No running event loop, safe to use asyncio.run
             result = asyncio.run(self._execute_pipeline(context))
 
-        print(f"[DEBUG-EE] Pipeline result: success={result.success}, status={result.final_context.status}, score={result.final_context.confidence_score}")
 
         # Update stats
         duration_ms = (time.monotonic() - start_time) * 1000
@@ -384,28 +351,29 @@ class EventEngine:
 
     def _create_context(self, event: MarketEvent) -> EventContext:
         """Create processing context from market event."""
+        market_data = event.market_data
+        if market_data is None:
+            raise EventValidationError("Market event has no market data")
         strategy_data = event.strategy_data
         return EventContext(
-            event_id=event.metadata.event_id,
+            event_id=event.metadata.event_id.value,
             event_type="market",
             status=event.metadata.status.value,
             created_at=event.metadata.created_at,
             updated_at=event.metadata.updated_at,
-            symbol=event.market_data.symbol,
-            exchange=event.market_data.exchange.value,
-            timeframe=event.market_data.timeframe.value,
-            event_time=event.market_data.event_time,
-            open_price=event.market_data.open,
-            high_price=event.market_data.high,
-            low_price=event.market_data.low,
-            close_price=event.market_data.close,
-            volume=event.market_data.volume,
+            symbol=market_data.symbol,
+            exchange=market_data.exchange.value,
+            timeframe=market_data.timeframe.value,
+            event_time=market_data.event_time,
+            open_price=market_data.open,
+            high_price=market_data.high,
+            low_price=market_data.low,
+            close_price=market_data.close,
+            volume=market_data.volume,
             strategy_id=event.strategy_data.strategy_id if strategy_data else None,
             lower_wick=strategy_data.lower_wick if strategy_data else None,
             body=strategy_data.body if strategy_data else None,
             wick_body_ratio=strategy_data.wick_body_ratio if strategy_data else None,
-            liquidation_volume=strategy_data.liquidation_volume if strategy_data else None,
-            liquidation_reference=strategy_data.liquidation_reference_value if strategy_data else None,
         )
 
     def _update_stats(self, success: bool, duration_ms: float) -> None:

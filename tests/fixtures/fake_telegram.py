@@ -6,7 +6,9 @@ Provides a fake TelegramService that does not make real API calls.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
+from uuid import uuid4
 
 from notification import DeliveryResult, DeliveryStatus, Notification
 
@@ -43,10 +45,11 @@ class FakeTelegramService:
             }
         )
         return DeliveryResult(
-            success=True,
+            notification_id=uuid4(),
             channel="telegram",
             recipient=str(notification.recipient),
             status=DeliveryStatus.DELIVERED,
+            sent_at=datetime.now(UTC),
         )
 
     async def send_batch(self, notifications: list[Notification]) -> list[DeliveryResult]:

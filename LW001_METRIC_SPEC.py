@@ -10,7 +10,7 @@ Status: VALIDATED
 """
 
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Literal, TypedDict
 
 
 @dataclass
@@ -34,17 +34,17 @@ class LW001Metrics:
 def calculate_range_pct(open_price: float, high_price: float, low_price: float) -> float:
     """
     Calculate Range percentage.
-    
+
     Formula: ((High - Low) / Open) * 100
-    
+
     Args:
         open_price: Candle open price
         high_price: Candle high price
         low_price: Candle low price
-    
+
     Returns:
         Range in percentage points (e.g., 4.50 for 4.5%)
-    
+
     Unit: %
     """
     candle_range = high_price - low_price
@@ -56,16 +56,16 @@ def calculate_range_pct(open_price: float, high_price: float, low_price: float) 
 def calculate_body_pct(open_price: float, close_price: float) -> float:
     """
     Calculate Body percentage.
-    
+
     Formula: (abs(Close - Open) / Open) * 100
-    
+
     Args:
         open_price: Candle open price
         close_price: Candle close price
-    
+
     Returns:
         Body in percentage points (e.g., 0.80 for 0.8%)
-    
+
     Unit: %
     """
     body = abs(close_price - open_price)
@@ -77,17 +77,17 @@ def calculate_body_pct(open_price: float, close_price: float) -> float:
 def calculate_lower_wick(open_price: float, close_price: float, low_price: float) -> float:
     """
     Calculate Lower Wick (lower shadow).
-    
+
     Formula: min(Open, Close) - Low
-    
+
     Args:
         open_price: Candle open price
         close_price: Candle close price
         low_price: Candle low price
-    
+
     Returns:
         Lower Wick in price units
-    
+
     Unit: price units (same as input prices)
     """
     return min(open_price, close_price) - low_price
@@ -96,67 +96,67 @@ def calculate_lower_wick(open_price: float, close_price: float, low_price: float
 def calculate_lower_wick_body_ratio(open_price: float, close_price: float, low_price: float) -> float:
     """
     Calculate Lower Wick to Body ratio.
-    
+
     Formula: Lower_Wick / abs(Close - Open)
-    
+
     Args:
         open_price: Candle open price
         close_price: Candle close price
         low_price: Candle low price
-    
+
     Returns:
         LW/Body ratio (e.g., 1.30 for 1.3x)
-    
+
     Unit: x
     """
     lower_wick = calculate_lower_wick(open_price, close_price, low_price)
     body = abs(close_price - open_price)
-    
+
     if body == 0:
         return 0.0
-    
+
     return lower_wick / body
 
 
 def calculate_lower_wick_range_pct(open_price: float, high_price: float, low_price: float, close_price: float) -> float:
     """
     Calculate Lower Wick to Range percentage.
-    
+
     Formula: (Lower_Wick / (High - Low)) * 100
-    
+
     Args:
         open_price: Candle open price
         high_price: Candle high price
         low_price: Candle low price
         close_price: Candle close price
-    
+
     Returns:
         LW/Range in percentage points (e.g., 55.00 for 55%)
-    
+
     Unit: %
     """
     lower_wick = calculate_lower_wick(open_price, close_price, low_price)
     candle_range = high_price - low_price
-    
+
     if candle_range == 0:
         return 0.0
-    
+
     return (lower_wick / candle_range) * 100
 
 
 def calculate_open_to_low_pct(open_price: float, low_price: float) -> float:
     """
     Calculate Open to Low percentage.
-    
+
     Formula: ((Low - Open) / Open) * 100
-    
+
     Args:
         open_price: Candle open price
         low_price: Candle low price
-    
+
     Returns:
         Open→Low in percentage points (e.g., -2.50 for -2.5%)
-    
+
     Unit: %
     """
     if open_price == 0:
@@ -174,9 +174,9 @@ def calculate_all_metrics(
 ) -> LW001Metrics:
     """
     Calculate all LW-001 metrics from OHLCV data.
-    
+
     This is the canonical function that should be used everywhere.
-    
+
     Args:
         open_price: Candle open price
         high_price: Candle high price
@@ -184,10 +184,10 @@ def calculate_all_metrics(
         close_price: Candle close price
         volume: Candle volume (N)
         volume_3_candles_ago: Volume of candle N-3 (exactly 3 candles ago)
-    
+
     Returns:
         LW001Metrics object with all calculated metrics
-    
+
     Units:
         range_pct: %
         body_pct: %
@@ -207,16 +207,16 @@ def calculate_all_metrics(
 def validate_metric_units(metric_value: float, metric_unit: str, threshold_value: float, threshold_unit: str) -> bool:
     """
     Validate that metric and threshold have matching units.
-    
+
     Args:
         metric_value: The calculated metric value
         metric_unit: The unit of the metric (e.g., "%", "x")
         threshold_value: The threshold value
         threshold_unit: The unit of the threshold (e.g., "%", "x")
-    
+
     Returns:
         True if units match, False otherwise
-    
+
     Raises:
         ValueError: If units do not match
     """
@@ -228,8 +228,16 @@ def validate_metric_units(metric_value: float, metric_unit: str, threshold_value
     return True
 
 
+class ThresholdSpec(TypedDict):
+    """Canonical threshold definition."""
+
+    value: float
+    unit: str
+    operator: str
+
+
 # Canonical thresholds for LW-001 (Production Spec)
-LW001_THRESHOLDS = {
+LW001_THRESHOLDS: dict[str, ThresholdSpec] = {
     "range_pct": {"value": 4.5, "unit": "%", "operator": ">="},
     "body_pct": {"value": 0.8, "unit": "%", "operator": ">="},
     "lower_wick_body_ratio": {"value": 1.3, "unit": "x", "operator": ">="},
@@ -241,19 +249,19 @@ LW001_THRESHOLDS = {
 def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
     """
     Check if metrics meet all LW-001 conditions.
-    
+
     Uses canonical thresholds and unit validation.
-    
+
     Args:
         metrics: LW001Metrics object
-    
+
     Returns:
         Tuple of (pass: bool, failures: list[str])
-    
+
     All conditions use AND logic - all must pass.
     """
     failures = []
-    
+
     # Range >= 4.5%
     try:
         validate_metric_units(
@@ -264,7 +272,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
             failures.append(f"Range {metrics.range_pct:.2f}% < {LW001_THRESHOLDS['range_pct']['value']}%")
     except ValueError as e:
         failures.append(str(e))
-    
+
     # Body >= 0.8%
     try:
         validate_metric_units(
@@ -275,7 +283,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
             failures.append(f"Body {metrics.body_pct:.2f}% < {LW001_THRESHOLDS['body_pct']['value']}%")
     except ValueError as e:
         failures.append(str(e))
-    
+
     # LW/Body >= 1.3x
     try:
         validate_metric_units(
@@ -286,7 +294,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
             failures.append(f"LW/Body {metrics.lower_wick_body_ratio:.2f}x < {LW001_THRESHOLDS['lower_wick_body_ratio']['value']}x")
     except ValueError as e:
         failures.append(str(e))
-    
+
     # LW/Range >= 55%
     try:
         validate_metric_units(
@@ -297,7 +305,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
             failures.append(f"LW/Range {metrics.lower_wick_range_pct:.1f}% < {LW001_THRESHOLDS['lower_wick_range_pct']['value']}%")
     except ValueError as e:
         failures.append(str(e))
-    
+
     # Open→Low <= -2.5%
     try:
         validate_metric_units(
@@ -308,5 +316,5 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
             failures.append(f"Open to Low {metrics.open_to_low_pct:.2f}% > {LW001_THRESHOLDS['open_to_low_pct']['value']}%")
     except ValueError as e:
         failures.append(str(e))
-    
+
     return (len(failures) == 0, failures)

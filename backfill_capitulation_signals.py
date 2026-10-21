@@ -33,7 +33,6 @@ from strategy.capitulation_detector import (
     FilterResult,
     SignalCandidate,
 )
-from signal_storage import save_forward_observations
 
 # Telegram imports
 import aiohttp

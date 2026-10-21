@@ -51,6 +51,7 @@ cover/
 
 # Environments
 .env
+.venv/
 venv/
 env/
 ENV/
@@ -68,6 +69,10 @@ dmypy.json
 *.swp
 *.swo
 *~
+.codeium/
+.devin/
+Default Project/
+Microsoft Office/
 
 # Logs
 logs/*.log

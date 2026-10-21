@@ -62,14 +62,6 @@ class ParameterNotRegisteredError(ScoringError):
         super().__init__(f"Parameter not registered: {parameter_id}")
 
 
-class ScoringConfigurationError(ScoringError):
-    """Raised when scoring configuration is invalid."""
-
-    def __init__(self, message: str, field: str | None = None) -> None:
-        self.field = field
-        super().__init__(message)
-
-
 class ScoringContextError(ScoringError):
     """Raised when ScoringContext is invalid."""
 

@@ -16,10 +16,10 @@ from typing import Any
 class Counter:
     """Thread-safe counter."""
     value: int = 0
-    
+
     def increment(self, amount: int = 1) -> int:
         return self.value + amount
-    
+
     def get(self) -> int:
         return self.value
 
@@ -31,31 +31,23 @@ class Histogram:
     counts: tuple[int, ...] = ()
     count: int = 0
     sum: float = 0.0
-    
+
     def observe(self, value: float) -> Histogram:
         # In production, would use proper histogram implementation
         return self
-    
-    @property
-    def count(self) -> int:
-        return self.count
-    
-    @property
-    def sum(self) -> float:
-        return self.sum
 
 
 @dataclass(frozen=True, slots=True)
 class Gauge:
     """Gauge for instantaneous values."""
     value: float = 0.0
-    
+
     def set(self, value: float) -> Gauge:
         return Gauge(value)
-    
+
     def inc(self, amount: float = 1.0) -> Gauge:
         return Gauge(self.value + amount)
-    
+
     def dec(self, amount: float = 1.0) -> Gauge:
         return Gauge(self.value - amount)
 
@@ -63,44 +55,44 @@ class Gauge:
 class MetricsCollector:
     """
     Thread-safe metrics collector for Event Engine.
-    
+
     Collects:
     - Counters (events processed, succeeded, failed, rejected)
     - Histograms (latencies)
     - Gauges (active events, queue sizes)
     """
-    
+
     def __init__(self) -> None:
         self._lock = threading.RLock()
         self._counters: dict[str, int] = {}
         self._gauges: dict[str, float] = {}
         self._histograms: dict[str, list[float]] = {}
         self._start_time = time.monotonic()
-    
+
     def increment(self, name: str, amount: int = 1, labels: dict[str, str] | None = None) -> None:
         """Increment counter."""
         key = self._make_key(name, labels)
         with self._lock:
             self._counters[key] = self._counters.get(key, 0) + amount
-    
+
     def gauge_set(self, name: str, value: float, labels: dict[str, str] | None = None) -> None:
         """Set gauge value."""
         key = self._make_key(name, labels)
         with self._lock:
             self._gauges[key] = value
-    
+
     def gauge_inc(self, name: str, amount: float = 1.0, labels: dict[str, str] | None = None) -> None:
         """Increment gauge."""
         key = self._make_key(name, labels)
         with self._lock:
             self._gauges[key] = self._gauges.get(key, 0.0) + amount
-    
+
     def gauge_dec(self, name: str, amount: float = 1.0, labels: dict[str, str] | None = None) -> None:
         """Decrement gauge."""
         key = self._make_key(name, labels)
         with self._lock:
             self._gauges[key] = self._gauges.get(key, 0.0) - amount
-    
+
     def observe(self, name: str, value: float, labels: dict[str, str] | None = None) -> None:
         """Observe value for histogram."""
         key = self._make_key(name, labels)
@@ -111,23 +103,23 @@ class MetricsCollector:
             # Keep only last 10000 samples
             if len(self._histograms[key]) > 10000:
                 self._histograms[key] = self._histograms[key][-10000:]
-    
+
     def timing(self, name: str, duration_ms: float, labels: dict[str, str] | None = None) -> None:
         """Record timing observation."""
         self.observe(name, duration_ms / 1000.0, labels)  # Store as seconds
-    
+
     def get_counter(self, name: str, labels: dict[str, str] | None = None) -> int:
         """Get counter value."""
         key = self._make_key(name, labels)
         with self._lock:
             return self._counters.get(key, 0)
-    
+
     def get_gauge(self, name: str, labels: dict[str, str] | None = None) -> float:
         """Get gauge value."""
         key = self._make_key(name, labels)
         with self._lock:
             return self._gauges.get(key, 0.0)
-    
+
     def get_histogram_stats(self, name: str, labels: dict[str, str] | None = None) -> dict:
         """Get histogram statistics."""
         key = self._make_key(name, labels)
@@ -135,7 +127,7 @@ class MetricsCollector:
             values = self._histograms.get(key, [])
             if not values:
                 return {"count": 0, "mean": 0, "min": 0, "max": 0, "p50": 0, "p95": 0, "p99": 0}
-            
+
             sorted_vals = sorted(values)
             n = len(sorted_vals)
             return {
@@ -147,7 +139,7 @@ class MetricsCollector:
                 "p95": sorted_vals[int(n * 0.95)],
                 "p99": sorted_vals[int(n * 0.99)],
             }
-    
+
     def get_all_metrics(self) -> dict[str, Any]:
         """Get all metrics as dictionary."""
         with self._lock:
@@ -159,7 +151,7 @@ class MetricsCollector:
                     for k, v in self._histograms.items()
                 },
             }
-    
+
     def _percentiles(self, values: list[float]) -> dict:
         if not values:
             return {"count": 0, "mean": 0, "min": 0, "max": 0, "p50": 0, "p95": 0, "p99": 0}
@@ -174,13 +166,13 @@ class MetricsCollector:
             "p95": sorted_vals[int(n * 0.95)],
             "p99": sorted_vals[int(n * 0.99)],
         }
-    
+
     def _make_key(self, name: str, labels: dict[str, str] | None = None) -> str:
         if not labels:
             return name
         label_str = ",".join(f"{k}={v}" for k, v in sorted(labels.items()))
         return f"{name}{{{label_str}}}"
-    
+
     def reset(self) -> None:
         """Reset all metrics."""
         with self._lock:

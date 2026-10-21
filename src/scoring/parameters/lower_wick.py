@@ -69,17 +69,20 @@ class LowerWickQualityScore(ScoringParameter):
         try:
             market_data = context.market_event.market_data
             strategy_data = context.market_event.strategy_data
-            
+
             if not market_data or not market_data.open:
                 return 0.0, [], "No market data available"
-            
+
             if not context.market_event.strategy_data:
                 return 0.0, [], "No strategy data available"
-            
+
             strategy_data = context.market_event.strategy_data
             lower_wick = strategy_data.lower_wick
             body = strategy_data.body
-            lower_wick_ratio = context.config.parameters.get("lower_wick_ratio", 2.0)
+            context.config.parameters.get("lower_wick_ratio", 2.0)
+
+            if lower_wick is None or body is None:
+                return 0.0, [], "Incomplete strategy data"
 
             if body <= 0:
                 return 25.0, [], "Doji-like candle (no body)"

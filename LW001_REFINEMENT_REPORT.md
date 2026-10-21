@@ -163,8 +163,8 @@ All 10 signals:
 
 ### 5.1 Attempted Delivery
 - **Status:** ✅ **SUCCESS** - All 10 signals sent successfully
-- **Bot Token:** `***REMOVED***`
-- **Chat ID:** `***REMOVED***`
+- **Bot Token:** `<YOUR_BOT_TOKEN>`
+- **Chat ID:** `REDACTED_NOTIFICATION_TELEGRAM_CHAT_ID`
 - **Bot Name:** CandlBing (@CandleBingx_bot)
 - **Delivery Time:** 2026-08-08
 - **Messages Sent:** 10/10 (100% success rate)

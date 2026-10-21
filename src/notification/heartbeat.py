@@ -7,7 +7,7 @@ Heartbeat monitoring for notification services.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,7 +25,7 @@ class HeartbeatMonitor:
     def __init__(self, config: HeartbeatConfig | None = None) -> None:
         self._config = config or HeartbeatConfig()
         self._running = False
-        self._last_beat: Optional[float] = None
+        self._last_beat: float | None = None
 
     def start(self) -> None:
         """Start heartbeat monitoring."""

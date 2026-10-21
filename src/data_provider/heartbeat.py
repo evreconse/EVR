@@ -13,7 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from src.core import get_logger
+from core import get_logger
 
 logger = get_logger(__name__)
 

@@ -12,7 +12,6 @@ Production-ready structured logging with:
 
 from __future__ import annotations
 
-import asyncio
 import contextvars
 import json
 import logging
@@ -20,12 +19,12 @@ import logging.handlers
 import sys
 import threading
 import time
-from collections.abc import Callable
-from dataclasses import dataclass, field
-from datetime import UTC, datetime, timezone
+from contextlib import contextmanager
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Protocol
 
 # =============================================================================
 # Context Variables for Correlation IDs
@@ -159,7 +158,7 @@ class JsonFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         # Base log entry
-        log_entry = {
+        log_entry: dict[str, Any] = {
             "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
@@ -247,12 +246,15 @@ class ConsoleFormatter(logging.Formatter):
 
         # Context prefix
         context_parts = []
-        if get_correlation_id():
-            context_parts.append(f"cid={get_correlation_id()[:8]}")
-        if get_event_id():
-            context_parts.append(f"eid={get_event_id()[:8]}")
-        if get_signal_id():
-            context_parts.append(f"sid={get_signal_id()[:8]}")
+        correlation_id = get_correlation_id()
+        if correlation_id:
+            context_parts.append(f"cid={correlation_id[:8]}")
+        event_id = get_event_id()
+        if event_id:
+            context_parts.append(f"eid={event_id[:8]}")
+        signal_id = get_signal_id()
+        if signal_id:
+            context_parts.append(f"sid={signal_id[:8]}")
         if get_strategy_id():
             context_parts.append(f"strat={get_strategy_id()}")
         if get_exchange():
@@ -518,8 +520,6 @@ def get_logger(name: str) -> logging.Logger:
 # Context Managers
 # =============================================================================
 
-from contextlib import contextmanager
-
 
 @contextmanager
 def log_context(
@@ -648,9 +648,6 @@ async def async_log_context(
 # =============================================================================
 # Protocol for logging
 # =============================================================================
-
-from typing import Protocol
-
 
 class LoggerProtocol(Protocol):
     """Protocol for logger interface."""

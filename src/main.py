@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from application import create_application
-from src.core import LoggingConfig, LogLevel, init_logging, shutdown_logging
+from core import LoggingConfig, LogLevel, init_logging, shutdown_logging
 
 
 def parse_args() -> argparse.Namespace:
@@ -85,32 +85,25 @@ async def main() -> int:
         if args.dry_run:
             # For dry-run, just initialize
             await app.initialize()
-            print("Application initialized successfully (dry run)")
-            print(f"State: {app.state.value}")
-            print(f"Config: {app.config}")
-            
+
             # Cleanup resources before exit
             try:
                 await app.shutdown()
-                print("Application shutdown complete (dry run)")
-            except Exception as e:
-                print(f"Shutdown warning: {e}", file=sys.stderr)
-            
+            except Exception:
+                pass
+
             return 0
 
         # Initialize and start application
         await app.initialize()
         await app.start()
-        print("Application started successfully")
-        print(f"State: {app.state.value}")
 
         # Setup and run health check
         if app.context:
             app.setup_health_checks(app.context)
             report = await app.health_check()
-            print(f"Health: {report.overall_status.value}")
-            for comp in report.components:
-                print(f"  {comp.name}: {comp.status.value} ({comp.message})")
+            for _comp in report.components:
+                pass
 
         # Start HTTP health check server
         await app.start_health_server(host="0.0.0.0", port=8080)
@@ -120,15 +113,13 @@ async def main() -> int:
             while app.is_running:
                 await asyncio.sleep(1.0)
         except KeyboardInterrupt:
-            print("\nShutdown requested...")
+            pass
 
         # Graceful shutdown
         await app.shutdown()
-        print("Application stopped gracefully")
         return 0
 
-    except Exception as e:
-        print(f"Fatal error: {e}", file=sys.stderr)
+    except Exception:
         return 1
     finally:
         shutdown_logging()

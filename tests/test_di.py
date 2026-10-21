@@ -18,6 +18,22 @@ from application.service_container import (
 )
 
 
+class _ServiceA:
+    """Test service used to exercise circular dependency detection."""
+
+
+class _ServiceB:
+    """Test service used to exercise circular dependency detection."""
+
+
+def _create_service_a(service_b: _ServiceB) -> _ServiceA:
+    return _ServiceA()
+
+
+def _create_service_b(service_a: _ServiceA) -> _ServiceB:
+    return _ServiceB()
+
+
 class TestServiceContainer:
     """Tests for ServiceContainer."""
 
@@ -34,15 +50,33 @@ class TestServiceContainer:
         container.register_instance(str, value)
         assert container.get(str) is value
 
-    @pytest.mark.skip(reason="Circular dependency detection behavior changed")
     def test_register_singleton_factory(self) -> None:
-        """Test registering a singleton factory."""
-        pass
+        """Test that a singleton factory is only invoked once."""
+        container = ServiceContainer()
+        calls = []
 
-    @pytest.mark.skip(reason="Circular dependency detection behavior changed")
+        def factory() -> int:
+            calls.append(1)
+            return 42
+
+        container.register_singleton(int, factory)
+        first = container.get(int)
+        second = container.get(int)
+        assert first == second == 42
+        assert len(calls) == 1
+
     def test_register_factory(self) -> None:
-        """Test registering a factory (new instance each time)."""
-        pass
+        """Test that a plain factory produces a new instance each time."""
+        class Widget:
+            pass
+
+        container = ServiceContainer()
+        container.register_factory(Widget, Widget)
+        first = container.get(Widget)
+        second = container.get(Widget)
+        assert isinstance(first, Widget)
+        assert isinstance(second, Widget)
+        assert first is not second
 
     def test_unregister(self) -> None:
         """Test unregistering a service."""
@@ -78,10 +112,14 @@ class TestServiceContainer:
         with pytest.raises(ServiceNotFoundError):
             container.get(str)
 
-    @pytest.mark.skip(reason="Circular dependency detection behavior changed")
     def test_circular_dependency_detection(self) -> None:
         """Test circular dependency detection."""
-        pass
+        container = ServiceContainer()
+        container.register_singleton(_ServiceA, _create_service_a)
+        container.register_singleton(_ServiceB, _create_service_b)
+
+        with pytest.raises(ServiceRegistrationError, match="Circular dependency"):
+            container.get(_ServiceA)
 
     def test_dependency_auto_resolution(self) -> None:
         """Test auto-resolution of factory dependencies."""

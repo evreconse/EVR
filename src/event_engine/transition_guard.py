@@ -80,11 +80,11 @@ def get_allowed_next_states(state: str) -> set[str]:
 class TransitionGuard:
     """
     Event Engine Transition Guard.
-    
+
     Delegates to Models layer TransitionGuard for validation.
     Provides string-based interface for Event Engine internal use.
     """
-    
+
     @staticmethod
     def validate_transition(
         event_id: str,
@@ -94,13 +94,13 @@ class TransitionGuard:
     ) -> None:
         """
         Validate state transition.
-        
+
         Args:
             event_id: Event identifier
             from_state: Current state
             to_state: Target state
             event_data: Optional event data for additional validation
-            
+
         Raises:
             InvalidStateTransitionError: If transition is not allowed
         """
@@ -111,7 +111,7 @@ class TransitionGuard:
                 target_state=to_state,
                 reason=f"Transition not allowed by state machine: {from_state} -> {to_state}",
             )
-        
+
         # Additional guard: cannot transition from terminal state
         if is_terminal(from_state):
             raise InvalidStateTransitionError(
@@ -120,7 +120,7 @@ class TransitionGuard:
                 target_state=to_state,
                 reason=f"Cannot transition from terminal state '{from_state}'",
             )
-    
+
     @staticmethod
     def validate_score_requirement(event_id: str, state: str, score: float | None) -> None:
         """Validate that state requiring score has valid score."""
@@ -137,7 +137,7 @@ class TransitionGuard:
                     f"{state} (score 0-100)",
                     f"{state} (score={score})",
                 )
-    
+
     @staticmethod
     def validate_terminal_transition(
         event_id: str,
@@ -152,7 +152,7 @@ class TransitionGuard:
                 target_state=to_state,
                 reason=f"Cannot transition from terminal state '{from_state}'",
             )
-    
+
     @staticmethod
     def validate_score_threshold(
         event_id: str,
@@ -169,7 +169,7 @@ class TransitionGuard:
                 "score_threshold",
                 f"Score {score:.2f} below threshold {threshold} for {operation}",
             )
-    
+
     @staticmethod
     def validate_not_terminal(event_id: str, state: str) -> None:
         """Validate that state is not terminal."""

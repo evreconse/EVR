@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -30,12 +31,10 @@ from config import (
     SystemConfig,
 )
 from config.types import (
-    NotificationDefaults,
     NotificationTelegramConfig,
     ScoringDefaults,
     ScoringParameterConfig,
     StrategyConditionConfig,
-    StrategyDefaults,
     StrategyNotificationConfig,
     StrategyRiskConfig,
 )
@@ -44,14 +43,13 @@ from models import Exchange, MarketEvent, Timeframe
 from scoring import reset_registry as reset_scoring_registry
 from storage.file_repository import FileStorageRepository
 from storage.storage_engine import StorageEngine
-from strategy.context import StrategyConfig as StrategyConfigData
 
 # =============================================================================
 # Session-scoped fixtures
 # =============================================================================
 
 @pytest.fixture(scope="session")
-def event_loop() -> asyncio.AbstractEventLoop:
+def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
     """Create a session-scoped event loop for async tests."""
     policy = asyncio.get_event_loop_policy()
     loop = policy.new_event_loop()
@@ -62,7 +60,7 @@ def event_loop() -> asyncio.AbstractEventLoop:
 @pytest.fixture(scope="session")
 def temp_storage_dir(tmp_path_factory: Any) -> Path:
     """Create a temporary storage directory for tests."""
-    return tmp_path_factory.mktemp("storage")
+    return cast(Path, tmp_path_factory.mktemp("storage"))
 
 
 # =============================================================================
@@ -148,13 +146,13 @@ def fake_data_provider() -> MagicMock:
     provider.supported_timeframes = ["1m", "5m", "15m", "1h"]
     provider.supported_symbols = ["BTC-USDT", "ETH-USDT"]
     provider.is_connected = False
-    
+
     async def connect():
         provider.is_connected = True
-    
+
     async def disconnect():
         provider.is_connected = False
-    
+
     provider.connect = AsyncMock(side_effect=connect)
     provider.disconnect = AsyncMock(side_effect=disconnect)
     provider.reconnect = AsyncMock()
@@ -207,8 +205,12 @@ def fake_storage(temp_storage_dir: Path) -> StorageEngine:
     return engine
 
 
+if TYPE_CHECKING:
+    from tests.fixtures.fake_storage import FakeStorageRepository
+
+
 @pytest.fixture
-def fake_storage_repository() -> "FakeStorageRepository":
+def fake_storage_repository() -> FakeStorageRepository:
     """Create a fake storage repository for testing."""
     from tests.fixtures.fake_storage import create_fake_repository
     return create_fake_repository()
@@ -347,7 +349,7 @@ def populated_container(app_config: AppConfig, fake_data_provider: MagicMock, fa
     from notification import NotificationEngine
     from scoring import ScoringEngine
     from strategy import StrategyEngine
-    
+
     container = ServiceContainer()
     container.register_instance(AppConfig, app_config)
     container.register_instance(MarketDataProvider, fake_data_provider)
@@ -378,7 +380,7 @@ def sample_market_event() -> MarketEvent:
     """Create a sample MarketEvent for testing."""
     return MarketEvent.new(
         symbol="BTCUSDT",
-        exchange=Exchange.BYBIT,
+        exchange=Exchange.BINGX,
         timeframe=Timeframe.M15,
         event_time=__import__("datetime").datetime(2026, 1, 1, 12, 0, 0, tzinfo=__import__("datetime").timezone.utc),
         open_price=50000.0,
@@ -394,7 +396,7 @@ def sample_market_event() -> MarketEvent:
 # =============================================================================
 
 @pytest.fixture(autouse=True)
-def setup_logging() -> None:
+def setup_logging() -> Iterator[None]:
     """Set up logging for tests."""
     log_config = LoggingConfig(
         level=LogLevel.INFO,
@@ -411,7 +413,7 @@ def setup_logging() -> None:
 # =============================================================================
 
 @pytest.fixture(autouse=True)
-def cleanup_after_test() -> None:
+def cleanup_after_test() -> Iterator[None]:
     """Reset global state after each test."""
     yield
     reset_container()

@@ -1,9 +1,10 @@
 """Test Telegram token validity."""
 import asyncio
 import aiohttp
+import os
 
-bot_token = "***REMOVED***"
-chat_id = "***REMOVED***"
+bot_token = os.getenv("EVRECONSE_TELEGRAM_BOT_TOKEN", "your_telegram_bot_token_here")
+chat_id = os.getenv("EVRECONSE_TELEGRAM_CHAT_ID", "your_telegram_chat_id_here")
 
 async def test_token():
     api_url = f"https://api.telegram.org/bot{bot_token}"

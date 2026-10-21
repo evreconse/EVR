@@ -67,8 +67,8 @@ async def find_historical_signals():
     print()
     
     # Initialize BingX fetcher
-    api_key = "***REMOVED***"
-    api_secret = "***REMOVED***"
+    api_key = os.getenv("EVRECONSE_EXCHANGE__API_KEY", "your_bingx_api_key_here")
+    api_secret = os.getenv("EVRECONSE_EXCHANGE__API_SECRET", "your_bingx_api_secret_here")
     fetcher = BingXFetcher(api_key=api_key, api_secret=api_secret)
     
     # Search for signals
@@ -241,8 +241,8 @@ async def send_to_telegram(signals: list):
     print()
     
     # Telegram credentials
-    bot_token = "***REMOVED***"
-    chat_id = "***REMOVED***"
+    bot_token = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN", "your_telegram_bot_token_here")
+    chat_id = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID", "your_telegram_chat_id_here")
     
     # Import Telegram service
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))

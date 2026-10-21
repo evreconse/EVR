@@ -7,32 +7,32 @@ Configuration dataclasses for Event Engine.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TypedDict
 
 
 @dataclass(frozen=True, slots=True)
 class EngineConfig:
     """Configuration for Event Engine."""
-    
+
     max_concurrent_events: int = 10
     execution_timeout: float = 30.0
     enable_metrics: bool = True
     enable_persistence: bool = True
     enable_recovery: bool = True
-    
+
     # Scheduler config
     scheduler_interval: float = 0.1
-    
+
     # Pipeline config
     pipeline_timeout: float = 30.0
     pipeline_continue_on_error: bool = False
-    
+
     # Registry config
     registry_max_events: int = 10000
-    
+
     # Custom config
     extra: dict[str, Any] = field(default_factory=dict)
-    
+
     def __post_init__(self) -> None:
         if self.max_concurrent_events <= 0:
             raise ValueError("max_concurrent_events must be positive")
@@ -40,7 +40,7 @@ class EngineConfig:
             raise ValueError("execution_timeout must be positive")
         if self.scheduler_interval <= 0:
             raise ValueError("scheduler_interval must be positive")
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -55,7 +55,7 @@ class EngineConfig:
             "registry_max_events": self.registry_max_events,
             **self.extra,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> EngineConfig:
         """Create from dictionary."""
@@ -75,6 +75,16 @@ class EngineConfig:
         return cls(**known, extra=extra)
 
 
+class EngineStatsAccumulator(TypedDict):
+    """Mutable counters used by lifecycle statistics."""
+
+    processed: int
+    succeeded: int
+    failed: int
+    rejected: int
+    processing_times: list[float]
+
+
 @dataclass(frozen=True, slots=True)
 class EngineStats:
     """Engine statistics snapshot."""
@@ -85,7 +95,7 @@ class EngineStats:
     active_events: int = 0
     queued_events: int = 0
     avg_processing_time_ms: float = 0.0
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {

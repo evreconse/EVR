@@ -7,10 +7,10 @@ Enums that limit extensibility without protecting invariants are removed.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class EventStatus(str, Enum):
+class EventStatus(StrEnum):
     """Event lifecycle statuses."""
 
     NEW = "NEW"
@@ -23,20 +23,20 @@ class EventStatus(str, Enum):
     EXPIRED = "EXPIRED"
 
 
-class EventOutcome(str, Enum):
+class EventOutcome(StrEnum):
     """Outcome of a completed signal tracking."""
 
     TP = "TP"
     SL = "SL"
 
 
-class Exchange(str, Enum):
+class Exchange(StrEnum):
     """Supported exchanges."""
 
     BINGX = "bingx"
 
 
-class Timeframe(str, Enum):
+class Timeframe(StrEnum):
     """Supported candle timeframes."""
 
     M1 = "M1"
@@ -48,13 +48,13 @@ class Timeframe(str, Enum):
     D1 = "D1"
 
 
-class NotificationChannel(str, Enum):
+class NotificationChannel(StrEnum):
     """Supported notification channels."""
 
     TELEGRAM = "telegram"
 
 
-class ScoreParameter(str, Enum):
+class ScoreParameter(StrEnum):
     """Scoring parameter names - protects invariant of valid parameter names."""
 
     LOWER_WICK_QUALITY = "lower_wick_quality"

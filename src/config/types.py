@@ -8,10 +8,10 @@ used by the Configuration Manager.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 
-class ConfigCategory(str, Enum):
+class ConfigCategory(StrEnum):
     """Configuration parameter categories."""
 
     STATIC = "static"
@@ -19,7 +19,7 @@ class ConfigCategory(str, Enum):
     RUNTIME = "runtime"
 
 
-class ConfigSection(str, Enum):
+class ConfigSection(StrEnum):
     """Configuration sections."""
 
     EXCHANGE = "exchange"
@@ -31,7 +31,7 @@ class ConfigSection(str, Enum):
     SYSTEM = "system"
 
 
-class Timeframe(str, Enum):
+class Timeframe(StrEnum):
     """Supported timeframes."""
 
     M1 = "M1"
@@ -43,19 +43,19 @@ class Timeframe(str, Enum):
     D1 = "D1"
 
 
-class ExchangeName(str, Enum):
+class ExchangeName(StrEnum):
     """Supported exchanges."""
 
     BYBIT = "bybit"
 
 
-class NotificationChannel(str, Enum):
+class NotificationChannel(StrEnum):
     """Supported notification channels."""
 
     TELEGRAM = "telegram"
 
 
-class ScoringParameter(str, Enum):
+class ScoringParameter(StrEnum):
     """Scoring parameters."""
 
     LOWER_WICK_QUALITY = "lower_wick_quality"
@@ -377,14 +377,6 @@ class AppConfig:
     risk: RiskConfig = field(default_factory=RiskConfig)
     storage: StorageConfig = field(default_factory=StorageConfig)
     system: SystemConfig = field(default_factory=SystemConfig)
-
-
-@dataclass(frozen=True)
-class StrategySectionConfig:
-    """Strategy section configuration."""
-
-    active: tuple[str, ...] = field(default_factory=lambda: StrategyDefaults.ACTIVE)
-    strategies: dict[str, StrategyConfig] = field(default_factory=dict)
 
 
 # Parameter path constants for validation and access

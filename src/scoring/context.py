@@ -26,14 +26,14 @@ class ScoringContext:
 
     # Event data
     market_event: MarketEvent
-    
+
     # Configuration
     config: ScoringConfig
-    
+
     # External dependencies (interfaces only)
-    data_provider: DataProviderProtocol
-    storage: StorageProtocol
-    
+    data_provider: DataProviderProtocol | None = None
+    storage: StorageProtocol | None = None
+
     # Metadata
     evaluation_id: UUID = field(default_factory=lambda: uuid4())
     evaluated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -47,7 +47,7 @@ class ScoringContext:
 class ScoringConfig:
     """
     Scoring configuration.
-    
+
     Immutable configuration for scoring parameters.
     """
 
@@ -130,21 +130,21 @@ class ScoringResult:
     qualified: bool
     final_score: float
     max_score: float
-    
+
     # Details
     contributions: tuple[ScoreContribution, ...] = field(default_factory=tuple)
     penalties: tuple[Penalty, ...] = field(default_factory=tuple)
-    
+
     # Metadata
     scoring_id: str = ""
     scoring_version: str = ""
     evaluation_id: UUID = field(default_factory=lambda: uuid4())
     evaluated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     execution_time_ms: float = 0.0
-    
+
     # Explanation
     explanation: str = ""
-    
+
     # Metadata
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -202,24 +202,23 @@ class ScoringResult:
 
 
 # Protocols for external dependencies (avoid circular imports)
-from dataclasses import dataclass, field
 
 
 class DataProviderProtocol(Protocol):
     """Protocol for data provider access."""
-    
+
     async def get_snapshot(self, symbol: str, timeframe: str, limit: int) -> list[dict]:
         ...
-    
+
     async def get_liquidations(self, symbol: str, limit: int) -> list[dict]:
         ...
 
 
 class StorageProtocol(Protocol):
     """Protocol for storage access."""
-    
+
     async def save_event(self, event: Any) -> None:
         ...
-    
+
     async def get_events(self, symbol: str, start: datetime, end: datetime) -> list:
         ...

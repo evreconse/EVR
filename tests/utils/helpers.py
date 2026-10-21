@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from models import EventStatus, Exchange, MarketEvent, Timeframe
+from models import EventStatus, Exchange, MarketEvent, ScoreParameter, Timeframe
 from models.enums import EventOutcome
 
 
@@ -40,7 +40,8 @@ def create_market_event(
 
 def advance_event_to_qualified(event: MarketEvent, strategy_id: str = "LW-001") -> MarketEvent:
     """Advance a MarketEvent to QUALIFIED status."""
-    return event.qualified(
+    return MarketEvent.qualified(
+        event,
         strategy_id=strategy_id,
         lower_wick=100.0,
         body=50.0,
@@ -52,33 +53,34 @@ def advance_event_to_qualified(event: MarketEvent, strategy_id: str = "LW-001") 
 
 def advance_event_to_scored(event: MarketEvent, confidence_score: float = 85.0) -> MarketEvent:
     """Advance a MarketEvent to SCORED status."""
-    return event.scored(
+    return MarketEvent.scored(
+        event,
         confidence_score=confidence_score,
         score_breakdown=(
-            ("lower_wick_quality", 40.0, 0.0),
-            ("candle_confirmation", 35.0, 0.0),
+            (ScoreParameter.LOWER_WICK_QUALITY, 40.0, 0.0),
+            (ScoreParameter.CANDLE_CONFIRMATION, 35.0, 0.0),
         ),
     )
 
 
 def advance_event_to_signal(event: MarketEvent, close_price: float = 50050.0) -> MarketEvent:
     """Advance a MarketEvent to SIGNAL status."""
-    return event.notified(close_price=close_price)
+    return MarketEvent.notified(event, close_price=close_price)
 
 
 def advance_event_to_monitoring(event: MarketEvent) -> MarketEvent:
     """Advance a MarketEvent to MONITORING status."""
-    return event.monitoring()
+    return MarketEvent.monitoring(event)
 
 
 def advance_event_to_completed(event: MarketEvent, outcome: EventOutcome = EventOutcome.TP, profit_pct: float = 3.0) -> MarketEvent:
     """Advance a MarketEvent to COMPLETED status."""
-    return event.completed(outcome=outcome, actual_profit_pct=profit_pct)
+    return MarketEvent.completed(event, outcome=outcome, actual_profit_pct=profit_pct)
 
 
 def advance_event_to_expired(event: MarketEvent) -> MarketEvent:
     """Advance a MarketEvent to EXPIRED status."""
-    return event.expired()
+    return MarketEvent.expired(event)
 
 
 async def run_async(coro: Any, timeout: float = 5.0) -> Any:
@@ -118,7 +120,7 @@ def assert_score_in_range(score: float, min_score: float = 0.0, max_score: float
 
 def assert_event_qualified(event: MarketEvent) -> None:
     """Assert that an event is qualified (score >= threshold)."""
-    if not event.metadata.status in {EventStatus.QUALIFIED, EventStatus.SCORED, EventStatus.SIGNAL, EventStatus.MONITORING, EventStatus.COMPLETED, EventStatus.EXPIRED}:
+    if event.metadata.status not in {EventStatus.QUALIFIED, EventStatus.SCORED, EventStatus.SIGNAL, EventStatus.MONITORING, EventStatus.COMPLETED, EventStatus.EXPIRED}:
         raise AssertionError(f"Event not qualified: {event.metadata.status}")
 
 

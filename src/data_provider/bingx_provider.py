@@ -13,24 +13,22 @@ from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from typing import Any
 
-from src.core import get_logger
+from core import get_logger
+
+# Import BingX fetcher
+from exchange import BingXFetcher
 
 from .exceptions import (
     ConnectionError,
-    DataProviderError,
     DataProviderNotConnectedError,
-    DataProviderNotInitializedError,
-    RateLimitError,
+    InvalidMessageError,
     SnapshotError,
     SubscriptionError,
 )
 from .internal_models import Candle, MarketDataMessage, MarketDataType
 from .provider import MarketDataProvider
 from .rate_limiter import RateLimitConfig, RateLimiter
-from .reconnect_strategy import ReconnectConfig, ReconnectStrategy
-
-# Import BingX fetcher
-from src.exchange import BingXFetcher
+from .reconnect_strategy import AsyncReconnectStrategy, ReconnectConfig
 
 logger = get_logger(__name__)
 
@@ -38,20 +36,20 @@ logger = get_logger(__name__)
 class BingXDataProvider(MarketDataProvider):
     """
     BingX Market Data Provider.
-    
+
     Implements MarketDataProvider interface for BingX exchange.
     Uses BingX REST API for historical data and WebSocket for real-time streaming.
     Includes heartbeat monitoring, health checks, and auto-reconnection.
     """
-    
+
     # Rate limits for BingX API
     PUBLIC_RATE_LIMIT = 20      # requests per second for public endpoints
     MARKET_DATA_RATE_LIMIT = 50 # requests per second for market data
-    
+
     # Health monitoring
     HEARTBEAT_INTERVAL = 60.0   # seconds between heartbeats
     WS_HEALTH_CHECK_INTERVAL = 30.0  # seconds between WS health checks
-    
+
     def __init__(
         self,
         api_key: str,
@@ -70,16 +68,16 @@ class BingXDataProvider(MarketDataProvider):
         self._api_secret = api_secret
         self._testnet = testnet
         self._recv_window = recv_window
-        
+
         # Internal state
         self._connected = False
         self._initialized = False
         self._subscribed_symbols: set[str] = set()
         self._subscribed_timeframe: str = "15m"
-        
+
         # BingX fetcher for REST API
         self._fetcher = BingXFetcher(api_key=api_key, api_secret=api_secret)
-        
+
         # Rate limiters
         self._public_limiter = RateLimiter(RateLimitConfig(
             requests_per_second=self.PUBLIC_RATE_LIMIT,
@@ -89,50 +87,50 @@ class BingXDataProvider(MarketDataProvider):
             requests_per_second=self.MARKET_DATA_RATE_LIMIT,
             burst_size=self.MARKET_DATA_RATE_LIMIT,
         ))
-        
+
         # Reconnect strategy
-        self._reconnect_strategy = ReconnectStrategy(ReconnectConfig(
-            max_attempts=max_reconnect_attempts if max_reconnect_attempts > 0 else None,
+        self._reconnect_strategy = AsyncReconnectStrategy(ReconnectConfig(
+            max_attempts=max_reconnect_attempts,
             initial_delay=reconnect_base_delay,
             max_delay=reconnect_max_delay,
             jitter=0.1,
         ))
-        
+
         # Callbacks for real-time streaming
         self._candle_callback: Any = None
-        
+
         # Health monitoring
         self._heartbeat_task: asyncio.Task | None = None
         self._ws_health_task: asyncio.Task | None = None
         self._ws_client: Any = None
         self._last_ws_message: datetime | None = None
         self._health_check_callback: Any = None
-        
+
     @property
     def exchange_name(self) -> str:
         return "bingx"
-    
+
     @property
     def supported_timeframes(self) -> list[str]:
         return ["1m", "5m", "15m", "30m", "1h", "4h", "1d"]
-    
+
     @property
     def supported_symbols(self) -> list[str]:
         # This would be populated from contracts API
         return []
-    
+
     def set_market_event_handler(self, handler) -> None:
         """Set callback for market events from WebSocket stream."""
         self._candle_callback = handler
-    
+
     def is_connected(self) -> bool:
         return self._connected
-    
+
     async def initialize(self) -> None:
         """Initialize the data provider."""
         if self._initialized:
             return
-        
+
         # Test connection by fetching contracts
         try:
             await self._fetcher.get_usdt_perpetual_symbols()
@@ -141,65 +139,65 @@ class BingXDataProvider(MarketDataProvider):
         except Exception as e:
             logger.error(f"BingXDataProvider initialization failed: {e}")
             raise ConnectionError(f"Failed to initialize BingX provider: {e}") from e
-    
+
     async def connect(self) -> None:
         """Establish connection to BingX."""
         if self._connected:
             return
-        
+
         if not self._initialized:
             await self.initialize()
-        
+
         # BingX REST API doesn't require persistent connection
         # WebSocket connection will be established on subscribe
         self._connected = True
         logger.info("BingXDataProvider connected")
-    
+
     async def disconnect(self) -> None:
         """Disconnect from BingX."""
         self._connected = False
         self._subscribed_symbols.clear()
         logger.info("BingXDataProvider disconnected")
-    
+
     async def reconnect(self) -> None:
         """Reconnect to BingX."""
         await self.disconnect()
         await self.connect()
-    
+
     async def subscribe_symbols(self, symbols: list[str], timeframe: str) -> None:
         """
         Subscribe to market data for symbols.
-        
+
         Args:
             symbols: List of trading symbols (e.g., ["BTC-USDT", "ETH-USDT"])
             timeframe: Candle timeframe (e.g., "15m")
-        
+
         Raises:
             SubscriptionError: If subscription fails
         """
         if not self._connected:
             raise DataProviderNotConnectedError("Not connected to BingX")
-        
+
         # Validate timeframe
         if timeframe not in self.supported_timeframes:
             raise SubscriptionError(f"Unsupported timeframe: {timeframe}")
-        
+
         self._subscribed_symbols.update(symbols)
         self._subscribed_timeframe = timeframe
         logger.info(f"Subscribed to {len(symbols)} symbols on {timeframe}")
-    
+
     async def unsubscribe_symbols(self, symbols: list[str]) -> None:
         """Unsubscribe from market data for symbols."""
         self._subscribed_symbols.difference_update(symbols)
         logger.info(f"Unsubscribed from {len(symbols)} symbols")
-    
+
     async def subscribe_timeframe(self, timeframe: str) -> None:
         """Subscribe to a new timeframe."""
         if timeframe not in self.supported_timeframes:
             raise SubscriptionError(f"Unsupported timeframe: {timeframe}")
         self._subscribed_timeframe = timeframe
         logger.info(f"Subscribed to timeframe: {timeframe}")
-    
+
     def get_snapshot(
         self,
         symbol: str,
@@ -208,27 +206,27 @@ class BingXDataProvider(MarketDataProvider):
     ) -> list[dict]:
         """
         Get historical snapshot of candles.
-        
+
         This is a synchronous method for compatibility. Use async version for production.
-        
+
         Args:
             symbol: Trading symbol
             timeframe: Timeframe for candles
             limit: Number of candles to retrieve
-        
+
         Returns:
             List of candle data dictionaries
         """
         # Run async internally
         try:
-            loop = asyncio.get_running_loop()
+            asyncio.get_running_loop()
             # Can't run async in running loop, return empty for sync compatibility
             logger.warning("get_snapshot called in async context, use async_get_snapshot instead")
             return []
         except RuntimeError:
             # No running loop, safe to run
             return asyncio.run(self.async_get_snapshot(symbol, timeframe, limit))
-    
+
     async def async_get_snapshot(
         self,
         symbol: str,
@@ -237,24 +235,24 @@ class BingXDataProvider(MarketDataProvider):
     ) -> list[dict]:
         """
         Get historical snapshot of candles (async).
-        
+
         Args:
             symbol: Trading symbol (e.g., "BTC-USDT")
             timeframe: Timeframe for candles (e.g., "15m")
             limit: Number of candles to retrieve
-        
+
         Returns:
             List of candle data dictionaries with keys: time, open, high, low, close, volume
         """
         await self._market_data_limiter.acquire()
-        
+
         try:
             klines = await self._fetcher.get_klines(
                 symbol=symbol,
                 interval=timeframe,
                 limit=limit,
             )
-            
+
             # Convert to standard format
             candles = []
             for k in klines:
@@ -266,13 +264,13 @@ class BingXDataProvider(MarketDataProvider):
                     "close": float(k["close"]),
                     "volume": float(k["volume"]),
                 })
-            
+
             return candles
-            
+
         except Exception as e:
             logger.error(f"Failed to get snapshot for {symbol}: {e}")
             raise SnapshotError(f"Snapshot failed for {symbol}: {e}") from e
-    
+
     async def get_snapshot_with_volumes(
         self,
         symbol: str,
@@ -281,12 +279,12 @@ class BingXDataProvider(MarketDataProvider):
     ) -> list[dict]:
         """
         Get historical candles including enough previous candles for volume ratio calculation.
-        
+
         Args:
             symbol: Trading symbol
             timeframe: Timeframe for candles
             limit: Number of recent candles to retrieve (plus 4 for N-3 volume reference)
-        
+
         Returns:
             List of candle data dictionaries
         """
@@ -294,59 +292,118 @@ class BingXDataProvider(MarketDataProvider):
         # Add extra for closed candle detection safety
         total_limit = limit + 10
         return await self.async_get_snapshot(symbol, timeframe, total_limit)
-    
+
     async def stream(self) -> AsyncGenerator[MarketDataMessage, None]:
         """
-        Stream market events in real-time.
-        
+        Stream market data in real-time.
+
         Yields:
-            MarketEvent objects as they are generated
+            MarketDataMessage objects as they arrive from BingX.
         """
         if not self._connected:
             raise DataProviderNotConnectedError("Not connected to BingX")
-        
-        # For BingX, we implement WebSocket streaming
-        # This is a simplified implementation - production would use BingX WebSocket API
+
         logger.info("Starting BingX market data stream")
-        
-        # Subscribe to WebSocket
+
         from .websocket_client import BingXWebSocketClient
-        
-        ws_client = BingXWebSocketClient(
-            symbols=list(self._subscribed_symbols),
-            timeframe=self._subscribed_timeframe,
-        )
-        
-        await ws_client.connect()
-        
+
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue[dict] = asyncio.Queue()
+
+        def enqueue(message: dict) -> None:
+            loop.call_soon_threadsafe(queue.put_nowait, message)
+
+        ws_client = BingXWebSocketClient(testnet=self._testnet)
+        ws_client.set_message_handler(enqueue)
+        for symbol in self._subscribed_symbols:
+            ws_client.subscribe_kline(symbol, self._subscribed_timeframe)
+
+        await asyncio.to_thread(ws_client.connect)
+
         try:
-            async for message in ws_client.stream():
-                if message.type == MarketDataType.KLINE:
-                    # Convert to MarketDataMessage
-                    yield self._convert_kline_to_message(message)
+            while True:
+                message = await queue.get()
+                parsed = self._parse_kline_message(message)
+                if parsed is not None:
+                    yield parsed
         except Exception as e:
             logger.error(f"Stream error: {e}")
             raise
         finally:
-            await ws_client.disconnect()
-    
-    def _convert_kline_to_message(self, kline_data: dict) -> MarketDataMessage:
-        """Convert BingX kline to MarketDataMessage."""
-        return MarketDataMessage(
-            type=MarketDataType.KLINE,
-            symbol=kline_data["symbol"],
-            timeframe=kline_data["timeframe"],
-            timestamp=datetime.fromtimestamp(kline_data["time"] / 1000, tz=UTC),
-            data=Candle(
-                open=kline_data["open"],
-                high=kline_data["high"],
-                low=kline_data["low"],
-                close=kline_data["close"],
-                volume=kline_data["volume"],
-                timestamp=datetime.fromtimestamp(kline_data["time"] / 1000, tz=UTC),
-            ),
+            await asyncio.to_thread(ws_client.disconnect)
+
+    @staticmethod
+    def _as_float(value: Any, default: float = 0.0) -> float:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _as_int(value: Any, default: int = 0) -> int:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    def _parse_kline_message(self, message: dict) -> MarketDataMessage | None:
+        """Parse a BingX WebSocket kline payload.
+
+        Supports both the nested ``{"data": [{"k": {...}}]}`` form and the
+        legacy flat form used by some BingX endpoints.  Returns ``None`` for
+        messages that do not contain candle data.
+        """
+        payload: Any = message.get("data", message)
+        if isinstance(payload, list):
+            payload = payload[0] if payload else None
+        if not isinstance(payload, dict):
+            return None
+
+        kline = payload.get("k", payload)
+        if not isinstance(kline, dict):
+            return None
+
+        open_ms = self._as_int(kline.get("t", kline.get("time")))
+        if open_ms <= 0:
+            return None
+
+        close_ms = self._as_int(kline.get("T"), open_ms)
+        open_time = datetime.fromtimestamp(open_ms / 1000, tz=UTC)
+        close_time = datetime.fromtimestamp(close_ms / 1000, tz=UTC)
+
+        candle = Candle(
+            symbol=str(kline.get("s", payload.get("s", ""))),
+            exchange="bingx",
+            timeframe=str(kline.get("i", payload.get("i", self._subscribed_timeframe))),
+            open_time=open_time,
+            close_time=close_time,
+            open_price=self._as_float(kline.get("o", kline.get("open"))),
+            high_price=self._as_float(kline.get("h", kline.get("high"))),
+            low_price=self._as_float(kline.get("l", kline.get("low"))),
+            close_price=self._as_float(kline.get("c", kline.get("close"))),
+            volume=self._as_float(kline.get("v", kline.get("volume"))),
+            quote_volume=self._as_float(kline.get("q", kline.get("quote_volume"))),
+            trades_count=self._as_int(kline.get("n", kline.get("trades_count"))),
+            taker_buy_volume=self._as_float(kline.get("V")),
+            taker_buy_quote_volume=self._as_float(kline.get("Q")),
+            is_closed=bool(kline.get("x", kline.get("is_closed", False))),
         )
-    
+
+        return MarketDataMessage(
+            data_type=MarketDataType.CANDLE,
+            symbol=candle.symbol,
+            exchange="bingx",
+            timestamp=open_time,
+            data=candle,
+        )
+
+    def _convert_kline_to_message(self, kline_data: dict) -> MarketDataMessage:
+        """Convert a BingX kline payload to MarketDataMessage."""
+        message = self._parse_kline_message(kline_data)
+        if message is None:
+            raise InvalidMessageError("Message does not contain kline data", raw_data=str(kline_data))
+        return message
+
     async def ping(self) -> bool:
         """Ping the exchange to check connectivity."""
         try:
@@ -354,11 +411,11 @@ class BingXDataProvider(MarketDataProvider):
             return len(symbols) > 0
         except Exception:
             return False
-    
+
     async def get_symbols(self) -> list[str]:
         """Get all available USDT perpetual symbols."""
         return await self._fetcher.get_usdt_perpetual_symbols()
-    
+
     async def get_klines_with_volumes(
         self,
         symbol: str,
@@ -367,7 +424,7 @@ class BingXDataProvider(MarketDataProvider):
     ) -> list[dict]:
         """
         Get klines with enough history for volume ratio calculation.
-        
+
         Returns:
             List of dicts with time, open, high, low, close, volume
         """
@@ -377,19 +434,19 @@ class BingXDataProvider(MarketDataProvider):
     # =========================================================================
     # Health Monitoring & Heartbeat
     # =========================================================================
-    
+
     def set_health_check_callback(self, callback) -> None:
         """Set callback for health check notifications."""
         self._health_check_callback = callback
-    
+
     async def start_heartbeat(self) -> None:
         """Start heartbeat monitoring task."""
         if self._heartbeat_task is not None and not self._heartbeat_task.done():
             return
-        
+
         self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
         logger.info("BingXDataProvider heartbeat monitoring started")
-    
+
     async def stop_heartbeat(self) -> None:
         """Stop heartbeat monitoring task."""
         if self._heartbeat_task is not None:
@@ -400,7 +457,7 @@ class BingXDataProvider(MarketDataProvider):
                 pass
             self._heartbeat_task = None
             logger.info("BingXDataProvider heartbeat monitoring stopped")
-    
+
     async def _heartbeat_loop(self) -> None:
         """Periodic heartbeat to check connectivity and log status."""
         while self._connected:
@@ -408,7 +465,7 @@ class BingXDataProvider(MarketDataProvider):
                 await asyncio.sleep(self.HEARTBEAT_INTERVAL)
                 if not self._connected:
                     break
-                
+
                 # Ping REST API to check connectivity
                 healthy = await self.ping()
                 if not healthy:
@@ -420,20 +477,20 @@ class BingXDataProvider(MarketDataProvider):
                     logger.info("BingXDataProvider heartbeat OK - REST API reachable")
                     if self._health_check_callback:
                         await self._health_check_callback(True, "OK")
-                        
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Heartbeat error: {e}")
-    
+
     async def start_ws_health_monitor(self) -> None:
         """Start WebSocket health monitoring task."""
         if self._ws_health_task is not None and not self._ws_health_task.done():
             return
-        
+
         self._ws_health_task = asyncio.create_task(self._ws_health_loop())
         logger.info("BingXDataProvider WebSocket health monitoring started")
-    
+
     async def stop_ws_health_monitor(self) -> None:
         """Stop WebSocket health monitoring task."""
         if self._ws_health_task is not None:
@@ -444,7 +501,7 @@ class BingXDataProvider(MarketDataProvider):
                 pass
             self._ws_health_task = None
             logger.info("BingXDataProvider WebSocket health monitoring stopped")
-    
+
     async def _ws_health_loop(self) -> None:
         """Monitor WebSocket connection health."""
         while self._connected:
@@ -452,7 +509,7 @@ class BingXDataProvider(MarketDataProvider):
                 await asyncio.sleep(self.WS_HEALTH_CHECK_INTERVAL)
                 if not self._connected:
                     break
-                
+
                 # Check if we've received a message recently
                 if self._last_ws_message is not None:
                     time_since_last = (datetime.now(UTC) - self._last_ws_message).total_seconds()
@@ -469,18 +526,18 @@ class BingXDataProvider(MarketDataProvider):
                     logger.warning("No WebSocket message received yet")
                     if self._health_check_callback:
                         await self._health_check_callback(False, "No WS message received yet")
-                    
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"WS health check error: {e}")
-    
+
     async def _handle_ws_failure(self) -> None:
         """Handle WebSocket failure - attempt reconnection."""
         logger.warning("WebSocket failure detected, attempting reconnection...")
         if self._health_check_callback:
             await self._health_check_callback(False, "WebSocket failure, reconnecting")
-        
+
         try:
             # Stop current WS tasks
             if self._ws_health_task:
@@ -489,51 +546,50 @@ class BingXDataProvider(MarketDataProvider):
                     await self._ws_health_task
                 except asyncio.CancelledError:
                     pass
-            
+
             # Reconnect WebSocket
             await self.reconnect_ws()
-            
+
         except Exception as e:
             logger.error(f"WS reconnection failed: {e}")
-    
+
     async def reconnect_ws(self) -> None:
         """Reconnect WebSocket with exponential backoff."""
         logger.info("Reconnecting WebSocket...")
-        
+
         # Stop existing WS client
         if self._ws_client:
             try:
-                await self._ws_client.disconnect()
+                await asyncio.to_thread(self._ws_client.disconnect)
             except Exception as e:
                 logger.warning(f"Error disconnecting old WS client: {e}")
             self._ws_client = None
-        
+
         # Use reconnect strategy
         await self._reconnect_strategy.wait()
-        
+
         # Create new WS client and reconnect
         from .websocket_client import BingXWebSocketClient
-        
-        self._ws_client = BingXWebSocketClient(
-            symbols=list(self._subscribed_symbols),
-            timeframe=self._subscribed_timeframe,
-        )
-        
-        # Set up message handler
+
+        self._ws_client = BingXWebSocketClient(testnet=self._testnet)
+
+        # Set up message handler and subscriptions
         self._ws_client.set_message_handler(self._on_ws_message)
-        
-        await self._ws_client.connect()
+        for symbol in self._subscribed_symbols:
+            self._ws_client.subscribe_kline(symbol, self._subscribed_timeframe)
+
+        await asyncio.to_thread(self._ws_client.connect)
         self._last_ws_message = datetime.now(UTC)
-        
+
         # Restart health monitor
         await self.start_ws_health_monitor()
-        
+
         logger.info("WebSocket reconnected successfully")
-    
+
     def _on_ws_message(self, message: dict) -> None:
         """Handle incoming WebSocket message."""
         self._last_ws_message = datetime.now(UTC)
-        
+
         if message.get("type") == "kline" or message.get("topic", "").startswith("kline"):
             if self._candle_callback:
                 try:
@@ -541,49 +597,49 @@ class BingXDataProvider(MarketDataProvider):
                     asyncio.create_task(self._candle_callback(message_obj))
                 except Exception as e:
                     logger.error(f"Error processing kline message: {e}")
-    
+
     async def health_check(self) -> bool:
         """Comprehensive health check."""
         try:
             # Check REST API
             rest_ok = await self.ping()
-            
+
             # Check WebSocket
             ws_ok = self._connected and self._ws_client is not None
-            
+
             # Check recent message
             msg_recent = False
             if self._last_ws_message:
                 elapsed = (datetime.now(UTC) - self._last_ws_message).total_seconds()
                 msg_recent = elapsed < self.WS_HEALTH_CHECK_INTERVAL * 3
-            
+
             healthy = rest_ok and ws_ok and msg_recent
-            
+
             if self._health_check_callback:
                 await self._health_check_callback(healthy, "Health check completed")
-            
+
             return healthy
-            
+
         except Exception as e:
             logger.error(f"Health check failed: {e}")
             return False
-    
+
     def update_last_ws_message(self) -> None:
         """Update last WebSocket message timestamp."""
         self._last_ws_message = datetime.now(UTC)
-    
+
     async def cleanup(self) -> None:
         """Clean up all resources."""
         await self.stop_heartbeat()
         await self.stop_ws_health_monitor()
-        
+
         if self._ws_client:
             try:
-                await self._ws_client.disconnect()
+                await asyncio.to_thread(self._ws_client.disconnect)
             except Exception as e:
                 logger.warning(f"Error disconnecting WS client: {e}")
             self._ws_client = None
-        
+
         self._connected = False
         self._initialized = False
         logger.info("BingXDataProvider cleaned up")

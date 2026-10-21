@@ -6,10 +6,10 @@ Enumeration types for Event Engine.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 
-class EventStatus(str, Enum):
+class EventStatus(StrEnum):
     """Event lifecycle statuses."""
 
     NEW = "new"
@@ -23,7 +23,7 @@ class EventStatus(str, Enum):
     FAILED = "failed"
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     """Event type classification."""
     MARKET = "market"
     QUALIFIED = "qualified"
@@ -33,7 +33,7 @@ class EventType(str, Enum):
     SYSTEM = "system"
 
 
-class ProcessingStage(str, Enum):
+class ProcessingStage(StrEnum):
     """Event processing pipeline stages."""
     CREATED = "created"
     VALIDATED = "validated"
@@ -46,7 +46,7 @@ class ProcessingStage(str, Enum):
     FAILED = "failed"
 
 
-class SchedulerTaskType(str, Enum):
+class SchedulerTaskType(StrEnum):
     """Scheduler task types."""
     EXPIRE_EVENTS = "expire_events"
     MONITOR_EVENTS = "monitor_events"

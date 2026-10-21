@@ -34,9 +34,9 @@ async def main():
             print(f"  CHAT_ID: {'FOUND' if chat_id else 'NOT FOUND'}")
             print(f"  Trying direct initialization...")
             
-            # Fallback: direct initialization with known values
-            bot_token = "***REMOVED***"
-            chat_id = "***REMOVED***"
+            # Fallback: direct initialization with placeholder (will fail without real credentials)
+            bot_token = "your_telegram_bot_token_here"
+            chat_id = "your_telegram_chat_id_here"
         
         print(f"[*] Initializing TelegramService...")
         config = TelegramConfig(bot_token=bot_token, chat_id=chat_id, parse_mode="HTML")

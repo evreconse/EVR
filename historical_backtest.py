@@ -146,8 +146,8 @@ async def run_backtest(symbols: List[str], start_date: datetime, end_date: datet
     strategy.initialize(strategy_config)
     
     # Initialize BingX fetcher with API keys
-    api_key = "***REMOVED***"
-    api_secret = "***REMOVED***"
+    api_key = os.getenv("EVRECONSE_EXCHANGE__API_KEY", "your_bingx_api_key_here")
+    api_secret = os.getenv("EVRECONSE_EXCHANGE__API_SECRET", "your_bingx_api_secret_here")
     fetcher = BingXFetcher(api_key=api_key, api_secret=api_secret)
     signals = []
     

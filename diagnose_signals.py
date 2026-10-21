@@ -98,8 +98,8 @@ async def diagnose_signals():
     strategy.initialize(strategy_config)
     
     # Initialize BingX fetcher
-    api_key = "***REMOVED***"
-    api_secret = "***REMOVED***"
+    api_key = os.getenv("EVRECONSE_EXCHANGE__API_KEY", "your_bingx_api_key_here")
+    api_secret = os.getenv("EVRECONSE_EXCHANGE__API_SECRET", "your_bingx_api_secret_here")
     fetcher = BingXFetcher(api_key=api_key, api_secret=api_secret)
     
     # Search for signals

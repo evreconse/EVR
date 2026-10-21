@@ -9,10 +9,10 @@ Fully compliant with MARKET_EVENT_SCHEMA.md and EVENT_ENGINE.md.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, is_dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from .enums import (
@@ -24,6 +24,7 @@ from .enums import (
 )
 from .exceptions import InvalidTransitionError, InvariantViolationError, ModelValidationError
 from .identifiers import EventID, SignalID
+from .transition_guard import TransitionGuard
 
 # =============================================================================
 # Transition Guard - Centralized State Machine (Fully Immutable)
@@ -164,258 +165,6 @@ class OutcomeData:
     outcome_timestamp: datetime | None = None
 
 
-# =============================================================================
-# Main MarketEvent Dataclass
-# =============================================================================
-
-from dataclasses import dataclass, field
-
-from .enums import (
-    EventStatus,
-)
-
-
-# Type guard for dataclass detection
-def _is_dataclass_instance(obj: Any) -> bool:
-    return is_dataclass(obj) and not isinstance(obj, type)
-
-
-# =============================================================================
-# Nested Data Groups (Schema Sections)
-# =============================================================================
-
-@dataclass(frozen=True, slots=True)
-class Metadata:
-    """
-    Event metadata - identification and lifecycle tracking.
-
-    Immutable after creation except status and updated_at which
-    change through controlled transitions.
-    """
-
-    event_id: EventID
-    status: EventStatus
-    schema_version: int
-    created_at: datetime
-    updated_at: datetime
-
-
-@dataclass(frozen=True, slots=True)
-class MarketData:
-    """
-    Market data from the closed candle.
-
-    Immutable after creation - corresponds to one closed M15 candle.
-    """
-
-    symbol: str
-    exchange: Exchange
-    timeframe: Timeframe
-    event_time: datetime  # Candle close time (UTC, timezone-aware)
-    open: float
-    high: float
-    low: float
-    close: float
-    volume: float
-
-
-@dataclass(frozen=True, slots=True)
-class StrategyData:
-    """
-    Pattern metrics from strategy evaluation.
-
-    Only present when status >= QUALIFIED.
-    """
-
-    strategy_id: str | None = None
-    lower_wick: float | None = None
-    body: float | None = None
-    wick_body_ratio: float | None = None
-    lower_wick_pct: float | None = None
-    body_pct: float | None = None
-    confirm: bool = False
-
-
-@dataclass(frozen=True, slots=True)
-class ScoreBreakdownItem:
-    """Single parameter score breakdown."""
-
-    parameter_name: ScoreParameter
-    parameter_score: float
-    penalty: float = 0.0
-
-
-@dataclass(frozen=True, slots=True)
-class ScoreData:
-    """
-    Scoring Engine results.
-
-    Only present when status >= SCORED.
-    """
-
-    confidence_score: float | None = None
-    score_breakdown: tuple[ScoreBreakdownItem, ...] = field(default_factory=tuple)
-
-
-@dataclass(frozen=True, slots=True)
-class NotificationData:
-    """
-    Notification delivery metadata.
-
-    Only present when status == SIGNAL.
-    """
-
-    notification_timestamp: datetime | None = None
-    close_price: float | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class OutcomeData:
-    """
-    Signal outcome tracking.
-
-    Only present when status >= MONITORING.
-    """
-
-    outcome: EventOutcome | None = None
-    actual_profit_pct: float | None = None
-    outcome_timestamp: datetime | None = None
-
-
-# =============================================================================
-# Main MarketEvent Dataclass
-# =============================================================================
-
-from dataclasses import dataclass, field
-
-from .enums import (
-    EventStatus,
-)
-
-
-def _utc_now() -> datetime:
-    """Get current UTC time with timezone info."""
-    return datetime.now(UTC)
-
-
-def _utc_from_iso(value: str) -> datetime:
-    """Parse ISO format datetime, ensuring UTC timezone."""
-    dt = datetime.fromisoformat(value)
-    if dt.tzinfo is None:
-        return dt.replace(tzinfo=UTC)
-    return dt.astimezone(UTC)
-
-
-def _is_dataclass_instance(obj: Any) -> bool:
-    return is_dataclass(obj) and not isinstance(obj, type)
-
-
-# =============================================================================
-# Nested Data Groups (Schema Sections)
-# =============================================================================
-
-@dataclass(frozen=True, slots=True)
-class Metadata:
-    """
-    Event metadata - identification and lifecycle tracking.
-
-    Immutable after creation except status and updated_at which
-    change through controlled transitions.
-    """
-
-    event_id: EventID
-    status: EventStatus
-    schema_version: int
-    created_at: datetime
-    updated_at: datetime
-
-
-@dataclass(frozen=True, slots=True)
-class MarketData:
-    """
-    Market data from the closed candle.
-
-    Immutable after creation - corresponds to one closed M15 candle.
-    """
-
-    symbol: str
-    exchange: Exchange
-    timeframe: Timeframe
-    event_time: datetime  # Candle close time (UTC, timezone-aware)
-    open: float
-    high: float
-    low: float
-    close: float
-    volume: float
-
-
-@dataclass(frozen=True, slots=True)
-class StrategyData:
-    """
-    Pattern metrics from strategy evaluation.
-
-    Only present when status >= QUALIFIED.
-    """
-
-    strategy_id: str | None = None
-    lower_wick: float | None = None
-    body: float | None = None
-    wick_body_ratio: float | None = None
-    lower_wick_pct: float | None = None
-    body_pct: float | None = None
-    confirm: bool = False
-
-
-@dataclass(frozen=True, slots=True)
-class ScoreBreakdownItem:
-    """Single parameter score breakdown."""
-
-    parameter_name: ScoreParameter
-    parameter_score: float
-    penalty: float = 0.0
-
-
-@dataclass(frozen=True, slots=True)
-class ScoreData:
-    """
-    Scoring Engine results.
-
-    Only present when status >= SCORED.
-    """
-
-    confidence_score: float | None = None
-    score_breakdown: tuple[ScoreBreakdownItem, ...] = field(default_factory=tuple)
-
-
-@dataclass(frozen=True, slots=True)
-class NotificationData:
-    """
-    Notification delivery metadata.
-
-    Only present when status == SIGNAL.
-    """
-
-    notification_timestamp: datetime | None = None
-    close_price: float | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class OutcomeData:
-    """
-    Signal outcome tracking.
-
-    Only present when status >= MONITORING.
-    """
-
-    outcome: EventOutcome | None = None
-    actual_profit_pct: float | None = None
-    outcome_timestamp: datetime | None = None
-
-
-# =============================================================================
-# Main MarketEvent Dataclass
-# =============================================================================
-
 @dataclass(frozen=True, slots=True)
 class MarketEvent:
     """
@@ -487,7 +236,7 @@ class MarketEvent:
             MarketEvent with status NEW and market data populated.
         """
         now = datetime.now(UTC)
-        event_id = EventID._generate()
+        EventID._generate()
 
         metadata = Metadata(
             event_id=EventID._generate(),
@@ -835,7 +584,7 @@ class MarketEvent:
             if isinstance(obj, (EventID, SignalID)):
                 return str(obj.value)
             # Handle dataclasses (including nested)
-            if dataclasses.is_dataclass(obj):
+            if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
                 return {k: serialize(v) for k, v in dataclasses.asdict(obj).items()}
             # Handle dict
             if isinstance(obj, dict):
@@ -848,7 +597,7 @@ class MarketEvent:
                 return {k: serialize(v) for k, v in obj.__dict__.items()}
             return obj
 
-        return serialize(self)
+        return cast("dict[str, Any]", serialize(self))
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MarketEvent:
@@ -1076,8 +825,6 @@ class MarketEvent:
 # =============================================================================
 # Exported Classes
 # =============================================================================
-
-from .transition_guard import TransitionGuard
 
 __all__ = [
     # Enums

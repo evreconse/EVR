@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, type-check and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            aiohttp aiolimiter python-dateutil python-dotenv PyYAML tenacity \
+            pydantic pydantic-settings \
+            "pytest==9.1.1" "pytest-asyncio==1.4.0" "pytest-cov==7.1.0" \
+            "ruff==0.17.1" "mypy==2.4.0"
+
+      - name: Ruff
+        run: ruff check src tests LW001_METRIC_SPEC.py
+
+      - name: Mypy
+        run: mypy src/ tests/ --explicit-package-bases
+
+      - name: Compile Python sources
+        run: python -m compileall -q src LW001_METRIC_SPEC.py
+
+      - name: Build wheel
+        run: python -m pip wheel . --no-deps -w dist
+
+      - name: Pytest
+        env:
+          PYTHONHASHSEED: "0"
+        run: python -m pytest tests/ -q

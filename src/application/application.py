@@ -9,8 +9,12 @@ from __future__ import annotations
 import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any
 
-from src.core import get_logger
+# HTTP health check server
+from aiohttp import web
+
+from core import get_logger
 
 from .bootstrap import BootstrapContext
 from .health import (
@@ -25,9 +29,6 @@ from .lifecycle import (
     LifecycleMetrics,
 )
 from .service_container import ServiceContainer
-
-# HTTP health check server
-from aiohttp import web
 
 logger = get_logger(__name__)
 
@@ -77,6 +78,8 @@ class Application:
         self._lifecycle = LifecycleManager(config_path=config_path)
         self._container = ServiceContainer()
         self._health_checker: HealthChecker | None = None
+        self._health_runner: web.AppRunner | None = None
+        self._health_port: int | None = None
         self._lock = threading.RLock()
         self._started = False
 
@@ -302,15 +305,15 @@ class Application:
     async def start_health_server(self, host: str = "0.0.0.0", port: int = 8080) -> None:
         """Start HTTP health check server."""
         from aiohttp import web
-        
+
         async def health_handler(request: web.Request) -> web.Response:
             try:
                 # Quick health check
                 healthy = self.is_healthy()
-                
+
                 # Detailed health check if app is running
-                details = {"status": "healthy" if healthy else "unhealthy"}
-                
+                details: dict[str, Any] = {"status": "healthy" if healthy else "unhealthy"}
+
                 if self.is_running and self.context:
                     # Check individual components
                     details["components"] = {
@@ -321,7 +324,7 @@ class Application:
                         "notification": "healthy" if self.notification_engine else "unhealthy",
                         "event_engine": "healthy" if self.event_engine and self.event_engine.is_running else "unhealthy",
                     }
-                    
+
                     # Add data provider details
                     if self.data_provider:
                         dp = self.data_provider
@@ -330,43 +333,43 @@ class Application:
                             "subscribed_symbols": len(dp._subscribed_symbols) if hasattr(dp, '_subscribed_symbols') else 0,
                             "subscribed_timeframe": getattr(dp, '_subscribed_timeframe', None),
                         }
-                        
+
                         # Add BingX specific health
                         if hasattr(dp, 'health_check'):
                             dp_healthy = await dp.health_check()
                             details["data_provider_details"]["healthy"] = dp_healthy
-                
+
                 status_code = 200 if healthy else 503
                 return web.json_response(details, status=status_code)
-                
+
             except Exception as e:
                 logger.error(f"Health check failed: {e}")
                 return web.json_response({"status": "error", "error": str(e)}, status=500)
-        
+
         async def ready_handler(request: web.Request) -> web.Response:
             """Kubernetes-style readiness probe."""
             if self.is_running:
                 return web.json_response({"status": "ready"})
             return web.json_response({"status": "not ready"}, status=503)
-        
+
         async def live_handler(request: web.Request) -> web.Response:
             """Kubernetes-style liveness probe."""
             return web.json_response({"status": "alive"})
-        
+
         app = web.Application()
         app.router.add_get("/health", health_handler)
         app.router.add_get("/ready", ready_handler)
         app.router.add_get("/live", live_handler)
-        
+
         runner = web.AppRunner(app)
         await runner.setup()
         site = web.TCPSite(runner, host, port)
         await site.start()
-        
+
         self._health_runner = runner
         self._health_port = port
         logger.info(f"Health check server started on {host}:{port}")
-    
+
     async def stop_health_server(self) -> None:
         """Stop HTTP health check server."""
         if hasattr(self, '_health_runner') and self._health_runner:

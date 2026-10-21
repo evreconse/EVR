@@ -20,7 +20,7 @@ from pathlib import Path
 import aiohttp
 from aiohttp import ClientSession, ClientTimeout
 
-from src.core import get_logger
+from core import get_logger
 
 from .exceptions import (
     AuthenticationError,
@@ -30,7 +30,7 @@ from .exceptions import (
     RateLimitError,
     ValidationError,
 )
-from .notification import DeliveryResult, Notification
+from .notification import DeliveryResult, Notification, NotificationService
 from .rate_limiter import RateLimitConfig, RateLimiter
 
 logger = get_logger(__name__)
@@ -138,6 +138,7 @@ class TelegramDeliveryResult:
     def to_delivery_result(self) -> DeliveryResult:
         """Convert to standard DeliveryResult."""
         from uuid import uuid4
+
         from .enums import DeliveryStatus
         return DeliveryResult(
             notification_id=uuid4(),
@@ -146,7 +147,6 @@ class TelegramDeliveryResult:
             status=DeliveryStatus.DELIVERED.value if self.success else DeliveryStatus.FAILED.value,
             sent_at=datetime.now(UTC),
             delivered_at=datetime.now(UTC) if self.success else None,
-            duration_ms=0.0,
             attempts=1,
             error=self.error,
             error_code=None,
@@ -158,7 +158,7 @@ class TelegramDeliveryResult:
 # Telegram Service
 # =============================================================================
 
-class TelegramService:
+class TelegramService(NotificationService):
     """
     Telegram Bot API implementation of NotificationService.
 
@@ -181,7 +181,7 @@ class TelegramService:
             burst_allowance=30,
         ))
         self._lock = asyncio.Lock()
-    
+
     @property
     def channel_name(self) -> str:
         """Return the channel name for this service."""
@@ -222,6 +222,7 @@ class TelegramService:
             self._connected = False
             logger.info("Telegram service disconnected")
 
+    @property
     def is_connected(self) -> bool:
         return self._connected
 
@@ -235,19 +236,14 @@ class TelegramService:
         Returns:
             DeliveryResult with success status and details
         """
-        print(f"[DEBUG-TELEGRAM] send: starting for notification {notification.notification_id}")
-        if not self._connected:
-            print(f"[DEBUG-TELEGRAM] send: not connected!")
+        if not self._connected or self._session is None:
             raise ConnectionError("Telegram service not connected")
 
         # Rate limit
-        print(f"[DEBUG-TELEGRAM] send: acquiring rate limiter")
         await self._rate_limiter.acquire()
-        print(f"[DEBUG-TELEGRAM] send: rate limiter acquired")
 
         # Validate
         if not notification.body:
-            print(f"[DEBUG-TELEGRAM] send: empty body!")
             raise ValidationError("Message body cannot be empty")
 
         # Determine parse_mode from notification format
@@ -260,19 +256,14 @@ class TelegramService:
             parse_mode = 'MarkdownV2'
 
         # Format message
-        print(f"[DEBUG-TELEGRAM] send: formatting message")
         message_text = format_notification(notification, parse_mode)
-        print(f"[DEBUG-TELEGRAM] send: formatted message length={len(message_text)}")
 
         # Truncate if too long (Telegram limit: 4096 characters)
         if len(message_text) > 4096:
             message_text = message_text[:4093] + "..."
 
         # Mask bot token in URL for logging
-        masked_url = f"{self._api_url[:self._api_url.find('/bot')+4]}***MASKED***{self._api_url[self._api_url.find('/sendMessage'):] if '/sendMessage' in self._api_url else ''}"
-        print(f"[DEBUG-TELEGRAM] send: api_url={masked_url}")
-        print(f"[DEBUG-TELEGRAM] send: chat_id={self._config.chat_id}")
-        print(f"[DEBUG-TELEGRAM] send: payload text_length={len(message_text)} parse_mode={parse_mode}")
+        f"{self._api_url[:self._api_url.find('/bot')+4]}***MASKED***{self._api_url[self._api_url.find('/sendMessage'):] if '/sendMessage' in self._api_url else ''}"
 
         payload = {
             "chat_id": str(self._config.chat_id),
@@ -283,33 +274,26 @@ class TelegramService:
         }
 
         # Retry logic
-        last_error = None
+        last_error: Exception | None = None
         for attempt in range(self._config.max_retries):
             try:
-                print(f"[DEBUG-TELEGRAM] send: attempt {attempt+1}/{self._config.max_retries}")
-                print(f"[DEBUG-TELEGRAM] send: making HTTP POST to {self._api_url}/sendMessage")
                 async with self._session.post(
                     f"{self._api_url}/sendMessage",
                     json=payload,
                 ) as resp:
-                    print(f"[DEBUG-TELEGRAM] send: HTTP response status={resp.status}")
                     data = await resp.json()
-                    print(f"[DEBUG-TELEGRAM] send: response JSON: {str(data).encode('ascii', 'replace').decode()}")
 
                     if not data.get("ok"):
                         error = data.get("description", "Unknown error")
-                        print(f"[DEBUG-TELEGRAM] send: API error: {error}")
 
                         # Handle specific errors
                         if resp.status == 429:
                             retry_after = data.get("parameters", {}).get("retry_after", 1)
                             if attempt < self._config.max_retries - 1:
-                                print(f"[DEBUG-TELEGRAM] send: rate limited, waiting {retry_after}s")
                                 await asyncio.sleep(retry_after)
                                 continue
                             raise RateLimitError(f"Rate limited: {error}", retry_after=retry_after)
                         elif resp.status == 401:
-                            print(f"[DEBUG-TELEGRAM] send: authentication failed")
                             raise AuthenticationError("Telegram authentication failed")
                         elif resp.status == 400:
                             if "chat not found" in error.lower():
@@ -320,7 +304,6 @@ class TelegramService:
                             raise DeliveryError(f"Telegram API error: {error}")
 
                     message_id = data.get("result", {}).get("message_id")
-                    print(f"[DEBUG-TELEGRAM] send: SUCCESS! message_id={message_id}")
                     return TelegramDeliveryResult(
                         success=True,
                         message_id=message_id,
@@ -329,26 +312,21 @@ class TelegramService:
                     ).to_delivery_result()
 
             except (RateLimitError, AuthenticationError, ValidationError):
-                print(f"[DEBUG-TELEGRAM] send: re-raising controlled exception")
                 raise
             except aiohttp.ClientError as e:
                 last_error = e
-                print(f"[DEBUG-TELEGRAM] send: ClientError on attempt {attempt+1}: {e}")
                 if attempt < self._config.max_retries - 1:
                     delay = min(self._config.retry_base_delay * (2 ** attempt), self._config.retry_max_delay)
-                    print(f"[DEBUG-TELEGRAM] send: retrying in {delay}s")
                     await asyncio.sleep(delay)
                     continue
                 raise DeliveryError(f"Network error: {e}") from e
             except TimeoutError:
-                last_error = DeliveryTimeoutError("Request timeout")
-                print(f"[DEBUG-TELEGRAM] send: TimeoutError on attempt {attempt+1}")
+                last_error = DeliveryTimeoutError("Request timeout", timeout=self._config.timeout)
                 if attempt < self._config.max_retries - 1:
                     await asyncio.sleep(1)
                     continue
                 raise
 
-        print(f"[DEBUG-TELEGRAM] send: all retries exhausted, last_error={last_error}")
         raise DeliveryError(f"Failed after {self._config.max_retries} attempts: {last_error}")
 
     async def send_photo(
@@ -370,9 +348,7 @@ class TelegramService:
         Returns:
             DeliveryResult with success status and details
         """
-        print(f"[DEBUG-TELEGRAM] send_photo: starting for chat_id={chat_id}")
-        if not self._connected:
-            print(f"[DEBUG-TELEGRAM] send_photo: not connected!")
+        if not self._connected or self._session is None:
             raise ConnectionError("Telegram service not connected")
 
         if not photo_path or not Path(photo_path).exists():
@@ -399,27 +375,21 @@ class TelegramService:
             form.add_field("photo", f, filename=Path(photo_path).name, content_type="image/png")
 
         # Retry logic
-        last_error = None
+        last_error: Exception | None = None
         for attempt in range(self._config.max_retries):
             try:
-                print(f"[DEBUG-TELEGRAM] send_photo: attempt {attempt+1}/{self._config.max_retries}")
-                print(f"[DEBUG-TELEGRAM] send_photo: making HTTP POST to {self._api_url}/sendPhoto")
                 async with self._session.post(
                     f"{self._api_url}/sendPhoto",
                     data=form,
                 ) as resp:
-                    print(f"[DEBUG-TELEGRAM] send_photo: HTTP response status={resp.status}")
                     data = await resp.json()
-                    print(f"[DEBUG-TELEGRAM] send_photo: response JSON: {str(data).encode('ascii', 'replace').decode()}")
 
                     if not data.get("ok"):
                         error = data.get("description", "Unknown error")
-                        print(f"[DEBUG-TELEGRAM] send_photo: API error: {error}")
 
                         if resp.status == 429:
                             retry_after = data.get("parameters", {}).get("retry_after", 1)
                             if attempt < self._config.max_retries - 1:
-                                print(f"[DEBUG-TELEGRAM] send_photo: rate limited, waiting {retry_after}s")
                                 await asyncio.sleep(retry_after)
                                 continue
                             raise RateLimitError(f"Rate limited: {error}", retry_after=retry_after)
@@ -434,7 +404,6 @@ class TelegramService:
                             raise DeliveryError(f"Telegram API error: {error}")
 
                     message_id = data.get("result", {}).get("message_id")
-                    print(f"[DEBUG-TELEGRAM] send_photo: SUCCESS! message_id={message_id}")
                     return TelegramDeliveryResult(
                         success=True,
                         message_id=message_id,
@@ -448,19 +417,21 @@ class TelegramService:
                 last_error = e
                 if attempt < self._config.max_retries - 1:
                     delay = min(self._config.retry_base_delay * (2 ** attempt), self._config.retry_max_delay)
-                    print(f"[DEBUG-TELEGRAM] send_photo: ClientError on attempt {attempt+1}: {e}, retrying in {delay}s")
                     await asyncio.sleep(delay)
                     continue
                 raise DeliveryError(f"Network error: {e}") from e
             except TimeoutError:
-                last_error = DeliveryTimeoutError("Request timeout")
+                last_error = DeliveryTimeoutError("Request timeout", timeout=self._config.timeout)
                 if attempt < self._config.max_retries - 1:
                     await asyncio.sleep(1)
                     continue
                 raise
 
-        print(f"[DEBUG-TELEGRAM] send_photo: all retries exhausted, last_error={last_error}")
         raise DeliveryError(f"Failed after {self._config.max_retries} attempts: {last_error}")
+
+    async def validate(self, notification: Notification) -> bool:
+        """Validate a notification before sending."""
+        return bool(notification.body)
 
     async def send_batch(self, notifications: list[Notification]) -> list[DeliveryResult]:
         """Send multiple notifications with rate limiting."""
@@ -470,12 +441,12 @@ class TelegramService:
                 result = await self.send(notification)
                 results.append(result)
             except Exception as e:
-                results.append(DeliveryResult(
+                results.append(TelegramDeliveryResult(
                     success=False,
                     channel="telegram",
                     recipient=str(self._config.chat_id),
                     error=str(e),
-                ))
+                ).to_delivery_result())
         return results
 
     async def health_check(self) -> bool:
@@ -491,14 +462,6 @@ class TelegramService:
 
     async def close(self) -> None:
         await self.disconnect()
-
-    async def disconnect(self) -> None:
-        async with self._lock:
-            if self._session:
-                await self._session.close()
-                self._session = None
-            self._connected = False
-            logger.info("Telegram service disconnected")
 
 
 # =============================================================================

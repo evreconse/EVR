@@ -26,10 +26,11 @@ from .exceptions import (
     StrategyExecutionError,
     StrategyValidationError,
 )
-from .lw001_canonical import check_lw001_signal, LW001CheckResult
+from .lw001_canonical import LW001CheckResult, check_lw001_signal
+from .strategy import Strategy
 
 
-class LW001Strategy:
+class LW001Strategy(Strategy):
     """
     LW-001: Long Lower Wick Reversal Strategy.
 
@@ -220,8 +221,8 @@ class LW001Strategy:
                 )
             else:
                 explanation = (
-                    f"LW-001 Result: REJECTED\n"
-                    f"Failed conditions:\n"
+                    "LW-001 Result: REJECTED\n"
+                    "Failed conditions:\n"
                     + "\n".join(f"  - {cond}" for cond in failed_conditions)
                     + f"\n\nCandle Data: O={open_price:.6f} H={high_price:.6f} L={low_price:.6f} C={close_price:.6f}\n"
                     f"Volume: {volume:,.0f}\n\n"
@@ -239,8 +240,8 @@ class LW001Strategy:
                 qualified=qualified,
                 final_score=0.0,  # Score is informational only, not used for qualification
                 max_score=100.0,
-                contributions=tuple(),
-                penalties=tuple(),
+                contributions=(),
+                penalties=(),
                 strategy_id=self.strategy_id,
                 strategy_version=self.version,
                 evaluation_id=uuid4(),

@@ -9,8 +9,8 @@ from __future__ import annotations
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Any
-from uuid import UUID
 
 from .context import EventContext
 
@@ -124,20 +124,20 @@ class PipelineStageStrategy:
 
     async def process(self, context: EventContext) -> EventContext:
         """Execute strategy evaluation on the event using canonical LW-001 check."""
-        from models import MarketEvent
         from core import get_logger
 
         logger = get_logger(__name__)
         logger.info(f"[PIPELINE] Strategy stage: Processing event for {context.symbol}")
 
         if not self._strategy_engine:
-            logger.warning(f"[PIPELINE] Strategy stage: Strategy engine not available, skipping")
+            logger.warning("[PIPELINE] Strategy stage: Strategy engine not available, skipping")
             return context
 
         # Reconstruct MarketEvent from EventContext
+        from datetime import UTC, datetime
+
         from models.enums import Exchange, Timeframe
         from models.market_event import MarketEvent as ME
-        from datetime import UTC, datetime
 
         # Create a minimal MarketEvent for strategy evaluation
         event = ME.new(
@@ -154,9 +154,10 @@ class PipelineStageStrategy:
 
         # Volume Ratio REMOVED - not part of LW-001 strategy
         # Add strategy data to the event - use canonical check for qualification
-        from strategy.lw001_canonical import check_lw001_signal
-        from models.market_event import StrategyData
         from dataclasses import replace
+
+        from models.market_event import StrategyData
+        from strategy.lw001_canonical import check_lw001_signal
 
         canonical_result = check_lw001_signal(
             open_price=context.open_price,
@@ -218,16 +219,16 @@ class PipelineStageScorer:
 
         if not self._scoring_engine or not self._scoring_engine.is_initialized():
             # Scoring engine not available, skip scoring
-            logger.warning(f"[PIPELINE] Scorer stage: Scoring engine not initialized, skipping")
+            logger.warning("[PIPELINE] Scorer stage: Scoring engine not initialized, skipping")
             return context
 
         try:
-            from scoring.context import ScoringContext, ScoringConfig
-            from models import MarketEvent
-            from models.enums import Exchange, Timeframe
-            from models.market_event import MarketEvent as ME, StrategyData
-            from datetime import UTC, datetime
             from dataclasses import replace
+
+            from models.enums import Exchange, Timeframe
+            from models.market_event import MarketEvent as ME
+            from models.market_event import StrategyData
+            from scoring.context import ScoringConfig, ScoringContext
 
             # Reconstruct MarketEvent from EventContext
             event = ME.new(
@@ -244,8 +245,8 @@ class PipelineStageScorer:
 
             # Add strategy data to the MarketEvent for scoring
             # Use context data which was set by strategy stage
-            has_strategy_data = (context.lower_wick is not None or 
-                                 context.body is not None or 
+            has_strategy_data = (context.lower_wick is not None or
+                                 context.body is not None or
                                  context.wick_body_ratio is not None)
             if has_strategy_data:
                 strategy_data = StrategyData(
@@ -276,9 +277,7 @@ class PipelineStageScorer:
                 storage=None,  # Not needed for basic evaluation
             )
 
-            print(f"DEBUG-SCORER: Calling ScoringEngine.evaluate with market_event.strategy_data={scoring_context.market_event.strategy_data}")
             result = await self._scoring_engine.evaluate(scoring_context)
-            print(f"DEBUG-SCORER: ScoringEngine returned: success={result.qualified}, score={result.final_score}")
 
             logger.info(f"[PIPELINE] Scorer stage: Result - score={result.final_score}, qualified={result.qualified}")
 
@@ -288,7 +287,6 @@ class PipelineStageScorer:
                 breakdown={"explanation": result.explanation, "qualified": result.qualified},
             )
         except Exception as e:
-            print(f"DEBUG-SCORER: Exception in Scorer stage: {e}")
             import traceback
             traceback.print_exc()
             logger.error(f"[PIPELINE] Scorer stage: Evaluation failed - {e}", exc_info=True)
@@ -298,8 +296,9 @@ class PipelineStageScorer:
 class PipelineStageNotifier:
     """Notification stage."""
 
-    def __init__(self, notification_engine) -> None:
+    def __init__(self, notification_engine, storage_service=None) -> None:
         self._notification_engine = notification_engine
+        self._storage = storage_service
         self._name = "notifier"
         self._stage_type = "notification"
 
@@ -320,12 +319,12 @@ class PipelineStageNotifier:
         logger.info(f"[PIPELINE] Notifier stage: Processing event for {context.symbol}, status={context.status}")
 
         if not self._notification_engine:
-            logger.warning(f"[PIPELINE] Notifier stage: Notification engine not available")
+            logger.warning("[PIPELINE] Notifier stage: Notification engine not available")
             return context
 
         # Send notification if event is qualified (strategy qualified)
         if context.status == "qualified":
-            logger.info(f"[PIPELINE] Notifier stage: Event qualified for notification")
+            logger.info("[PIPELINE] Notifier stage: Event qualified for notification")
             try:
                 # Use canonical formatter - UTC only, plain text
                 event_time_str = "N/A"
@@ -351,7 +350,7 @@ class PipelineStageNotifier:
                     })(),
                 )
 
-                notification_id = str(datetime.now(UTC).timestamp())
+                str(datetime.now(UTC).timestamp())
                 channel = "telegram"
                 recipient = channel
                 format = "plain"
@@ -364,8 +363,8 @@ class PipelineStageNotifier:
                     if timestamp_ms > 0 and self._storage.exists_by_symbol_timestamp(context.symbol, timestamp_ms):
                         logger.info(f"[PIPELINE] Notifier stage: Duplicate signal for {context.symbol} at {timestamp_ms}, skipping")
                         return context
-                
-                logger.info(f"[PIPELINE] Notifier stage: Sending notification to Telegram")
+
+                logger.info("[PIPELINE] Notifier stage: Sending notification to Telegram")
                 await self._notification_engine.send(
                     channel=channel,
                     recipient=recipient,
@@ -374,7 +373,7 @@ class PipelineStageNotifier:
                     format=format,
                     priority=priority,
                 )
-                logger.info(f"[PIPELINE] Notifier stage: Notification sent successfully")
+                logger.info("[PIPELINE] Notifier stage: Notification sent successfully")
             except Exception as e:
                 logger.error(f"[PIPELINE] Notifier stage: Notification failed - {e}", exc_info=True)
         else:
@@ -430,13 +429,12 @@ class PipelineStageStorage:
         logger.info(f"[PIPELINE] Storage stage: Processing event for {context.symbol}")
 
         if not self._storage:
-            logger.warning(f"[PIPELINE] Storage stage: Storage service not available")
+            logger.warning("[PIPELINE] Storage stage: Storage service not available")
             return context
         try:
-            from models import MarketEvent
+
             from models.enums import Exchange, Timeframe
             from models.market_event import MarketEvent as ME
-            from datetime import UTC, datetime
 
             # Reconstruct MarketEvent from EventContext
             event = ME.new(
@@ -451,7 +449,7 @@ class PipelineStageStorage:
                 volume=context.volume,
             )
 
-            logger.info(f"[PIPELINE] Storage stage: MarketEvent reconstructed for storage")
+            logger.info("[PIPELINE] Storage stage: MarketEvent reconstructed for storage")
 
             # Add strategy data if available
             if context.strategy_id:
@@ -469,7 +467,7 @@ class PipelineStageStorage:
 
             # Store the event
             await self._storage.store(event)
-            logger.info(f"[PIPELINE] Storage stage: Event stored successfully")
+            logger.info("[PIPELINE] Storage stage: Event stored successfully")
         except Exception as e:
             import traceback
             logger.error(f"[PIPELINE] Storage stage: Storage failed - {e}")
@@ -521,7 +519,7 @@ class EventPipeline:
         """
         start_time = time.monotonic()
         current_context = context
-        stage_results = {}
+        stage_results: dict[str, dict[str, Any]] = {}
         error = None
         error_stage = None
 
@@ -589,7 +587,7 @@ def create_default_pipeline(
         PipelineStageValidator(),
         PipelineStageStrategy(strategy_engine),
         PipelineStageScorer(scoring_engine),
-        PipelineStageNotifier(notification_engine),
+        PipelineStageNotifier(notification_engine, storage_service),
         PipelineStageOutcomeTracker(outcome_tracker),
         PipelineStageStorage(storage_service),
     ]

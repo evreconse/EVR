@@ -6,13 +6,9 @@ Message formatting for different channels and formats.
 
 from __future__ import annotations
 
-import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
-
-from .enums import MessageFormat, NotificationChannel
-from .delivery_result import DeliveryResult
 
 
 class Formatter(ABC):
@@ -22,11 +18,11 @@ class Formatter(ABC):
     def format(self, template: str, context: dict[str, Any]) -> str:
         """
         Format a template with the given context.
-        
+
         Args:
             template: Template string with placeholders
             context: Dictionary of values to substitute
-            
+
         Returns:
             Formatted string
         """
@@ -36,11 +32,11 @@ class Formatter(ABC):
     def format_error(self, error: Exception, context: dict[str, Any]) -> str:
         """
         Format an error for delivery.
-        
+
         Args:
             error: The exception to format
             context: Additional context
-            
+
         Returns:
             Formatted error message
         """
@@ -50,7 +46,7 @@ class Formatter(ABC):
 @dataclass(frozen=True, slots=True)
 class FormatOptions:
     """Options for message formatting."""
-    
+
     format: str = "markdown_v2"  # MessageFormat value
     escape_html: bool = True
     escape_markdown: bool = True

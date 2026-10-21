@@ -3,20 +3,19 @@ from __future__ import annotations
 import asyncio
 import threading
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
 
-from src.core import get_logger
+from core import get_logger
 
 from .bootstrap import BootstrapContext, bootstrap, shutdown
 from .exceptions import (
-    ApplicationError,
-    LifecycleError,
-    StartupError,
-    ShutdownError,
     ReloadError,
+    ShutdownError,
+    StartupError,
 )
 
 logger = get_logger(__name__)
@@ -48,7 +47,7 @@ class LifecycleManager:
     def __init__(
         self,
         config_path: str | None = None,
-        bootstrap_func: Callable[..., BootstrapContext] = bootstrap,
+        bootstrap_func: Callable[..., Awaitable[BootstrapContext]] = bootstrap,
     ) -> None:
         self._config_path = config_path
         self._bootstrap_func = bootstrap_func
@@ -94,7 +93,7 @@ class LifecycleManager:
                 state=new_state,
                 startup_time_ms=self._metrics.startup_time_ms,
                 shutdown_time_ms=self._metrics.shutdown_time_ms,
-                last_transition=datetime.now(timezone.utc),
+                last_transition=datetime.now(UTC),
                 total_restarts=self._metrics.total_restarts,
                 failed_starts=self._metrics.failed_starts,
                 failed_shutdowns=self._metrics.failed_shutdowns,
@@ -122,7 +121,7 @@ class LifecycleManager:
             self._metrics = LifecycleMetrics(
                 state=ApplicationState.INITIALIZING,
                 startup_time_ms=startup_time,
-                last_transition=datetime.now(timezone.utc),
+                last_transition=datetime.now(UTC),
                 total_restarts=self._metrics.total_restarts,
                 failed_starts=self._metrics.failed_starts,
                 failed_shutdowns=self._metrics.failed_shutdowns,
@@ -152,7 +151,11 @@ class LifecycleManager:
         with self._lock:
             if self._state == ApplicationState.RUNNING:
                 return
-            if self._state not in (ApplicationState.INITIALIZING, ApplicationState.STOPPED):
+            if self._state not in (
+                ApplicationState.INITIALIZING,
+                ApplicationState.STOPPED,
+                ApplicationState.RELOADING,
+            ):
                 raise StartupError(
                     f"Cannot start from state {self._state.value}",
                     component="LifecycleManager",
@@ -169,28 +172,28 @@ class LifecycleManager:
         try:
             # Connect data provider and wire up event handler
             await self._context.data_provider.connect()
-            
+
             # Wire data provider to event engine
             self._context.data_provider.set_market_event_handler(
                 lambda event: self._context.event_engine.process_event(event)
             )
-            
+
             # Fetch symbols from exchange and subscribe
             symbols = await self._context.data_provider.get_symbols()
             timeframe = self._context.config.exchange.timeframe
             logger.info(f"Subscribing to {len(symbols)} symbols on {timeframe}")
             await self._context.data_provider.subscribe_symbols(symbols, timeframe)
-            
+
             # Start health monitoring
             if hasattr(self._context.data_provider, 'set_health_check_callback'):
                 self._context.data_provider.set_health_check_callback(self._on_health_check)
-            
+
             if hasattr(self._context.data_provider, 'start_heartbeat'):
                 await self._context.data_provider.start_heartbeat()
-            
+
             if hasattr(self._context.data_provider, 'start_ws_health_monitor'):
                 await self._context.data_provider.start_ws_health_monitor()
-            
+
             await self._context.notification_engine.start()
             self._context.event_engine.start(
                 strategy_engine=self._context.strategy_engine,
@@ -201,15 +204,17 @@ class LifecycleManager:
             )
             startup_time_val = (time.monotonic() - start_time) * 1000
             self._set_state(ApplicationState.RUNNING)
+            self._startup_complete.set()
             self._metrics = LifecycleMetrics(
                 state=ApplicationState.RUNNING,
                 startup_time_ms=startup_time_val,
-                last_transition=datetime.now(timezone.utc),
+                last_transition=datetime.now(UTC),
                 total_restarts=self._metrics.total_restarts,
                 failed_starts=self._metrics.failed_starts,
                 failed_shutdowns=self._metrics.failed_shutdowns,
             )
         except Exception as e:
+            self._set_state(ApplicationState.FAILED)
             with self._lock:
                 self._metrics = LifecycleMetrics(
                     state=ApplicationState.FAILED,
@@ -243,7 +248,7 @@ class LifecycleManager:
             self._metrics = LifecycleMetrics(
                 state=ApplicationState.STOPPED,
                 shutdown_time_ms=shutdown_time_val,
-                last_transition=datetime.now(timezone.utc),
+                last_transition=datetime.now(UTC),
                 total_restarts=self._metrics.total_restarts,
                 failed_starts=self._metrics.failed_starts,
                 failed_shutdowns=self._metrics.failed_shutdowns + (1 if failed else 0),
@@ -257,7 +262,7 @@ class LifecycleManager:
                 )
             else:
                 self._set_state(ApplicationState.STOPPED)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self._set_state(ApplicationState.FAILED)
             with self._lock:
                 self._metrics = LifecycleMetrics(
@@ -269,6 +274,8 @@ class LifecycleManager:
                 component="LifecycleManager",
                 reason="Timeout",
             ) from None
+        except ShutdownError:
+            raise
         except Exception as e:
             self._set_state(ApplicationState.FAILED)
             with self._lock:
@@ -281,6 +288,8 @@ class LifecycleManager:
                 component="LifecycleManager",
                 reason=str(e),
             ) from e
+        finally:
+            self._shutdown_event.set()
 
     async def reload(self) -> BootstrapContext:
         with self._lock:
@@ -301,7 +310,7 @@ class LifecycleManager:
                     state=ApplicationState.RUNNING,
                     startup_time_ms=self._metrics.startup_time_ms,
                     shutdown_time_ms=self._metrics.shutdown_time_ms,
-                    last_transition=datetime.now(timezone.utc),
+                    last_transition=datetime.now(UTC),
                     total_restarts=self._metrics.total_restarts + 1,
                     failed_starts=self._metrics.failed_starts,
                     failed_shutdowns=self._metrics.failed_shutdowns,

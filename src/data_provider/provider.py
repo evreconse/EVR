@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
+from typing import Any
 
-from src.models import MarketEvent
+from .internal_models import MarketDataMessage
 
 
 class MarketDataProvider(ABC):
@@ -37,6 +38,16 @@ class MarketDataProvider(ABC):
     @abstractmethod
     async def reconnect(self) -> None:
         """Reconnect to exchange."""
+        ...
+
+    @abstractmethod
+    def set_market_event_handler(self, handler: Any) -> None:
+        """Register a callback for market events produced by the stream."""
+        ...
+
+    @abstractmethod
+    async def get_symbols(self) -> list[str]:
+        """Return symbols currently available for trading."""
         ...
 
     @abstractmethod
@@ -92,12 +103,12 @@ class MarketDataProvider(ABC):
         ...
 
     @abstractmethod
-    async def stream(self) -> AsyncGenerator[MarketEvent, None]:
+    def stream(self) -> AsyncGenerator[MarketDataMessage, None]:
         """
         Stream market events in real-time.
 
         Yields:
-            MarketEvent objects as they are generated.
+            MarketDataMessage objects as they are generated.
         """
         ...
 

@@ -104,11 +104,11 @@ def get_terminal_states() -> frozenset[EventStatus]:
 class TransitionGuard:
     """
     Centralized transition validation.
-    
+
     All state transitions must pass through this guard.
     Uses the single source of truth from _ALLOWED_TRANSITIONS.
     """
-    
+
     @staticmethod
     def validate(
         from_state: EventStatus,
@@ -118,13 +118,13 @@ class TransitionGuard:
     ) -> None:
         """
         Validate state transition.
-        
+
         Args:
             from_state: Current state
             to_state: Target state
             event_id: Optional event ID for error messages
             event_data: Optional event data for additional validation
-            
+
         Raises:
             InvalidTransitionError: If transition is not allowed
         """
@@ -135,7 +135,7 @@ class TransitionGuard:
                 target_state=to_state.value,
                 reason=f"Transition not allowed by state machine: {from_state.value} -> {to_state.value}",
             )
-        
+
         # Additional guard: cannot transition from terminal state
         if is_terminal(from_state):
             raise InvalidTransitionError(
@@ -144,7 +144,7 @@ class TransitionGuard:
                 target_state=to_state.value,
                 reason=f"Cannot transition from terminal state '{from_state.value}'",
             )
-    
+
     @staticmethod
     def validate_score_requirement(
         event_id: str,
@@ -161,7 +161,7 @@ class TransitionGuard:
                 raise InvariantViolationError(
                     f"Event {event_id}: score must be 0-100, got {score}"
                 )
-    
+
     @staticmethod
     def validate_score_threshold(
         event_id: str,
@@ -174,7 +174,7 @@ class TransitionGuard:
             raise InvariantViolationError(
                 f"Event {event_id}: score {score:.2f} below threshold {threshold} for {operation}"
             )
-    
+
     @staticmethod
     def validate_not_terminal(event_id: str, state: EventStatus) -> None:
         """Validate that state is not terminal."""

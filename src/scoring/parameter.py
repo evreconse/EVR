@@ -15,7 +15,7 @@ from .context import ScoringConfig, ScoringContext
 class ScoringParameter(ABC):
     """
     Abstract base class for all scoring parameters.
-    
+
     Each parameter is a self-contained evaluator that computes
     a single score component from the scoring context.
     """
@@ -66,12 +66,12 @@ class ScoringParameter(ABC):
     def supports(self, context: ScoringContext) -> bool:
         """
         Check if this parameter can evaluate the given context.
-        
+
         Called before evaluate() to quickly filter incompatible parameters.
-        
+
         Args:
             context: Scoring context to check
-            
+
         Returns:
             True if parameter can evaluate this context
         """
@@ -81,12 +81,12 @@ class ScoringParameter(ABC):
     def validate_config(self, config: ScoringConfig) -> None:
         """
         Validate parameter-specific configuration.
-        
+
         Called during registration and when config is updated.
-        
+
         Args:
             config: Scoring configuration to validate
-            
+
         Raises:
             ScoringValidationError: If configuration is invalid
         """
@@ -96,19 +96,19 @@ class ScoringParameter(ABC):
     async def evaluate(self, context: ScoringContext) -> tuple[float, list[Any], str]:
         """
         Evaluate this parameter against the context.
-        
+
         This is the core computation method. Must be pure and
         have no side effects on the parameter instance.
-        
+
         Args:
             context: Immutable evaluation context
-            
+
         Returns:
             Tuple of (score, penalties, explanation)
-            
+
         Returns:
             Tuple of (score, penalties, explanation)
-            
+
         Raises:
             ScoringComputationError: If evaluation fails
         """
@@ -117,20 +117,22 @@ class ScoringParameter(ABC):
     def initialize(self, config: ScoringConfig) -> None:
         """
         Initialize parameter with configuration.
-        
+
         Called once after registration. Override for one-time setup.
-        
+
         Args:
             config: Scoring configuration
         """
+        return None
 
     async def shutdown(self) -> None:
         """
         Cleanup resources.
-        
+
         Called when parameter is unregistered or system shuts down.
         Default implementation does nothing.
         """
+        return None
 
     def get_metadata(self) -> dict[str, Any]:
         """Get parameter metadata for registration."""

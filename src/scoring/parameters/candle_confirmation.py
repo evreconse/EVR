@@ -6,7 +6,6 @@ Evaluates candle body confirmation and close position.
 
 from __future__ import annotations
 
-from ..exceptions import ScoringComputationError, ScoringValidationError
 from ..parameter import ScoringParameter
 
 
@@ -62,7 +61,6 @@ class CandleConfirmationScore(ScoringParameter):
             high_price = market_data.high
             low_price = market_data.low
             close_price = market_data.close
-            volume = market_data.volume
 
             body = close_price - open_price
             body_size = abs(body)

@@ -6,10 +6,10 @@ Enumeration types for notification system.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class DeliveryStatus(str, Enum):
+class DeliveryStatus(StrEnum):
     """Delivery status of a notification."""
 
     PENDING = "pending"
@@ -20,7 +20,7 @@ class DeliveryStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class NotificationChannel(str, Enum):
+class NotificationChannel(StrEnum):
     """Supported notification channels."""
 
     TELEGRAM = "telegram"
@@ -32,7 +32,7 @@ class NotificationChannel(str, Enum):
     PUSH = "push"
 
 
-class NotificationPriority(str, Enum):
+class NotificationPriority(StrEnum):
     """Notification priority levels."""
 
     LOW = "low"
@@ -41,7 +41,7 @@ class NotificationPriority(str, Enum):
     CRITICAL = "critical"
 
 
-class MessageFormat(str, Enum):
+class MessageFormat(StrEnum):
     """Supported message formats."""
 
     PLAIN = "plain"
@@ -50,7 +50,7 @@ class MessageFormat(str, Enum):
     HTML = "html"
 
 
-class QueuePolicy(str, Enum):
+class QueuePolicy(StrEnum):
     """Queue overflow policy."""
 
     REJECT = "reject"          # Reject new notifications when full

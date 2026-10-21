@@ -6,8 +6,9 @@ Thread-safe registry for scoring parameters.
 
 from __future__ import annotations
 
+import asyncio
 import threading
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 
 from .context import ScoringConfig
@@ -114,7 +115,13 @@ class ScoringParameterRegistry:
 
             # Shutdown parameter
             try:
-                parameter.shutdown()
+                coro = parameter.shutdown()
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    asyncio.run(coro)
+                else:
+                    loop.create_task(coro)
             except Exception:
                 pass  # Best effort
 
@@ -207,8 +214,7 @@ class ScoringParameterRegistry:
 
             # Re-initialize parameter
             parameter = self._parameters[parameter_id]
-            config = registration.config
-            config.enabled = True
+            config = replace(registration.config, enabled=True)
             parameter.initialize(config)
 
     def disable(self, parameter_id: str) -> None:
@@ -314,7 +320,13 @@ class ScoringParameterRegistry:
         with self._lock:
             for param in self._parameters.values():
                 try:
-                    param.shutdown()
+                    coro = param.shutdown()
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        asyncio.run(coro)
+                    else:
+                        loop.create_task(coro)
                 except Exception:
                     pass
             self._parameters.clear()

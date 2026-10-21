@@ -99,7 +99,6 @@ class WebSocketClient:
 
         # Subscription management
         self._subscriptions: set[str] = set()
-        self._pending_subscriptions: list[str] = []
 
     def set_message_handler(self, handler: Callable[[dict], None]) -> None:
         """Set message handler callback."""
@@ -207,8 +206,8 @@ class WebSocketClient:
         if self._on_connect:
             self._on_connect()
 
-        # Process pending subscriptions
-        if self._pending_subscriptions:
+        # (Re)send all known subscriptions after every connect/reconnect
+        if self._subscriptions:
             await self._resubscribe()
 
         # Start reader and ping tasks
@@ -217,14 +216,16 @@ class WebSocketClient:
 
     async def _read_loop(self) -> None:
         """Read messages from WebSocket."""
+        ws = self._ws
+        if ws is None:
+            return
         try:
-            async for message in self._ws:
+            async for message in ws:
                 if self._stop_event.is_set():
                     break
 
                 try:
                     data = json.loads(message)
-                    print(f"DEBUG-WS: Received message: {data.get('topic', 'no-topic')}")
                     if self._on_message:
                         self._on_message(data)
                 except json.JSONDecodeError as e:
@@ -248,9 +249,9 @@ class WebSocketClient:
                 if self._ws:
                     pong_waiter = await self._ws.ping()
                     await asyncio.wait_for(pong_waiter, timeout=self._config.ping_timeout)
-            except TimeoutError:
+            except TimeoutError as e:
                 self._connected = False
-                raise HeartbeatTimeoutError("Ping timeout")
+                raise HeartbeatTimeoutError("Ping timeout") from e
             except Exception:
                 self._connected = False
                 break
@@ -285,10 +286,9 @@ class WebSocketClient:
             self._on_disconnect(None)
 
     async def _resubscribe(self) -> None:
-        """Resubscribe to all topics."""
-        for topic in self._pending_subscriptions:
+        """Resubscribe to all known topics."""
+        for topic in list(self._subscriptions):
             await self._subscribe_internal(topic)
-        self._pending_subscriptions.clear()
 
     async def _subscribe_internal(self, topic: str) -> None:
         """Internal subscription without adding to pending."""
@@ -299,14 +299,14 @@ class WebSocketClient:
         """Add topic to subscription list."""
         with self._lock:
             self._subscriptions.add(topic)
-            if self._connected:
+            if self._connected and self._loop is not None:
                 asyncio.run_coroutine_threadsafe(self._subscribe_internal(topic), self._loop)
 
     def unsubscribe(self, topic: str) -> None:
         """Remove topic from subscription list."""
         with self._lock:
             self._subscriptions.discard(topic)
-            if self._connected:
+            if self._connected and self._loop is not None:
                 asyncio.run_coroutine_threadsafe(self._unsubscribe_internal(topic), self._loop)
 
     async def _unsubscribe_internal(self, topic: str) -> None:
@@ -367,7 +367,7 @@ class BingXWebSocketClient(WebSocketClient):
     BingX-specific WebSocket client with topic management.
 
     Handles BingX's subscription format and message structure.
-    
+
     BingX API Documentation: https://bingx-api.github.io/docs/swap/
     """
 
@@ -395,7 +395,7 @@ class BingXWebSocketClient(WebSocketClient):
 
     def subscribe_kline(self, symbol: str, interval: str = "15m") -> None:
         """Subscribe to kline/candle stream.
-        
+
         Args:
             symbol: Trading symbol in BASE-QUOTE format (e.g., BTC-USDT)
             interval: Kline interval (1m, 5m, 15m, 30m, 1h, 4h, 1d)

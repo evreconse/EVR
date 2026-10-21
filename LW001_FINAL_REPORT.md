@@ -312,8 +312,8 @@ strategy_data=StrategyData(
 - Signal #10: message_id=370
 
 ### Telegram Configuration
-- Bot Token: ***REMOVED***
-- Chat ID: ***REMOVED***
+- Bot Token: `<YOUR_BOT_TOKEN>`
+- Chat ID: REDACTED_NOTIFICATION_TELEGRAM_CHAT_ID
 - Parse Mode: HTML
 - Format: Bold tags for headers, plain text for values
 

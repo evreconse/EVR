@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 from exchange.bingx_fetcher import BingXFetcher
 
 async def main():
-    api_key = "***REMOVED***"
-    api_secret = "***REMOVED***"
+    api_key = os.getenv("EVRECONSE_EXCHANGE__API_KEY", "your_bingx_api_key_here")
+    api_secret = os.getenv("EVRECONSE_EXCHANGE__API_SECRET", "your_bingx_api_secret_here")
     fetcher = BingXFetcher(api_key=api_key, api_secret=api_secret)
     
     contracts = await fetcher.get_contracts()

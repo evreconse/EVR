@@ -7,7 +7,6 @@ Tests demonstrating async test infrastructure works correctly.
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC
 from unittest.mock import AsyncMock
 
 import pytest
@@ -142,8 +141,22 @@ class TestAsyncFixtures:
         assert result.success is True
         await fake_telegram_service.disconnect()
 
-    @pytest.mark.skip(reason="MarketEvent.event_id issue")
-    @pytest.mark.asyncio
-    async def test_fake_storage_is_sync(self, fake_storage_repository) -> None:
-        """Test that fake storage works (sync interface)."""
-        pass
+    def test_fake_storage_is_sync(self, fake_storage_repository) -> None:
+        """Test that fake storage works through the synchronous repository API."""
+        from tests.utils.helpers import create_market_event
+
+        event = create_market_event()
+        fake_storage_repository.save_event(event)
+
+        assert fake_storage_repository.exists(event.event_id) is True
+        assert fake_storage_repository.count() == 1
+
+        loaded = fake_storage_repository.load_event(event.event_id)
+        assert str(loaded.event_id) == str(event.event_id)
+        assert loaded.market_data is not None
+        assert event.market_data is not None
+        assert loaded.market_data.symbol == event.market_data.symbol
+
+        assert fake_storage_repository.list_events() == [event]
+        assert fake_storage_repository.delete_event(event.event_id) is True
+        assert fake_storage_repository.exists(event.event_id) is False

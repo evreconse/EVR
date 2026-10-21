@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Optional
 
-from models import EventID, EventOutcome, EventStatus, MarketEvent
+from models import EventID, EventOutcome, MarketEvent
 
 
 class MonitoringStatus(Enum):
@@ -50,14 +49,14 @@ class MonitoredSignal:
     entry_time: datetime
     symbol: str
     status: MonitoringStatus = MonitoringStatus.ACTIVE
-    outcome: Optional[EventOutcome] = None
-    exit_price: Optional[float] = None
-    exit_time: Optional[datetime] = None
+    outcome: EventOutcome | None = None
+    exit_price: float | None = None
+    exit_time: datetime | None = None
 
     def is_expired(self, config: OutcomeConfig) -> bool:
         """Check if signal has expired."""
         expiry_time = self.entry_time + timedelta(hours=config.expire_after_hours)
-        return datetime.now(timezone.utc) > expiry_time
+        return datetime.now(UTC) > expiry_time
 
     def should_stop_monitoring(self, config: OutcomeConfig) -> bool:
         """Check if monitoring should stop."""
@@ -81,26 +80,30 @@ class OutcomeTracker:
     ) -> MonitoredSignal:
         """Start monitoring a signal."""
         async with self._lock:
+            market_data = signal.market_data
+            if market_data is None:
+                raise ValueError("Signal has no market data")
+
             tp_price = entry_price * (1 + self._config.take_profit_percent / 100)
             sl_price = entry_price * (1 + self._config.stop_loss_percent / 100)
 
             monitored = MonitoredSignal(
-                signal_id=signal.id,
+                signal_id=signal.event_id,
                 entry_price=entry_price,
                 tp_price=tp_price,
                 sl_price=sl_price,
-                entry_time=datetime.now(timezone.utc),
-                symbol=signal.data.market.symbol,
+                entry_time=datetime.now(UTC),
+                symbol=market_data.symbol,
             )
 
-            self._monitored[signal.id] = monitored
+            self._monitored[signal.event_id] = monitored
             return monitored
 
     async def update_price(
         self,
         signal_id: EventID,
         current_price: float,
-    ) -> Optional[MonitoredSignal]:
+    ) -> MonitoredSignal | None:
         """Update with current price and check for TP/SL."""
         async with self._lock:
             monitored = self._monitored.get(signal_id)
@@ -110,30 +113,29 @@ class OutcomeTracker:
             # Check TP
             if current_price >= monitored.tp_price:
                 monitored.status = MonitoringStatus.TP_HIT
-                monitored.outcome = EventOutcome.TAKE_PROFIT
+                monitored.outcome = EventOutcome.TP
                 monitored.exit_price = current_price
-                monitored.exit_time = datetime.now(timezone.utc)
+                monitored.exit_time = datetime.now(UTC)
                 return monitored
 
             # Check SL
             if current_price <= monitored.sl_price:
                 monitored.status = MonitoringStatus.SL_HIT
-                monitored.outcome = EventOutcome.STOP_LOSS
+                monitored.outcome = EventOutcome.SL
                 monitored.exit_price = current_price
-                monitored.exit_time = datetime.now(timezone.utc)
+                monitored.exit_time = datetime.now(UTC)
                 return monitored
 
             # Check expiration
             if monitored.is_expired(self._config):
                 monitored.status = MonitoringStatus.EXPIRED
-                monitored.outcome = EventOutcome.EXPIRED
                 monitored.exit_price = current_price
-                monitored.exit_time = datetime.now(timezone.utc)
+                monitored.exit_time = datetime.now(UTC)
                 return monitored
 
             return None
 
-    async def get_monitored(self, signal_id: EventID) -> Optional[MonitoredSignal]:
+    async def get_monitored(self, signal_id: EventID) -> MonitoredSignal | None:
         """Get monitored signal."""
         async with self._lock:
             return self._monitored.get(signal_id)

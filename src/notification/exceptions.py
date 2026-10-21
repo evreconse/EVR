@@ -14,13 +14,6 @@ class NotificationError(Exception):
         super().__init__(message, *args)
 
 
-class NotificationError(Exception):
-    """Base exception for notification errors."""
-
-    def __init__(self, message: str) -> None:
-        super().__init__(message)
-
-
 class ConfigurationError(NotificationError):
     """Raised when notification configuration is invalid."""
 
@@ -34,14 +27,6 @@ class ValidationError(NotificationError):
 
     def __init__(self, message: str, field: str | None = None) -> None:
         self.field = field
-        super().__init__(message)
-
-
-class TemplateError(NotificationError):
-    """Raised when template rendering fails."""
-
-    def __init__(self, message: str, template_name: str | None = None) -> None:
-        self.template_name = template_name
         super().__init__(message)
 
 

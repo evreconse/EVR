@@ -9,15 +9,13 @@ No TOP-500 limit. Universe refreshes every 24 hours automatically.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-from typing import List, Optional, Dict, Any
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Any
 
-from src.exchange.bingx_fetcher import BingXFetcher
-from src.data_provider.cmc_universe_cache import CMCUniverseCache, get_universe_cache
+from data_provider.cmc_universe_cache import CMCUniverseCache, get_universe_cache
+from exchange.bingx_fetcher import BingXFetcher
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +31,7 @@ class UniverseMetadata:
     excluded_synthetic: int = 0
     excluded_non_trading: int = 0
     final_universe_count: int = 0
-    last_refresh: Optional[str] = None
+    last_refresh: str | None = None
     cache_age_hours: float = 0.0
     validation_status: str = "UNKNOWN"
 
@@ -42,11 +40,9 @@ class UniverseMetadata:
 STABLECOINS = frozenset({
     "USDT", "USDC", "USDD", "USDE", "USDe", "USDs",
     "DAI", "FDUSD", "PYUSD", "USDP", "GUSD", "LUSD", "SUSD",
-    "UST", "USDD", "USDE", "USDP", "GUSD", "LUSD", "SUSD",
-    "FRAX", "LUSD", "SUSD", "MIM", "FEI", "RAI", "OHM",
+    "UST", "FRAX", "MIM", "FEI", "RAI", "OHM",
     "BUSD", "HUSD", "TUSD", "USDK", "USDN", "USDS",
-    "USDX", "USDK", "USDN", "USDS",
-    "USDT0", "USDT1", "USDT2", "USDT3", "USDT4", "USDT5",
+    "USDX", "USDT0", "USDT1", "USDT2", "USDT3", "USDT4", "USDT5",
     "USDT6", "USDT7", "USDT8", "USDT9",
 })
 
@@ -113,50 +109,50 @@ def is_synthetic(base_symbol: str) -> bool:
 class UniverseProvider:
     """
     Unified provider for LW-001 trading universe.
-    
+
     Handles the pipeline:
     BingX contracts API -> filter USDT perpetual -> filter Trading status -> technical filters -> universe
-    
+
     NO TOP-500 LIMIT. ALL active suitable contracts are included.
     Universe refreshes every 24 hours automatically.
     """
-    
+
     def __init__(
         self,
-        bingx_api_key: str = None,
-        bingx_api_secret: str = None,
+        bingx_api_key: str | None = None,
+        bingx_api_secret: str | None = None,
         cache_db_path: str = "/home/evreconse/data/cmc_universe.db",
         fallback_file: str = "/home/evreconse/last_good_universe.json",
         refresh_interval_hours: int = 24,
     ):
         self._bingx_fetcher = BingXFetcher()
         self._cache = CMCUniverseCache()
-        self._universe: List[Dict[str, Any]] = []
-        self._metadata: Dict = {}
-        self._last_refresh: Optional[datetime] = None
-        self._refresh_task: Optional[asyncio.Task] = None
+        self._universe: list[dict[str, Any]] = []
+        self._metadata: dict = {}
+        self._last_refresh: datetime | None = None
+        self._refresh_task: asyncio.Task | None = None
         self._refresh_interval_hours = refresh_interval_hours
         self._running = False
-        
+
     async def initialize(self) -> None:
         """Initialize the universe provider and start automatic refresh task."""
         logger.info("Initializing BingX Universe Provider (ALL active USDT perpetuals)...")
-        
+
         # Initialize cache
         cache = get_universe_cache()
-        
+
         # Try to load existing cache
         meta = cache.get_active_snapshot_meta()
         if meta:
             logger.info(f"Loaded cached universe: {meta['final_count']} symbols, age: {meta.get('age_hours', 0):.1f}h")
         else:
             logger.info("No cached universe found, will build on first refresh")
-        
+
         # Start automatic refresh task (every 24 hours)
         self._running = True
         self._refresh_task = asyncio.create_task(self._auto_refresh_loop())
         logger.info(f"Automatic universe refresh started (interval: {self._refresh_interval_hours}h)")
-    
+
     async def _auto_refresh_loop(self) -> None:
         """Background task to refresh universe every 24 hours."""
         while self._running:
@@ -171,7 +167,7 @@ class UniverseProvider:
             except Exception as e:
                 logger.error(f"Auto-refresh error: {e}")
                 await asyncio.sleep(300)  # Wait 5 min before retry
-    
+
     async def shutdown(self) -> None:
         """Stop the automatic refresh task."""
         self._running = False
@@ -182,46 +178,46 @@ class UniverseProvider:
             except asyncio.CancelledError:
                 pass
         logger.info("Universe provider shutdown complete")
-    
-    async def get_universe(self) -> List[str]:
+
+    async def get_universe(self) -> list[str]:
         """
         Get the current active universe symbols.
-        
+
         Returns:
             List of BingX symbols (e.g., ["BTC-USDT", "ETH-USDT", ...])
         """
         cache = get_universe_cache()
-        
+
         # Try to get from active cache
         universe = cache.get_active_universe()
         if universe:
             return [u["bingx_symbol"] for u in universe]
-        
+
         # Try fallback
         fallback = cache.load_fallback()
         if fallback:
             logger.warning("Using fallback universe (cache miss)")
             return [u["bingx_symbol"] for u in fallback.get("universe", [])]
-        
+
         # No universe available
         logger.warning("No universe available")
         return []
-    
-    async def get_universe_with_metadata(self) -> tuple[List[str], Dict[str, Any]]:
+
+    async def get_universe_with_metadata(self) -> tuple[list[str], dict[str, Any]]:
         """
         Get universe symbols with full metadata.
-        
+
         Returns:
             (symbols_list, metadata_dict)
         """
         cache = get_universe_cache()
         meta = cache.get_active_snapshot_meta()
-        
+
         if not meta:
             return [], {"error": "No universe available"}
-        
+
         universe = cache.get_active_universe() or []
-        
+
         # Map DB fields to meaningful names
         metadata = {
             "total_bingx_contracts": meta.get("bingx_active_contracts", 0),
@@ -238,51 +234,51 @@ class UniverseProvider:
             "cache_age_hours": self._get_cache_age_hours(),
             "validation_status": meta.get("validation_status", "UNKNOWN"),
         }
-        
+
         symbols = [u["bingx_symbol"] for u in universe]
         return symbols, metadata
-    
+
     def _get_cache_age_hours(self) -> float:
         """Get age of current snapshot in hours."""
         cache = get_universe_cache()
         meta = cache.get_active_snapshot_meta()
         if not meta or not meta.get("fetched_at"):
             return 0.0
-        
+
         fetched_at = datetime.fromisoformat(meta["fetched_at"].replace("Z", "+00:00"))
-        age = (datetime.now(timezone.utc) - fetched_at).total_seconds() / 3600
+        age = (datetime.now(UTC) - fetched_at).total_seconds() / 3600
         return age
-    
+
     async def refresh(self, force: bool = False) -> bool:
         """
         Refresh the universe from BingX contracts API.
-        
+
         Fetches ALL contracts, filters for active USDT perpetuals,
         applies technical filters. NO TOP-N LIMIT.
-        
+
         Args:
             force: Force refresh even if cache is fresh
-            
+
         Returns:
             True if refresh succeeded and universe was updated
         """
         logger.info("Starting universe refresh from BingX contracts API...")
-        
+
         try:
             # 1. Fetch ALL BingX contracts
             logger.info("Fetching BingX contracts...")
             contracts = await self._bingx_fetcher.get_contracts()
-            
+
             logger.info(f"Total contracts received: {len(contracts)}")
-            
+
             # 2. Filter USDT perpetual contracts
             usdt_contracts = [c for c in contracts if c.get("symbol", "").endswith("-USDT")]
             logger.info(f"USDT perpetual contracts: {len(usdt_contracts)}")
-            
+
             # 3. Filter Trading status only
             trading_contracts = [c for c in usdt_contracts if c.get("status") in (1, "Trading", True, "true")]
             logger.info(f"Trading USDT perpetual contracts: {len(trading_contracts)}")
-            
+
             # 4. Apply technical filters (NO volume sorting, NO top-N limit)
             final_universe = []
             stats = {
@@ -295,28 +291,28 @@ class UniverseProvider:
                 "excluded_non_trading": len(usdt_contracts) - len(trading_contracts),
                 "final_count": 0,
             }
-            
+
             for contract in trading_contracts:
                 symbol = contract.get("symbol", "")
                 base_symbol = contract.get("asset", symbol.replace("-USDT", ""))
-                
+
                 # Apply filters
                 if is_stablecoin(base_symbol):
                     stats["excluded_stablecoins"] += 1
                     continue
-                
+
                 if is_wrapped(base_symbol):
                     stats["excluded_wrapped"] += 1
                     continue
-                
+
                 if is_leveraged(base_symbol):
                     stats["excluded_leveraged"] += 1
                     continue
-                
+
                 if is_synthetic(base_symbol):
                     stats["excluded_synthetic"] += 1
                     continue
-                
+
                 # Passed all filters
                 stats["final_count"] += 1
                 final_universe.append({
@@ -328,12 +324,12 @@ class UniverseProvider:
                     "quote_asset": contract.get("quoteAsset", "USDT"),
                     "lastPrice": float(contract.get("lastPrice", 0)) if contract.get("lastPrice") else 0.0,
                 })
-            
+
             logger.info(f"Universe built: {len(final_universe)} symbols")
             logger.info(f"Stats: {stats}")
             logger.info(f"First 10 symbols: {[u['symbol'] for u in final_universe[:10]]}")
             logger.info(f"Last 10 symbols: {[u['symbol'] for u in final_universe[-10:]]}")
-            
+
             # 5. Validate and activate - save to cache
             cache = get_universe_cache()
             snapshot_id = cache.save_snapshot(
@@ -353,26 +349,26 @@ class UniverseProvider:
                 no_match_count=0,
                 final_count=len(final_universe),
                 bingx_active_contracts=stats["total_bingx_contracts"],
-                fetched_at=datetime.now(timezone.utc).isoformat(),
+                fetched_at=datetime.now(UTC).isoformat(),
                 validation_status="ACCEPT",
                 validation_errors=[]
             )
-            
+
             # Activate the snapshot
             cache.activate_snapshot(snapshot_id)
-            
-            self._last_refresh = datetime.now(timezone.utc)
+
+            self._last_refresh = datetime.now(UTC)
             logger.info(f"Universe saved to cache: {len(final_universe)} symbols")
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Universe refresh failed: {e}")
             import traceback
             traceback.print_exc()
             return False
-    
-    def get_status(self) -> Dict[str, Any]:
+
+    def get_status(self) -> dict[str, Any]:
         """Get provider status."""
         cache = get_universe_cache()
         status = cache.get_status()
@@ -383,7 +379,7 @@ class UniverseProvider:
 
 
 # Global provider instance
-_universe_provider: Optional[UniverseProvider] = None
+_universe_provider: UniverseProvider | None = None
 
 
 def get_universe_provider() -> UniverseProvider:
@@ -394,7 +390,7 @@ def get_universe_provider() -> UniverseProvider:
     return _universe_provider
 
 
-async def get_universe_symbols() -> List[str]:
+async def get_universe_symbols() -> list[str]:
     """Convenience function to get current universe symbols."""
     provider = get_universe_provider()
     return await provider.get_universe()
@@ -404,12 +400,9 @@ if __name__ == "__main__":
     async def main():
         provider = get_universe_provider()
         await provider.initialize()
-        
-        universe = await provider.get_universe()
-        print(f"Universe: {len(universe)} symbols")
-        print(universe[:10])
-        
+
+        await provider.get_universe()
+
         symbols, meta = await provider.get_universe_with_metadata()
-        print(f"\nMetadata: {meta}")
-    
+
     asyncio.run(main())

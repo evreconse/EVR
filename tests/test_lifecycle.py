@@ -6,7 +6,9 @@ Tests demonstrating application lifecycle management works correctly.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from datetime import UTC
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -74,21 +76,36 @@ class TestLifecycleManager:
     """Tests for LifecycleManager."""
 
     @pytest.fixture
-    def mock_bootstrap(self) -> AsyncMock:
+    def bootstrap_context(self) -> MagicMock:
+        """Create a bootstrap context with async-aware component mocks."""
+        context = MagicMock()
+        context.config.exchange.timeframe = "15m"
+
+        provider = MagicMock()
+        provider.connect = AsyncMock()
+        provider.disconnect = AsyncMock()
+        provider.set_market_event_handler = MagicMock()
+        provider.get_symbols = AsyncMock(return_value=["BTC-USDT", "ETH-USDT"])
+        provider.subscribe_symbols = AsyncMock()
+        provider.set_health_check_callback = MagicMock()
+        provider.start_heartbeat = AsyncMock()
+        provider.start_ws_health_monitor = AsyncMock()
+        context.data_provider = provider
+
+        context.event_engine.start = MagicMock()
+        context.event_engine.stop = AsyncMock()
+        context.notification_engine.start = AsyncMock()
+        context.notification_engine.stop = AsyncMock()
+        context.scoring_engine.close = MagicMock()
+        context.strategy_engine = MagicMock()
+        context.outcome_tracker = MagicMock()
+        context.storage_engine = MagicMock()
+        return context
+
+    @pytest.fixture
+    def mock_bootstrap(self, bootstrap_context: MagicMock) -> AsyncMock:
         """Create a mock bootstrap function."""
-        mock = AsyncMock()
-        mock_context = MagicMock()
-        mock_context.event_engine = AsyncMock()
-        mock_context.event_engine.stop = AsyncMock()
-        mock_context.notification_engine = AsyncMock()
-        mock_context.notification_engine.stop = AsyncMock()
-        mock_context.scoring_engine = MagicMock()
-        mock_context.scoring_engine.close = MagicMock()
-        mock_context.strategy_engine = MagicMock()
-        mock_context.data_provider = AsyncMock()
-        mock_context.data_provider.disconnect = AsyncMock()
-        mock.return_value = mock_context
-        return mock
+        return AsyncMock(return_value=bootstrap_context)
 
     @pytest.mark.asyncio
     async def test_initial_state(self, mock_bootstrap: AsyncMock) -> None:
@@ -106,17 +123,31 @@ class TestLifecycleManager:
         assert manager.context is not None
         assert context is manager.context
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
     @pytest.mark.asyncio
     async def test_initialize_twice_raises(self, mock_bootstrap: AsyncMock) -> None:
         """Test that initializing twice raises error."""
-        pass
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
+        await manager.initialize()
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
+        with pytest.raises(StartupError, match="Cannot initialize"):
+            await manager.initialize()
+
+        assert mock_bootstrap.await_count == 1
+
     @pytest.mark.asyncio
     async def test_initialize_from_stopped(self, mock_bootstrap: AsyncMock) -> None:
         """Test re-initialization from stopped state."""
-        pass
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
+        await manager.initialize()
+        await manager.start()
+        with patch("application.lifecycle.shutdown", new=AsyncMock(return_value=[])):
+            await manager.stop()
+
+        assert manager.state == ApplicationState.STOPPED
+        await manager.initialize()
+
+        assert manager.state == ApplicationState.INITIALIZING
+        assert mock_bootstrap.await_count == 2
 
     @pytest.mark.asyncio
     async def test_initialize_failed_sets_failed_state(self, mock_bootstrap: AsyncMock) -> None:
@@ -128,23 +159,52 @@ class TestLifecycleManager:
         assert manager.state == ApplicationState.FAILED
         assert manager.metrics.failed_starts == 1
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
     @pytest.mark.asyncio
-    async def test_start_success(self, mock_bootstrap: AsyncMock) -> None:
+    async def test_start_success(
+        self, mock_bootstrap: AsyncMock, bootstrap_context: MagicMock
+    ) -> None:
         """Test successful start."""
-        pass
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
+        await manager.initialize()
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
+        await manager.start()
+
+        assert manager.state == ApplicationState.RUNNING
+        assert manager.metrics.startup_time_ms is not None
+        assert manager.wait_for_startup(timeout=0) is True
+        bootstrap_context.data_provider.connect.assert_awaited_once()
+        bootstrap_context.data_provider.subscribe_symbols.assert_awaited_once_with(
+            ["BTC-USDT", "ETH-USDT"], "15m"
+        )
+        bootstrap_context.notification_engine.start.assert_awaited_once()
+        bootstrap_context.event_engine.start.assert_called_once()
+
     @pytest.mark.asyncio
     async def test_start_without_initialize_raises(self, mock_bootstrap: AsyncMock) -> None:
         """Test that start without initialize raises error."""
-        pass
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
+        with pytest.raises(StartupError, match="Cannot start"):
+            await manager.start()
+
+        assert mock_bootstrap.await_count == 0
+
     @pytest.mark.asyncio
-    async def test_stop_success(self, mock_bootstrap: AsyncMock) -> None:
+    async def test_stop_success(
+        self, mock_bootstrap: AsyncMock, bootstrap_context: MagicMock
+    ) -> None:
         """Test successful stop."""
-        pass
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
+        await manager.initialize()
+        await manager.start()
+
+        with patch("application.lifecycle.shutdown", new=AsyncMock(return_value=[])) as mocked_shutdown:
+            await manager.stop()
+
+        assert manager.state == ApplicationState.STOPPED
+        assert manager.metrics.shutdown_time_ms is not None
+        assert manager.wait_for_shutdown(timeout=0) is True
+        mocked_shutdown.assert_awaited_once_with(bootstrap_context)
 
     @pytest.mark.asyncio
     async def test_stop_not_running_returns_early(self, mock_bootstrap: AsyncMock) -> None:
@@ -154,42 +214,80 @@ class TestLifecycleManager:
         await manager.stop()  # First stop
         await manager.stop()  # Second stop should not raise
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
     @pytest.mark.asyncio
     async def test_stop_timeout_raises(self, mock_bootstrap: AsyncMock) -> None:
         """Test that stop timeout raises ShutdownError."""
-        pass
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
+        await manager.initialize()
+        await manager.start()
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
+        with patch(
+            "application.lifecycle.shutdown",
+            new=AsyncMock(side_effect=TimeoutError("shutdown timeout")),
+        ):
+            with pytest.raises(ShutdownError, match="timed out"):
+                await manager.stop(timeout=0.01)
+
+        assert manager.state == ApplicationState.FAILED
+        assert manager.metrics.failed_shutdowns == 1
+        assert manager.wait_for_shutdown(timeout=0) is True
+
     @pytest.mark.asyncio
-    async def test_reload_success(self, mock_bootstrap: AsyncMock) -> None:
+    async def test_reload_success(
+        self, mock_bootstrap: AsyncMock, bootstrap_context: MagicMock
+    ) -> None:
         """Test successful reload."""
-        pass
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
+        await manager.initialize()
+        await manager.start()
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
+        reloaded_context = await manager.reload()
+
+        assert reloaded_context is bootstrap_context
+        assert manager.state == ApplicationState.RUNNING
+        assert manager.metrics.total_restarts == 1
+        assert mock_bootstrap.await_count == 2
+        assert bootstrap_context.event_engine.stop.await_count == 1
+        assert bootstrap_context.notification_engine.stop.await_count == 1
+
     @pytest.mark.asyncio
     async def test_reload_not_running_raises(self, mock_bootstrap: AsyncMock) -> None:
         """Test that reload when not running raises error."""
-        pass
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
+        with pytest.raises(ReloadError, match="Cannot reload"):
+            await manager.reload()
+
     @pytest.mark.asyncio
     async def test_reload_failed_sets_failed_state(self, mock_bootstrap: AsyncMock) -> None:
         """Test that failed reload sets FAILED state."""
-        pass
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
+        await manager.initialize()
+        await manager.start()
+        mock_bootstrap.side_effect = Exception("reload failed")
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
+        with pytest.raises(ReloadError, match="reload failed"):
+            await manager.reload()
+
+        assert manager.state == ApplicationState.FAILED
+
     @pytest.mark.asyncio
     async def test_state_change_callback(self, mock_bootstrap: AsyncMock) -> None:
         """Test state change callback is called."""
-        pass
+        callback = MagicMock()
+        manager = LifecycleManager(bootstrap_func=mock_bootstrap)
+        manager.add_state_change_callback(callback)
+
+        await manager.initialize()
+
+        callback.assert_any_call(ApplicationState.CREATED, ApplicationState.INITIALIZING)
 
 
 class TestApplicationLifecycle:
     """Tests for Application lifecycle integration."""
 
     @pytest.fixture
-    def mock_components(self) -> dict:
+    def mock_components(self) -> Iterator[dict[str, Any]]:
         """Create mock components for application."""
         with patch("application.application.LifecycleManager") as mock_lifecycle_class:
             mock_lifecycle = AsyncMock()
@@ -251,10 +349,15 @@ class TestApplicationLifecycle:
         result = await app.reload()
         assert result is mock_components["lifecycle"].reload.return_value
 
-    @pytest.mark.skip(reason="Lifecycle state transition behavior differs from test expectations")
     def test_application_properties(self, mock_components: dict) -> None:
         """Test application properties."""
-        pass
+        app = mock_components["app"]
+        assert app.state == ApplicationState.CREATED
+        assert app.is_running is False
+        assert app.is_initialized is True  # mocked lifecycle exposes a context
+        assert app.container is not None
+        assert app.config_path is None
+        assert app.info.name == "EVRECONSE"
 
 
 class TestWaitFunctions:

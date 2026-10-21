@@ -4,6 +4,7 @@ EVRECONSE Data Provider Module.
 Market data provider abstraction with BingX implementation.
 """
 
+from .bingx_provider import BingXDataProvider, create_bingx_data_provider
 from .exceptions import (
     AuthenticationError,
     ConnectionError,
@@ -29,13 +30,12 @@ from .internal_models import (
     Trade,
 )
 from .provider import MarketDataProvider
-from .bingx_provider import BingXDataProvider, create_bingx_data_provider
-
-DataProvider = MarketDataProvider
 from .rate_limiter import RateLimitConfig, RateLimiter
 from .reconnect_strategy import ReconnectConfig, ReconnectStrategy
 from .rest_client import RestClient, RestConfig
-from .websocket_client import WebSocketClient, BingXWebSocketClient, create_bingx_websocket_client
+from .websocket_client import BingXWebSocketClient, WebSocketClient, create_bingx_websocket_client
+
+DataProvider = MarketDataProvider
 
 __all__ = [
     # Main interface

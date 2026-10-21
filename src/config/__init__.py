@@ -21,7 +21,15 @@ from .exceptions import (
     ParameterOutOfRangeError,
     SecretsNotFoundError,
 )
-from .loader import ConfigLoader, StubConfigLoader, MultiSourceConfigLoader, YamlConfigLoader, JsonConfigLoader, EnvConfigLoader, DotEnvConfigLoader
+from .loader import (
+    ConfigLoader,
+    DotEnvConfigLoader,
+    EnvConfigLoader,
+    JsonConfigLoader,
+    MultiSourceConfigLoader,
+    StubConfigLoader,
+    YamlConfigLoader,
+)
 from .types import (
     REQUIRED_PARAMETERS,
     RESTART_PARAMETERS,

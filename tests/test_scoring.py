@@ -6,7 +6,7 @@ Tests demonstrating scoring parameter registration and evaluation works correctl
 
 from __future__ import annotations
 
-from datetime import UTC
+from collections.abc import Iterator
 
 import pytest
 
@@ -25,15 +25,14 @@ from scoring.exceptions import (
     ParameterNotFoundError,
     ScoringNotInitializedError,
 )
-from tests.fixtures.fake_data_provider import create_fake_data_provider
-from tests.fixtures.fake_storage import create_fake_repository
+from tests.utils.helpers import advance_event_to_qualified, create_market_event
 
 
 class TestScoringParameterRegistry:
     """Tests for ScoringParameterRegistry."""
 
     @pytest.fixture(autouse=True)
-    def reset_registry_fixture(self) -> None:
+    def reset_registry_fixture(self) -> Iterator[None]:
         """Reset registry before each test."""
         reset_registry()
         yield
@@ -69,10 +68,17 @@ class TestScoringParameterRegistry:
         with pytest.raises(ParameterAlreadyRegisteredError):
             registry.register(LowerWickQualityScore(), scoring_config)
 
-    @pytest.mark.skip(reason="ScoringParameter.shutdown coroutine not properly handled in tests")
     def test_unregister_parameter(self, registry: ScoringParameterRegistry, scoring_config: ScoringConfig) -> None:
         """Test unregistering a parameter."""
-        pass
+        registry.register(LowerWickQualityScore(), scoring_config)
+
+        registry.unregister("lower_wick_quality")
+
+        assert registry.count() == 0
+        assert registry.list_parameters() == []
+        assert registry.get_enabled() == []
+        with pytest.raises(ParameterNotFoundError):
+            registry.get("lower_wick_quality")
 
     def test_get_not_found_raises(self, registry: ScoringParameterRegistry) -> None:
         """Test getting non-existent parameter raises error."""
@@ -93,10 +99,19 @@ class TestScoringParameterRegistry:
         enabled = registry.get_enabled()
         assert "lower_wick_quality" in enabled
 
-    @pytest.mark.skip(reason="FrozenInstanceError: cannot assign to field 'enabled'")
     def test_enable_disable(self, registry: ScoringParameterRegistry, scoring_config: ScoringConfig) -> None:
         """Test enabling and disabling parameters."""
-        pass
+        registry.register(LowerWickQualityScore(), scoring_config)
+
+        registry.disable("lower_wick_quality")
+        assert registry.is_enabled("lower_wick_quality") is False
+        assert registry.get_registration("lower_wick_quality").enabled is False
+        assert registry.get_enabled_parameters() == []
+
+        registry.enable("lower_wick_quality")
+        assert registry.is_enabled("lower_wick_quality") is True
+        assert registry.get_registration("lower_wick_quality").enabled is True
+        assert len(registry.get_enabled_parameters()) == 1
 
     def test_update_config(self, registry: ScoringParameterRegistry, scoring_config: ScoringConfig) -> None:
         """Test updating parameter config."""
@@ -110,7 +125,9 @@ class TestScoringParameterRegistry:
             min_confidence_score=80.0,
         )
         registry.update_config("lower_wick_quality", new_config)
-        assert registry.get_config("lower_wick_quality").parameters["lower_wick_ratio"] == 3.0
+        updated = registry.get_config("lower_wick_quality")
+        assert updated is not None
+        assert updated.parameters["lower_wick_ratio"] == 3.0
 
     def test_get_all_parameters(self, registry: ScoringParameterRegistry, scoring_config: ScoringConfig) -> None:
         """Test getting all parameters."""
@@ -133,17 +150,22 @@ class TestScoringParameterRegistry:
         registry.register(param, scoring_config)
         assert registry.count() == 1
 
-    @pytest.mark.skip(reason="ScoringParameter.shutdown coroutine not properly handled in tests")
     def test_clear(self, registry: ScoringParameterRegistry, scoring_config: ScoringConfig) -> None:
         """Test clearing registry."""
-        pass
+        registry.register(LowerWickQualityScore(), scoring_config)
+        registry.clear()
+
+        assert registry.count() == 0
+        assert registry.list_parameters() == []
+        with pytest.raises(ParameterNotFoundError):
+            registry.get("lower_wick_quality")
 
 
 class TestScoringEngine:
     """Tests for ScoringEngine."""
 
     @pytest.fixture
-    def engine(self) -> ScoringEngine:
+    def engine(self) -> Iterator[ScoringEngine]:
         """Create a fresh engine."""
         reset_registry()
         engine = ScoringEngine(ScoringEngineConfig())
@@ -151,10 +173,22 @@ class TestScoringEngine:
         engine.close()
         reset_registry()
 
-    @pytest.mark.skip(reason="ExceptionGroup warnings during parameter initialization")
     def test_initialize_loads_parameters(self, engine: ScoringEngine) -> None:
         """Test that initialize loads enabled parameters from registry."""
-        pass
+        config = ScoringConfig(
+            scoring_id="lower_wick_quality",
+            version="1.0.0",
+            parameters={"lower_wick_ratio": 2.0},
+            enabled=True,
+            min_confidence_score=80.0,
+        )
+        param = LowerWickQualityScore()
+        get_registry().register(param, config)
+
+        engine.initialize()
+
+        assert engine.is_initialized() is True
+        assert engine.get_parameters() == [param]
 
     def test_initialize_without_parameters(self, engine: ScoringEngine) -> None:
         """Test initialize with no parameters registered."""
@@ -162,25 +196,60 @@ class TestScoringEngine:
         assert engine.is_initialized()
         assert len(engine.get_parameters()) == 0
 
-    @pytest.mark.skip(reason="TypeError: 'str' object is not callable")
-    def test_evaluate_not_initialized_raises(self, engine: ScoringEngine) -> None:
+    @pytest.mark.asyncio
+    async def test_evaluate_not_initialized_raises(self, engine: ScoringEngine) -> None:
         """Test that evaluate raises when not initialized."""
-        pass
+        context = ScoringContext(
+            market_event=advance_event_to_qualified(create_market_event()),
+            config=ScoringConfig(
+                scoring_id="test",
+                version="1.0.0",
+                parameters={},
+                enabled=True,
+                min_confidence_score=80.0,
+            ),
+        )
 
-    @pytest.mark.skip(reason="ScoringParameter.shutdown coroutine not properly handled in tests")
+        with pytest.raises(ScoringNotInitializedError):
+            await engine.evaluate(context)
+
     def test_get_parameter(self, engine: ScoringEngine) -> None:
         """Test getting parameter by ID."""
-        pass
+        config = ScoringConfig(
+            scoring_id="lower_wick_quality",
+            version="1.0.0",
+            parameters={},
+            enabled=True,
+            min_confidence_score=80.0,
+        )
+        param = LowerWickQualityScore()
+        get_registry().register(param, config)
+        engine.initialize()
+
+        assert engine.get_parameter("lower_wick_quality") is param
 
     def test_get_parameter_not_found(self, engine: ScoringEngine) -> None:
         """Test getting non-existent parameter returns None."""
         engine.initialize()
         assert engine.get_parameter("nonexistent") is None
 
-    @pytest.mark.skip(reason="ExceptionGroup warnings during parameter reload")
     def test_reload_parameters(self, engine: ScoringEngine) -> None:
         """Test reloading parameters from registry."""
-        pass
+        config = ScoringConfig(
+            scoring_id="lower_wick_quality",
+            version="1.0.0",
+            parameters={},
+            enabled=True,
+            min_confidence_score=80.0,
+        )
+        get_registry().register(LowerWickQualityScore(), config)
+        engine.initialize()
+        assert len(engine.get_parameters()) == 1
+
+        get_registry().disable("lower_wick_quality")
+        engine.reload_parameters()
+
+        assert engine.get_parameters() == []
 
     def test_get_stats(self, engine: ScoringEngine) -> None:
         """Test getting engine statistics."""
@@ -199,17 +268,15 @@ class TestScoringEngine:
 class TestScoringParameters:
     """Tests for individual scoring parameters."""
 
-    @pytest.mark.skip(reason="Parameter weight value differs from expected")
     def test_lower_wick_quality_metadata(self) -> None:
         """Test LowerWickQualityScore metadata."""
-        pass
-
-    def test_candle_confirmation_metadata(self) -> None:
-        """Test CandleConfirmationScore metadata."""
-        param = CandleConfirmationScore()
-        assert param.parameter_id == "candle_confirmation"
-        assert param.max_score == 30.0
+        param = LowerWickQualityScore()
+        assert param.parameter_id == "lower_wick_quality"
+        assert param.name == "Lower Wick Quality"
+        assert param.version == "1.0.0"
+        assert param.max_score == 70.0
         assert param.min_score == 0.0
+        assert param.weight == 1.0
 
     def test_candle_confirmation_metadata(self) -> None:
         """Test CandleConfirmationScore metadata."""
@@ -230,13 +297,66 @@ class TestScoringParameters:
         )
         param.validate_config(config)  # Should not raise
 
-    @pytest.mark.skip(reason="TypeError: 'str' object is not callable")
     def test_supports(self) -> None:
         """Test supports method."""
-        pass
+        param = LowerWickQualityScore()
+        event = advance_event_to_qualified(create_market_event())
+        context = ScoringContext(
+            market_event=event,
+            config=ScoringConfig(
+                scoring_id="lower_wick_quality",
+                version="1.0.0",
+                parameters={},
+                enabled=True,
+                min_confidence_score=80.0,
+            ),
+        )
 
-    @pytest.mark.skip(reason="TypeError: 'str' object is not callable")
+        assert param.supports(context) is True
+
     @pytest.mark.asyncio
     async def test_evaluate(self) -> None:
         """Test parameter evaluation."""
-        pass
+        param = LowerWickQualityScore()
+        event = advance_event_to_qualified(create_market_event())
+        context = ScoringContext(
+            market_event=event,
+            config=ScoringConfig(
+                scoring_id="lower_wick_quality",
+                version="1.0.0",
+                parameters={},
+                enabled=True,
+                min_confidence_score=80.0,
+            ),
+        )
+
+        score, penalties, explanation = await param.evaluate(context)
+
+        assert score == 50.0
+        assert penalties == []
+        assert "Good wick-to-body ratio" in explanation
+
+    @pytest.mark.asyncio
+    async def test_engine_aggregates_contributions(self) -> None:
+        """Test that the engine aggregates parameter scores into a result."""
+        reset_registry()
+        config = ScoringConfig(
+            scoring_id="lower_wick_quality",
+            version="1.0.0",
+            parameters={},
+            enabled=True,
+            min_confidence_score=80.0,
+        )
+        get_registry().register(LowerWickQualityScore(), config)
+        engine = ScoringEngine(ScoringEngineConfig())
+        try:
+            engine.initialize()
+            event = advance_event_to_qualified(create_market_event())
+            result = await engine.evaluate(ScoringContext(market_event=event, config=config))
+        finally:
+            engine.close()
+
+        assert result.final_score == 50.0
+        assert len(result.contributions) == 1
+        assert result.qualified is False  # 50 < 80
+        assert result.metadata["parameter_count"] == 1

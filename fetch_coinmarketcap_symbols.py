@@ -4,6 +4,7 @@ Fetch Top-21 to Top-250 symbols from CoinMarketCap API
 """
 
 import sys
+import os
 sys.path.insert(0, ".")
 sys.path.insert(0, "src")
 
@@ -13,12 +14,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-COINMARKETCAP_API_KEY = "***REMOVED***"
+COINMARKETCAP_API_KEY = os.getenv("EVRECONSE_CMC_API_KEY", "your_cmc_api_key_here")
 
 
 async def fetch_coinmarketcap_rankings():
     """Fetch cryptocurrency rankings from CoinMarketCap API."""
-    if not COINMARKETCAP_API_KEY:
+    if not COINMARKETCAP_API_KEY or COINMARKETCAP_API_KEY == "your_cmc_api_key_here":
         print("ERROR: COINMARKETCAP_API_KEY not provided")
         return []
     

@@ -16,7 +16,7 @@ from typing import Any
 @dataclass(frozen=True, slots=True)
 class RateLimitConfig:
     """Rate limit configuration."""
-    
+
     requests_per_second: float = 10.0
     requests_per_minute: float | None = None
     requests_per_hour: float | None = None
@@ -36,7 +36,7 @@ class RateLimitConfig:
 class RateLimiter:
     """
     Thread-safe rate limiter using sliding window algorithm.
-    
+
     Supports multiple time windows (second, minute, hour) with burst allowance.
     """
 
@@ -46,8 +46,8 @@ class RateLimiter:
 
         # Sliding windows for each time unit
         self._second_window: deque[float] = deque()
-        self._minute_window: deque[float] = deque() if config.requests_per_minute else None
-        self._hour_window: deque[float] = deque() if config.requests_per_hour else None
+        self._minute_window: deque[float] | None = deque() if config.requests_per_minute else None
+        self._hour_window: deque[float] | None = deque() if config.requests_per_hour else None
 
         # Burst tracking
         self._burst_used = 0
@@ -210,26 +210,6 @@ class RateLimiter:
 
         return max(wait_times) if wait_times else 0.0
 
-    def _check_limits(self, now: float, tokens: int) -> bool:
-        """Check if request would exceed any limits."""
-        # Second limit
-        if len(self._second_window) + tokens > self._config.requests_per_second:
-            return False
-
-        # Minute limit
-        if self._minute_window and self._config.requests_per_minute:
-            max_per_minute = int(self._config.requests_per_minute)
-            if len(self._minute_window) + tokens > max_per_minute:
-                return False
-
-        # Hour limit
-        if self._hour_window and self._config.requests_per_hour:
-            max_per_hour = int(self._config.requests_per_hour)
-            if len(self._hour_window) + tokens > max_per_hour:
-                return False
-
-        return True
-
     async def release(self, tokens: int = 1) -> None:
         """Release tokens back to the pool (for cancelled operations)."""
         async with self._lock:
@@ -263,7 +243,7 @@ class RateLimiter:
 class TokenBucketRateLimiter:
     """
     Token bucket rate limiter for smoother rate limiting.
-    
+
     Allows burst traffic up to bucket capacity, then limits to refill rate.
     """
 

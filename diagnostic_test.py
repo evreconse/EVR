@@ -50,7 +50,7 @@ async def test_notification_chain():
         from notification.telegram_service import TelegramConfig
         
         # Use test values - these would normally come from config
-        bot_token = "***REMOVED***"
+        bot_token = "REDACTED_TELEGRAM_BOT_TOKEN"
         chat_id = "123456789"
         
         # Create service

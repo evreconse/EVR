@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from src.core import get_logger
+from core import get_logger
 
 logger = get_logger(__name__)
 
@@ -172,7 +172,7 @@ class HealthChecker:
         default_timeout: float = 5.0,
         cache_ttl_seconds: float = 30.0,
     ) -> None:
-        self._checks: dict[str, AsyncHealthCheck] = {}
+        self._checks: dict[str, HealthCheck] = {}
         self._default_timeout = default_timeout
         self._cache_ttl = cache_ttl_seconds
         self._cache: dict[str, ComponentHealth] = {}
@@ -225,7 +225,6 @@ class HealthChecker:
             HealthReport with all component statuses
         """
         start = time.monotonic()
-        effective_timeout = timeout or self._default_timeout
 
         # Run checks
         if use_cache:

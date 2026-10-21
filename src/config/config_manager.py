@@ -8,7 +8,7 @@ Follows Configuration First principle - all configurable parameters managed here
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from .exceptions import (
     ConfigurationError,
@@ -160,7 +160,7 @@ class ConfigurationManager:
         Raises:
             ConfigurationNotInitializedError: If not initialized.
         """
-        if not self._is_initialized:
+        if not self._is_initialized or self._config is None:
             raise ConfigurationNotInitializedError()
         return self._config
 
@@ -254,9 +254,11 @@ class ConfigurationManager:
         Returns:
             Configuration dictionary.
         """
+        if self._config is None:
+            raise ConfigurationNotInitializedError()
         config_dict = self._config_to_dict(self._config)
         if mask_secrets:
-            return self._mask_secrets(config_dict)
+            return cast("dict[str, Any]", self._mask_secrets(config_dict))
         return config_dict
 
     # Private methods
@@ -327,7 +329,7 @@ class ConfigurationManager:
             strategy_raw = raw.get("strategies", {}).get(strategy_id, {})
             if not strategy_raw:
                 raise MissingRequiredParameterError(f"strategy.{strategy_id}")
-            condition = strategy_raw.get("condition", {})
+            strategy_raw.get("condition", {})
             risk = strategy_raw.get("risk", {})
             notification = strategy_raw.get("notification", {})
             strategies[strategy_id] = StrategyConfig(
@@ -358,7 +360,7 @@ class ConfigurationManager:
             penalty_enabled=raw.get("penalty_enabled", ScoringDefaults.PENALTY_ENABLED),
         )
 
-    def _build_scoring_param(self, raw: dict[str, Any], default_enabled: bool, default_max_score: int) -> ScoringConfig:
+    def _build_scoring_param(self, raw: dict[str, Any], default_enabled: bool, default_max_score: int) -> ScoringParameterConfig:
         return ScoringParameterConfig(
             enabled=raw.get("enabled", default_enabled),
             max_score=raw.get("max_score", default_max_score),
@@ -438,7 +440,7 @@ class ConfigurationManager:
             "system": self._dataclass_to_dict(config.system),
         }
 
-    def _dataclass_to_dict(self, obj: Any) -> dict[str, Any]:
+    def _dataclass_to_dict(self, obj: Any) -> Any:
         """Convert dataclass to dictionary recursively."""
         if hasattr(obj, "__dataclass_fields__"):
             return {k: self._dataclass_to_dict(v) for k, v in vars(obj).items()}

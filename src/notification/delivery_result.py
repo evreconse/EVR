@@ -7,17 +7,15 @@ Data classes for notification delivery results.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
-from uuid import UUID, uuid4
-
-from .enums import DeliveryStatus, NotificationChannel
+from uuid import UUID
 
 
 @dataclass(frozen=True, slots=True)
 class DeliveryAttempt:
     """Record of a single delivery attempt."""
-    
+
     attempt_number: int
     channel: str
     recipient: str
@@ -27,8 +25,7 @@ class DeliveryAttempt:
     error: str | None = None
     error_code: str | None = None
     response_data: dict[str, Any] | None = None
-    duration_ms: float = 0.0
-    
+
     @property
     def duration_ms(self) -> float:
         if self.completed_at:
@@ -40,27 +37,26 @@ class DeliveryAttempt:
 class DeliveryResult:
     """
     Result of a notification delivery attempt.
-    
+
     Immutable result object containing delivery outcome and metadata.
     """
-    
+
     notification_id: UUID
     channel: str
     recipient: str
     status: str  # DeliveryStatus
     sent_at: datetime
     delivered_at: datetime | None = None
-    duration_ms: float = 0.0
     attempts: int = 1
     error: str | None = None
     error_code: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
-    
+
     @property
     def is_success(self) -> bool:
         """Check if delivery was successful."""
         return self.status == "delivered"
-    
+
     @property
     def is_terminal(self) -> bool:
         """Check if delivery is in a terminal state."""
@@ -69,14 +65,14 @@ class DeliveryResult:
             "failed",
             "cancelled",
         )
-    
+
     @property
     def duration_ms(self) -> float:
         """Duration from send to delivery in milliseconds."""
         if self.delivered_at:
             return (self.delivered_at - self.sent_at).total_seconds() * 1000
         return 0.0
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
         return {
@@ -98,32 +94,31 @@ class DeliveryResult:
 class AggregatedDeliveryResult:
     """
     Complete result of a delivery attempt.
-    
+
     Aggregates all attempts for a single notification.
     """
-    
+
     notification_id: UUID
     channel: str
     recipient: str
     status: str  # DeliveryStatus
     attempts: tuple[Any, ...] = field(default_factory=tuple)  # DeliveryAttempt
-    total_duration_ms: float = 0.0
     final_status: str = "pending"  # DeliveryStatus
     final_error: str | None = None
     final_error_code: str | None = None
-    
+
     @property
     def is_success(self) -> bool:
         return self.status == "delivered"
-    
+
     @property
     def total_attempts(self) -> int:
         return len(self.attempts)
-    
+
     @property
     def total_duration_ms(self) -> float:
-        return self.total_duration_ms
-    
+        return sum(float(a.duration_ms) for a in self.attempts)
+
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
         return {
@@ -131,7 +126,7 @@ class AggregatedDeliveryResult:
             "channel": self.channel,
             "recipient": self.recipient,
             "status": self.status,
-            "attempts": self.total_attempts,
+            "total_attempts": self.total_attempts,
             "total_duration_ms": self.total_duration_ms,
             "final_status": self.final_status,
             "final_error": self.final_error,

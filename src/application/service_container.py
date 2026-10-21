@@ -10,9 +10,9 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Generic, TypeVar, get_type_hints
+from typing import Any, Generic, TypeVar, cast, get_type_hints
 
-from src.core import get_logger
+from core import get_logger
 
 from .exceptions import ServiceNotFoundError, ServiceRegistrationError
 
@@ -86,7 +86,7 @@ class ServiceContainer:
     def register_singleton(
         self,
         service_type: type[T],
-        factory: Callable[[], T] | None = None,
+        factory: Callable[..., T] | None = None,
     ) -> None:
         """
         Register a singleton with optional factory.
@@ -107,7 +107,7 @@ class ServiceContainer:
                 )
 
             # Auto-detect dependencies from factory signature
-            deps = ()
+            deps: tuple[type, ...] = ()
             if factory:
                 deps = self._extract_dependencies(factory)
 
@@ -124,7 +124,7 @@ class ServiceContainer:
     def register_factory(
         self,
         service_type: type[T],
-        factory: Callable[[], T],
+        factory: Callable[..., T],
     ) -> None:
         """
         Register a factory (new instance each get).
@@ -160,8 +160,8 @@ class ServiceContainer:
         """Extract parameter types from factory signature."""
         try:
             hints = get_type_hints(factory)
-            # Return all parameter types except return type
-            return tuple(h for h in hints.values() if h != "return")
+            # Return all parameter types except the return annotation
+            return tuple(hint for name, hint in hints.items() if name != "return")
         except Exception:
             return ()
 
@@ -215,7 +215,7 @@ class ServiceContainer:
 
         try:
             if reg.instance is not None:
-                return reg.instance
+                return cast("T", reg.instance)
 
             if reg.factory is None:
                 raise ServiceRegistrationError(
@@ -225,7 +225,7 @@ class ServiceContainer:
                 )
 
             # Resolve dependencies and call factory
-            kwargs = {}
+            kwargs: dict[str, Any] = {}
             for dep_type in reg.dependencies:
                 kwargs[dep_type.__name__] = self.get(dep_type)
 
@@ -243,7 +243,7 @@ class ServiceContainer:
                             dependencies=reg.dependencies,
                         )
 
-            return instance
+            return cast("T", instance)
 
         finally:
             with self._lock:

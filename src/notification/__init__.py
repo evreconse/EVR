@@ -4,7 +4,7 @@ EVRECONSE Notification Module.
 Comprehensive notification delivery system with multi-channel support.
 """
 
-from .delivery_result import DeliveryAttempt, DeliveryResult, DeliveryStatus
+from .delivery_result import DeliveryAttempt, DeliveryResult
 from .enums import (
     DeliveryStatus,
     MessageFormat,
@@ -41,7 +41,8 @@ from .formatter import (
 )
 from .heartbeat import HeartbeatConfig, HeartbeatMonitor
 from .notification import Notification, NotificationService
-from .notification_engine import NotificationEngine, EngineConfig
+from .notification_engine import EngineConfig as NotificationEngineConfig
+from .notification_engine import NotificationEngine
 from .queue import NotificationQueue, QueuedNotification, SyncNotificationQueue
 from .rate_limiter import RateLimitConfig, RateLimiter, TokenBucketRateLimiter
 from .retry_policy import RetryExecutor, RetryPolicy, RetryPolicyConfig, RetryStrategy

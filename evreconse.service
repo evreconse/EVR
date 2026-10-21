@@ -13,13 +13,11 @@ Restart=on-failure
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-Environment=EVRECONSE_EXCHANGE__API_KEY=***REMOVED***
-Environment=EVRECONSE_EXCHANGE__API_SECRET=***REMOVED***
-Environment=EVRECONSE_EXCHANGE_API_KEY=***REMOVED***
-Environment=EVRECONSE_EXCHANGE_API_SECRET=***REMOVED***
-Environment=EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN=***REMOVED***
-Environment=EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID=***REMOVED***
-Environment=EVRECONSE_COINGLASS_API_KEY=***REMOVED***
+# Secrets are intentionally not stored in this unit file.
+# Provide them via a root-readable environment file, for example:
+#   install -m 600 /dev/null /etc/evreconse/evreconse.env
+#   $EDITOR /etc/evreconse/evreconse.env
+EnvironmentFile=-/etc/evreconse/evreconse.env
 Environment=EVRECONSE_SYSTEM__LOG_LEVEL=INFO
 Environment=EVRECONSE_SYSTEM__TIMEZONE=UTC
 Environment=EVRECONSE_STORAGE__DATA_PATH=./data

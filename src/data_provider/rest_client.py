@@ -16,7 +16,7 @@ import hashlib
 import hmac
 import json
 import time
-from typing import Any
+from typing import Any, cast
 
 import aiohttp
 from aiohttp import ClientSession, ClientTimeout, TCPConnector
@@ -120,6 +120,8 @@ class RestClient:
         payload = f"{timestamp}{self._config.api_key}{self._config.recv_window}{param_str}"
 
         # Generate HMAC SHA256
+        if not self._config.api_secret:
+            raise AuthenticationError("API secret is required for signed requests")
         signature = hmac.new(
             self._config.api_secret.encode("utf-8"),
             payload.encode("utf-8"),
@@ -194,7 +196,7 @@ class RestClient:
             self._last_request_time = time.monotonic()
 
             # Prepare request
-            request_kwargs = {
+            request_kwargs: dict[str, Any] = {
                 "headers": headers,
                 "params": query_params if method == "GET" else None,
                 "json": query_params if method in ("POST", "PUT", "DELETE") else None,
@@ -219,8 +221,8 @@ class RestClient:
 
                         try:
                             data = json.loads(text)
-                        except json.JSONDecodeError:
-                            raise SnapshotError(f"Invalid JSON response: {text[:200]}")
+                        except json.JSONDecodeError as e:
+                            raise SnapshotError(f"Invalid JSON response: {text[:200]}") from e
 
                         # Check Bybit API response format
                         if isinstance(data, dict):
@@ -234,7 +236,7 @@ class RestClient:
                                 else:
                                     raise SnapshotError(f"API error {ret_code}: {ret_msg}")
 
-                        return data
+                        return cast("dict[str, Any]", data)
 
                 except aiohttp.ClientError as e:
                     raise ConnectionError(f"Request failed: {e}") from e

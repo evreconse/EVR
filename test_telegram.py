@@ -3,11 +3,12 @@ Test script to verify real Telegram message delivery.
 """
 import asyncio
 import aiohttp
+import os
 from datetime import UTC, datetime
 
-# Telegram credentials from config
-BOT_TOKEN = "***REMOVED***"
-CHAT_ID = "***REMOVED***"
+# Telegram credentials from environment variables
+BOT_TOKEN = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN", "your_telegram_bot_token_here")
+CHAT_ID = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID", "your_telegram_chat_id_here")
 API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 def escape_markdown_v2(text: str) -> str:

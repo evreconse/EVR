@@ -66,7 +66,7 @@ class YamlConfigLoader(ConfigLoader):
             raise ConfigurationError(f"Configuration file not found: {self._file_path}")
 
         try:
-            with open(self._file_path, "r", encoding="utf-8") as f:
+            with open(self._file_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
         except yaml.YAMLError as e:
             raise ConfigurationError(f"Failed to parse YAML: {e}") from e
@@ -100,7 +100,7 @@ class JsonConfigLoader(ConfigLoader):
             raise ConfigurationError(f"Configuration file not found: {self._file_path}")
 
         try:
-            with open(self._file_path, "r", encoding="utf-8") as f:
+            with open(self._file_path, encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
             raise ConfigurationError(f"Failed to parse JSON: {e}") from e
@@ -130,7 +130,7 @@ class EnvConfigLoader(ConfigLoader):
         self._prefix = prefix or self.PREFIX
 
     def load(self) -> dict[str, Any]:
-        result = {}
+        result: dict[str, Any] = {}
 
         for key, value in os.environ.items():
             if key.startswith(self._prefix):
@@ -151,7 +151,7 @@ class EnvConfigLoader(ConfigLoader):
     def _parse_nested(self, key: str) -> dict[str, Any]:
         """Convert key with double underscores to nested dict."""
         parts = key.split("__")
-        result = {}
+        result: dict[str, Any] = {}
         current = result
 
         for i, part in enumerate(parts):
@@ -269,10 +269,11 @@ class MultiSourceConfigLoader(ConfigLoader):
         self._env_prefix = env_prefix
 
     def load(self) -> dict[str, Any]:
-        result = {}
+        result: dict[str, Any] = {}
 
         # 1. Load from config file (lowest priority)
         if self._file_path and self._file_path.exists():
+            loader: ConfigLoader
             if self._file_path.suffix in (".yaml", ".yml"):
                 loader = YamlConfigLoader(self._file_path)
             elif self._file_path.suffix == ".json":

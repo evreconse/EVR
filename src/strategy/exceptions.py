@@ -54,14 +54,6 @@ class StrategyExecutionError(StrategyError):
         super().__init__(message)
 
 
-class StrategyValidationError(StrategyError):
-    """Raised when strategy validation fails."""
-
-    def __init__(self, message: str, field: str | None = None) -> None:
-        self.field = field
-        super().__init__(message)
-
-
 class StrategyNotRegisteredError(StrategyError):
     """Raised when attempting to use unregistered strategy."""
 

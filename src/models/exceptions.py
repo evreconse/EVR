@@ -29,12 +29,22 @@ class ModelValidationError(ValueError):
 class InvalidTransitionError(ModelValidationError):
     """Raised when a state transition is not allowed."""
 
-    def __init__(self, current: str, target: str, allowed: list[str]) -> None:
-        message = f"Invalid transition: {current} -> {target}. Allowed: {allowed}"
+    def __init__(
+        self,
+        event_id: str,
+        current_state: str,
+        target_state: str,
+        reason: str,
+    ) -> None:
+        message = (
+            f"Invalid transition for event {event_id}: "
+            f"{current_state} -> {target_state}. {reason}"
+        )
         super().__init__(message)
-        self.current = current
-        self.target = target
-        self.allowed = allowed
+        self.event_id = event_id
+        self.current_state = current_state
+        self.target_state = target_state
+        self.reason = reason
 
 
 class InvariantViolationError(ModelValidationError):

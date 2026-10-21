@@ -9,30 +9,28 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from config import AppConfig, ConfigurationManager, MultiSourceConfigLoader
 from config.exceptions import ConfigurationError
-from src.core import LoggingConfig, LogLevel, get_logger, init_logging
+from core import LoggingConfig, LogLevel, get_logger, init_logging
 from data_provider import (
-    BingXDataProvider,
     DataProvider,
     create_bingx_data_provider,
 )
-from event_engine import EngineConfig as EventEngineConfig, EventEngine
+from event_engine import EventEngine
 from notification import (
     NotificationEngine,
     NotificationQueue,
     RateLimiter,
-    RetryPolicy,
 )
 from notification.notification_engine import EngineConfig as NotificationEngineConfig
 from notification.rate_limiter import RateLimitConfig
 from notification.retry_policy import RetryPolicyConfig
 from notification.telegram_service import create_telegram_service
+from outcome import OutcomeConfig, OutcomeTracker
 from scoring import ScoringEngine
 from scoring.scoring_engine import ScoringEngineConfig
-from outcome import OutcomeConfig, OutcomeTracker
 from storage import FileStorageRepository, StorageEngine
 from strategy import StrategyEngine
 from strategy.strategy_engine import StrategyEngineConfig
@@ -74,7 +72,7 @@ async def create_config_manager(config_path: Path | None = None) -> Configuratio
     # Default to config.yaml if no path provided
     if config_path is None:
         config_path = Path("config.yaml")
-    
+
     loader = MultiSourceConfigLoader(
         file_path=config_path,
         dotenv_path=Path(".env"),
@@ -187,14 +185,14 @@ async def create_scoring_engine(config: AppConfig) -> ScoringEngine:
 
     # Candle Confirmation Parameter (for informational scoring only)
     if config.scoring.candle_confirmation.enabled:
-        param = CandleConfirmationScore()
-        param_config = ScoringConfig(
+        candle_param = CandleConfirmationScore()
+        candle_config = ScoringConfig(
             scoring_id="candle_confirmation",
             version="1.0.0",
             parameters={},
             enabled=True,
         )
-        registry.register(param, param_config)
+        registry.register(candle_param, candle_config)
 
     engine = ScoringEngine(engine_config, registry)
     engine.initialize()
@@ -215,13 +213,13 @@ async def create_notification_engine(config: AppConfig) -> NotificationEngine:
     # Note: Don't connect during bootstrap - connect during start() instead
 
     # Create queue
-    queue = NotificationQueue(
+    NotificationQueue(
         max_size=config.notification.queue_max_size,
         default_timeout=config.notification.queue_timeout_seconds,
     )
 
     # Create rate limiter
-    rate_limiter = RateLimiter(
+    RateLimiter(
         RateLimitConfig(
             requests_per_second=config.notification.rate_limit_requests,
             burst_allowance=config.notification.rate_limit_burst_size if hasattr(config.notification, 'rate_limit_burst_size') else 5,
@@ -261,7 +259,6 @@ async def create_event_engine(
     storage_service=None,
 ) -> EventEngine:
     """Create and initialize EventEngine."""
-    print(f"[DEBUG-BOOT] create_event_engine called with engines: strategy={strategy_engine is not None}, scoring={scoring_engine is not None}, notification={notification_engine is not None}, outcome={outcome_tracker is not None}, storage={storage_service is not None}")
     engine_config = {
         "max_concurrent_events": config.system.max_concurrent_events,
         "execution_timeout": config.system.execution_timeout_seconds,
@@ -407,7 +404,7 @@ async def bootstrap(
     container.register_instance(AppConfig, config)
     container.register_instance(ConfigurationManager, config_manager)
     container.register_instance(StorageEngine, storage_engine)
-    container.register_instance(DataProvider, data_provider)
+    container.register_instance(cast("type[DataProvider]", DataProvider), data_provider)
     container.register_instance(StrategyEngine, strategy_engine)
     container.register_instance(ScoringEngine, scoring_engine)
     container.register_instance(NotificationEngine, notification_engine)

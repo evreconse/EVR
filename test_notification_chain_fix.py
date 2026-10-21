@@ -43,7 +43,7 @@ async def test_notification_chain_complete():
     logger.info("\n--- Test 1: Creating Telegram Service ---")
     try:
         telegram_service = create_telegram_service(
-            bot_token="***REMOVED***",
+            bot_token="REDACTED_TELEGRAM_BOT_TOKEN",
             chat_id="123456789",
             parse_mode="MarkdownV2",
             disable_web_page_preview=True,
@@ -254,15 +254,15 @@ async def main():
         print("✅ ALL NOTIFICATION CHAIN TESTS PASSED")
         print("\nKey fixes verified:")
         print("  1. ✓ NotificationEngine._worker() now processes notifications")
-        print("   shuffle(2)
-        print("   shuffle(3)
-        print("   shuffle(4)
-        print("   shuffle(5)
-        print("   shuffle(6)
-        print("   shuffle(7)
-        print("   shuffle(8)
-        print("   shuffle(9)
-        print("   shuffle(10)
+        print("  2. ✓ _process_notification() is called for each queued item")
+        print("  3. ✓ Telegram delivery success updates notification status")
+        print("  4. ✓ Telegram failure triggers retry logic")
+        print("  5. ✓ Max retries exhausted moves notification to dead letter")
+        print("  6. ✓ Start/stop lifecycle manages worker correctly")
+        print("  7. ✓ Pending notifications are processed after restart")
+        print("  8. ✓ Metrics tracking works (sent/failed/pending)")
+        print("  9. ✓ Dead letter queue captures failed notifications")
+        print("  10. ✓ Concurrent notifications processed correctly")
         print("=" * 60)
         return 0
     else:

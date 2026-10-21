@@ -144,32 +144,27 @@ class ScoringEngine:
                 return self._create_timeout_result(start_dt, start_time)
             except Exception as e:
                 import traceback
-                print(f"DEBUG-SCORING-ENGINE: Inner exception: {e}")
                 traceback.print_exc()
                 return self._create_error_result(start_dt, time.perf_counter(), str(e))
 
             # Process results
-            for (param_id, _), result in zip(tasks, results):
-                print(f"DEBUG-SCORING-ENGINE: param={param_id}, result_type={type(result)}")
-                if isinstance(result, Exception):
+            for (param_id, _), result in zip(tasks, results, strict=False):
+                if isinstance(result, BaseException):
                     errors.append(str(result))
-                    print(f"DEBUG-SCORING-ENGINE: param={param_id} FAILED: {result}")
                 else:
                     score, param_penalties, explanation = result
-                    param = next((p for p in self._parameters if p.parameter_id == param_id), None)
-                    if param:
+                    parameter = next((p for p in self._parameters if p.parameter_id == param_id), None)
+                    if parameter:
                         contributions.append(ScoreContribution(
-                            parameter_id=param.parameter_id,
+                            parameter_id=parameter.parameter_id,
                             score=score,
-                            max_score=param.max_score,
+                            max_score=parameter.max_score,
                             explanation=explanation,
-                            weight=param.weight,
+                            weight=parameter.weight,
                         ))
                         penalties.extend(param_penalties)
-                        print(f"DEBUG-SCORING-ENGINE: param={param_id} score={score}, max={param.max_score}, weight={param.weight}")
         except Exception as e:
             import traceback
-            print(f"DEBUG-SCORING-ENGINE: Exception in evaluate: {e}")
             traceback.print_exc()
             return self._create_error_result(start_dt, time.perf_counter(), str(e))
 
@@ -200,16 +195,15 @@ class ScoringEngine:
 
     def _create_timeout_result(self, start_dt: datetime, start_time: float) -> ScoringResult:
         """Create result for timeout."""
-        execution_time_ms = (time.perf_counter() - start_time) * 1000
+        (time.perf_counter() - start_time) * 1000
         return ScoringResult(
             qualified=False,
             final_score=0.0,
             max_score=100.0,
-            contributions=tuple(),
-            penalties=tuple(),
+            contributions=(),
+            penalties=(),
             scoring_id="scoring_engine",
             scoring_version="1.0",
-            evaluation_id=None,
             evaluated_at=datetime.now(UTC),
             execution_time_ms=0.0,
             explanation="Evaluation timeout",
@@ -223,11 +217,10 @@ class ScoringEngine:
             qualified=False,
             final_score=0.0,
             max_score=100.0,
-            contributions=tuple(),
-            penalties=tuple(),
+            contributions=(),
+            penalties=(),
             scoring_id="scoring_engine",
             scoring_version="1.0",
-            evaluation_id=None,
             evaluated_at=start_dt,
             execution_time_ms=execution_time_ms,
             explanation=f"Engine error: {error}",
@@ -249,7 +242,6 @@ class ScoringEngine:
         total_penalty = sum(p.points for p in penalties)
 
         final_score = max(0.0, total_score - total_penalty)
-        max_score = 100.0
 
         # Qualification
         min_score = context.config.min_confidence_score
@@ -273,7 +265,6 @@ class ScoringEngine:
             penalties=tuple(penalties),
             scoring_id="scoring_engine",
             scoring_version="1.0",
-            evaluation_id=None,
             evaluated_at=start_dt,
             execution_time_ms=execution_time_ms,
             explanation=explanation,
@@ -325,17 +316,18 @@ class ScoringEngine:
                     return param
         return None
 
-    def reload_parameters(self) -> None:
-        """Reload parameters from registry."""
-        with self._lock:
-            self._parameters = self._registry.get_enabled_parameters()
-
     def close(self) -> None:
         """Shutdown the engine."""
         with self._lock:
             for param in self._parameters:
                 try:
-                    asyncio.run(param.shutdown())
+                    coro = param.shutdown()
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        asyncio.run(coro)
+                    else:
+                        loop.create_task(coro)
                 except Exception:
                     pass
             self._parameters.clear()

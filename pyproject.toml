@@ -1,0 +1,89 @@
+[project]
+name = "evreconse"
+version = "0.1.0"
+description = "EVRECONSE — Автоматизированная система идентификации и оценки разворотных паттернов на криптовалютном рынке"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "EVRECONSE Team"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = [
+    "aiohttp>=3.14.0",
+    "aiolimiter>=1.2.0",
+    "python-dateutil>=2.9.0",
+    "python-dotenv>=1.2.0",
+    "PyYAML>=6.0.0",
+    "tenacity>=9.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.0",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.0.0",
+    "coverage>=7.0.0",
+    "ruff>=0.16.0",
+    "mypy>=2.3.0",
+]
+test = [
+    "pytest>=9.0.0",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.0.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "__pycache__",
+    ".codeium",
+    ".devin",
+    "Default Project",
+    "data",
+    "logs",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "W", "T20"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "T201"]
+"*.py" = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107"]
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"

@@ -14,37 +14,37 @@ from .delivery_result import DeliveryResult
 
 class Notification(ABC):
     """Abstract base class for notifications."""
-    
+
     @property
     @abstractmethod
     def channel(self) -> str:
         """Notification channel identifier."""
         ...
-    
+
     @property
     @abstractmethod
     def recipient(self) -> str:
         """Notification recipient identifier."""
         ...
-    
+
     @property
     @abstractmethod
     def subject(self) -> str | None:
         """Notification subject/title."""
         ...
-    
+
     @property
     @abstractmethod
     def body(self) -> str:
         """Notification body content."""
         ...
-    
+
     @property
     @abstractmethod
     def format(self) -> str:
         """Message format (markdown, html, plain)."""
         ...
-    
+
     @property
     @abstractmethod
     def priority(self) -> int:
@@ -55,22 +55,32 @@ class Notification(ABC):
 class NotificationService(ABC):
     """
     Abstract interface for notification services.
-    
+
     All notification delivery services (Telegram, Email, Slack, etc.)
     must implement this interface.
     """
-    
+
+    @abstractmethod
+    async def connect(self) -> None:
+        """Establish connection to the notification channel."""
+        ...
+
+    @abstractmethod
+    async def disconnect(self) -> None:
+        """Close the connection to the notification channel."""
+        ...
+
     @abstractmethod
     async def send(self, notification) -> DeliveryResult:
         """
         Send a single notification.
-        
+
         Args:
             notification: Notification object to send
-            
+
         Returns:
             DeliveryResult with delivery status and metadata
-            
+
         Raises:
             ConnectionError: If connection to channel fails
             AuthenticationError: If authentication fails
@@ -78,57 +88,57 @@ class NotificationService(ABC):
             DeliveryError: If delivery fails
         """
         ...
-    
+
     @abstractmethod
     async def send_batch(self, notifications: list) -> list:
         """
         Send multiple notifications.
-        
+
         Args:
             notifications: List of notification objects
-            
+
         Returns:
             List of DeliveryResult objects
         """
         ...
-    
+
     @abstractmethod
     async def validate(self, notification) -> bool:
         """
         Validate notification before sending.
-        
+
         Args:
             notification: Notification to validate
-            
+
         Returns:
             True if valid
-            
+
         Raises:
             ValidationError: If validation fails
         """
         ...
-    
+
     @abstractmethod
     async def health_check(self) -> bool:
         """
         Check channel connectivity and health.
-        
+
         Returns:
             True if channel is healthy
         """
         ...
-    
+
     @abstractmethod
     async def close(self) -> None:
         """Close connections and cleanup resources."""
         ...
-    
+
     @property
     @abstractmethod
     def channel_name(self) -> str:
         """Get channel name."""
         ...
-    
+
     @property
     @abstractmethod
     def is_connected(self) -> bool:
@@ -139,37 +149,37 @@ class NotificationService(ABC):
 class NotificationEngine:
     """
     Notification orchestration engine.
-    
+
     Manages multiple notification services and handles
     routing, queueing, retry logic, and delivery tracking.
     """
-    
+
     def __init__(self) -> None:
-        self._services: dict[str, Any] = {}
+        self._services: dict[str, NotificationService] = {}
         self._queue: Any = None
         self._running = False
         self._lock = __import__("threading").RLock()
-    
+
     def register_service(self, service: NotificationService) -> None:
         """Register a notification service."""
         with self._lock:
             self._services[service.channel_name] = service
-    
+
     def unregister_service(self, channel: str) -> None:
         """Unregister a notification service."""
         with self._lock:
             self._services.pop(channel, None)
-    
-    def get_service(self, channel: str):
+
+    def get_service(self, channel: str) -> NotificationService | None:
         """Get service by channel name."""
         with self._lock:
             return self._services.get(channel)
-    
+
     def list_services(self) -> list[str]:
         """List all registered service channels."""
         with self._lock:
             return list(self._services.keys())
-    
+
     async def send(
         self,
         channel: str,
@@ -181,7 +191,7 @@ class NotificationEngine:
     ) -> DeliveryResult:
         """
         Send notification via specified channel.
-        
+
         Args:
             channel: Channel name (telegram, email, slack, etc.)
             recipient: Recipient identifier
@@ -189,14 +199,14 @@ class NotificationEngine:
             body: Message body
             format: Message format (markdown, html, plain)
             priority: Message priority
-            
+
         Returns:
             DeliveryResult
         """
         service = self.get_service(channel)
         if not service:
             raise ValueError(f"No service registered for channel: {channel}")
-        
+
         # Use a simple notification object that matches the interface
         class SimpleNotification:
             def __init__(self):
@@ -206,15 +216,15 @@ class NotificationEngine:
                 self.body = body
                 self.format = format
                 self.priority = priority
-            
+
             @property
             def channel_name(self):
                 return self.channel
-        
+
         notification = SimpleNotification()
-        
+
         return await service.send(notification)
-    
+
     async def send_batch(
         self,
         channel: str,
@@ -225,7 +235,7 @@ class NotificationEngine:
         if not service:
             raise ValueError(f"No service registered for channel: {channel}")
         return await service.send_batch(notifications)
-    
+
     async def health_check(self, channel: str | None = None) -> dict[str, bool]:
         """Check health of services."""
         with self._lock:
@@ -239,7 +249,7 @@ class NotificationEngine:
                     except Exception:
                         results[ch] = False
             return results
-    
+
     async def close(self) -> None:
         """Close all services."""
         with self._lock:
@@ -257,7 +267,7 @@ class NotificationEngine:
 
 class SimpleNotification:
     """Simple notification data class."""
-    
+
     def __init__(
         self,
         channel: str,

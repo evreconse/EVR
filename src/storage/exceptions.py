@@ -85,11 +85,3 @@ class StorageNotFoundError(StorageError):
         self.path = path
         self.event_id = event_id
         super().__init__(message)
-
-
-class StorageNotFoundError(RepositoryError):
-    """Raised when a storage item is not found."""
-
-    def __init__(self, message: str, event_id: str | None = None) -> None:
-        self.event_id = event_id
-        super().__init__(message, operation="load")

@@ -7,7 +7,6 @@ Uses the model's built-in to_dict/from_dict methods.
 
 from __future__ import annotations
 
-from uuid import UUID
 from models import EventID, MarketEvent
 
 
@@ -111,10 +110,14 @@ def deserialize_from_storage(data: bytes) -> MarketEvent:
     """
     import json
     try:
-        data = json.loads(data.decode("utf-8"))
+        payload = json.loads(data.decode("utf-8"))
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         from .exceptions import StorageSerializationError
         raise StorageSerializationError(f"Invalid JSON data: {e}") from e
 
+    if not isinstance(payload, dict):
+        from .exceptions import StorageSerializationError
+        raise StorageSerializationError("Expected a JSON object")
+
     from models import MarketEvent
-    return MarketEvent.from_dict(data)
+    return MarketEvent.from_dict(payload)

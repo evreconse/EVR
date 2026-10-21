@@ -213,31 +213,11 @@ from strategy.capitulation_detector import (
     SignalMetrics,
     FilterResult,
     SignalCandidate,
-    calculate_metrics,
-    check_thresholds,
-    get_fail_reason,
-    get_last_completed_candle,
-    check_red_candle,
-    check_thresholds as check_thresholds_detector,
-    get_fail_reason as get_fail_reason_detector,
-    get_last_completed_candle,
-    check_red_candle,
-    SignalMetrics,
-    FilterResult,
-    SignalCandidate,
 )
 
 # Import threshold spec
 from LW001_METRIC_SPEC import LW001_THRESHOLDS as LW001_THRESHOLDS_SPEC
-# Note: FIXED_THRESHOLDS for Capitulation strategy are defined below
-
-# FIXED Capitulation/Absorption thresholds (AUDITED VALUES)
-FIXED_THRESHOLDS = {
-    "drop_pct": -2.5,       # Open→Low ≤ -2.5%
-    "wick_body_ratio": 1.0, # LW/Body ≥ 1.0x
-    "reclaim_pct": 30.0,    # Reclaim ≥ 30%
-    "volume_30_ratio": 2.0, # Volume30Ratio ≥ 2.0x
-}
+# Note: FIXED_THRESHOLDS for Capitulation strategy are imported from capitulation_detector
 
 # Bot token and chat ID will be loaded from environment
 BOT_TOKEN = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN") or os.getenv("EVRECONSE_TELEGRAM_BOT_TOKEN")

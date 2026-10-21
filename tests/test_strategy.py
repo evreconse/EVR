@@ -6,13 +6,12 @@ Tests demonstrating strategy registration and execution works correctly.
 
 from __future__ import annotations
 
-from datetime import UTC
-
 import pytest
 
 from strategy import (
     LW001Strategy,
     StrategyConfig,
+    StrategyContext,
     StrategyEngine,
     StrategyEngineConfig,
     StrategyRegistry,
@@ -23,6 +22,7 @@ from strategy.exceptions import (
     StrategyValidationError,
 )
 from tests.fixtures.fake_data_provider import create_fake_data_provider
+from tests.utils.helpers import create_market_event
 
 
 class TestStrategyRegistry:
@@ -88,15 +88,46 @@ class TestStrategyRegistry:
         enabled = registry.get_enabled()
         assert "LW-001" in enabled
 
-    @pytest.mark.skip(reason="AttributeError: 'StrategyRegistration' object has no attribute '_replace'")
     def test_enable_disable(self, registry: StrategyRegistry, strategy_config: StrategyConfig) -> None:
         """Test enabling/disabling strategy."""
-        pass
+        strategy = LW001Strategy()
+        registry.register(strategy, strategy_config)
 
-    @pytest.mark.skip(reason="AttributeError: 'StrategyRegistration' object has no attribute '_replace'")
+        registry.disable("LW-001")
+        disabled_registration = registry.get_registration("LW-001")
+        disabled_config = registry.get_strategy_config("LW-001")
+        assert disabled_registration is not None
+        assert disabled_config is not None
+        assert registry.is_enabled("LW-001") is False
+        assert disabled_registration.enabled is False
+        assert disabled_config.enabled is True  # stored config unchanged
+
+        registry.enable("LW-001")
+        enabled_registration = registry.get_registration("LW-001")
+        enabled_config = registry.get_strategy_config("LW-001")
+        assert enabled_registration is not None
+        assert enabled_config is not None
+        assert registry.is_enabled("LW-001") is True
+        assert enabled_registration.enabled is True
+        assert enabled_config.enabled is True
+
     def test_update_config(self, registry: StrategyRegistry, strategy_config: StrategyConfig) -> None:
         """Test updating strategy config."""
-        pass
+        strategy = LW001Strategy()
+        registry.register(strategy, strategy_config)
+        new_config = StrategyConfig(
+            strategy_id="LW-001",
+            version="1.0.1",
+            parameters={"min_confidence_score": 90},
+            enabled=False,
+        )
+
+        registry.update_config("LW-001", new_config)
+
+        stored_config = registry.get_strategy_config("LW-001")
+        assert stored_config == new_config
+        assert registry.is_enabled("LW-001") is False
+        assert registry.list_strategies(enabled_only=True) == []
 
     def test_get_all_strategies(self, registry: StrategyRegistry, strategy_config: StrategyConfig) -> None:
         """Test getting all strategies."""
@@ -112,10 +143,15 @@ class TestStrategyRegistry:
         enabled = registry.get_enabled_strategies()
         assert len(enabled) == 1
 
-    @pytest.mark.skip(reason="Strategy.shutdown coroutine not properly handled in tests")
     def test_clear(self, registry: StrategyRegistry, strategy_config: StrategyConfig) -> None:
         """Test clearing registry."""
-        pass
+        registry.register(LW001Strategy(), strategy_config)
+        registry.clear()
+
+        assert registry.list_strategies() == []
+        assert registry.get_enabled() == []
+        with pytest.raises(StrategyNotFoundError):
+            registry.get("LW-001")
 
 
 class TestStrategyEngine:
@@ -131,10 +167,22 @@ class TestStrategyEngine:
         """Create a fake data provider."""
         return create_fake_data_provider()
 
-    @pytest.mark.skip(reason="Strategy registration state issue")
     def test_register_strategy(self, engine: StrategyEngine) -> None:
         """Test registering a strategy with engine."""
-        pass
+        strategy = LW001Strategy()
+        config = StrategyConfig(
+            strategy_id="LW-001",
+            version="1.0.0",
+            parameters={"min_confidence_score": 80},
+            enabled=True,
+        )
+
+        engine.register_strategy(strategy, config)
+
+        assert engine.get_strategy("LW-001") is strategy
+        assert "LW-001" in engine.list_strategies()
+        with pytest.raises(StrategyAlreadyRegisteredError):
+            engine.register_strategy(strategy, config)
 
     def test_unregister_strategy(self, engine: StrategyEngine) -> None:
         """Test unregistering a strategy."""
@@ -147,7 +195,7 @@ class TestStrategyEngine:
         )
         engine.register_strategy(strategy, config)
         engine.unregister_strategy("LW-001")
-        with pytest.raises(Exception):  # StrategyNotRegisteredError or similar
+        with pytest.raises(StrategyNotFoundError):
             engine.get_strategy("LW-001")
 
     def test_get_strategy(self, engine: StrategyEngine) -> None:
@@ -261,7 +309,22 @@ class TestLW001Strategy:
         with pytest.raises(StrategyValidationError, match="min_confidence_score"):
             strategy.validate_config(config)
 
-    @pytest.mark.skip(reason="TypeError: 'str' object is not callable")
     def test_supports(self) -> None:
         """Test supports method."""
-        pass
+        strategy = LW001Strategy()
+        config = StrategyConfig(strategy_id="LW-001", version="1.0.0", parameters={}, enabled=True)
+
+        supported = strategy.supports(
+            StrategyContext(market_event=create_market_event(), config=config)
+        )
+        assert supported is True
+
+        from models import Timeframe
+
+        wrong_timeframe = strategy.supports(
+            StrategyContext(
+                market_event=create_market_event(timeframe=Timeframe.M5),
+                config=config,
+            )
+        )
+        assert wrong_timeframe is False

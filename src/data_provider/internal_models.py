@@ -9,11 +9,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class MarketDataType(str, Enum):
+class MarketDataType(StrEnum):
     """Type of market data message."""
 
     CANDLE = "candle"
@@ -22,7 +22,7 @@ class MarketDataType(str, Enum):
     TICKER = "ticker"
 
 
-class OrderSide(str, Enum):
+class OrderSide(StrEnum):
     """Order side."""
 
     BUY = "buy"

@@ -6,17 +6,18 @@ Configurable retry policies with exponential backoff and jitter.
 
 from __future__ import annotations
 
+import asyncio
 import random
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from .exceptions import RetryPolicyError
 
 
-class RetryStrategy(str, Enum):
+class RetryStrategy(StrEnum):
     """Retry strategy type."""
 
     FIXED = "fixed"
@@ -29,7 +30,7 @@ class RetryStrategy(str, Enum):
 class RetryPolicyConfig:
     """
     Configuration for retry policy.
-    
+
     Attributes:
         max_attempts: Maximum number of attempts (0 = unlimited)
         strategy: Retry strategy type
@@ -71,50 +72,55 @@ class RetryPolicyConfig:
 class RetryPolicy:
     """
     Configurable retry policy with exponential backoff and jitter.
-    
+
     Supports multiple backoff strategies and jitter types.
     """
-    
+
     def __init__(self, config: RetryPolicyConfig | None = None) -> None:
         self._config = config or RetryPolicyConfig()
         self._last_delay = self._config.base_delay
-    
+
+    @property
+    def timeout(self) -> float:
+        """Total timeout for all attempts (0 = no timeout)."""
+        return self._config.timeout
+
     def should_retry(self, attempt: int, exception: Exception) -> bool:
         """
         Determine if an operation should be retried.
-        
+
         Args:
             attempt: Current attempt number (0-indexed)
             exception: The exception that was raised
-            
+
         Returns:
             True if should retry, False otherwise
         """
         # Check max attempts
         if self._config.max_attempts > 0 and attempt >= self._config.max_attempts:
             return False
-        
+
         # Check non-retryable exceptions
         for exc_type in self._config.non_retryable_exceptions:
             if isinstance(exception, exc_type):
                 return False
-        
+
         # Check retryable exceptions
         if self._config.retryable_exceptions:
             for exc_type in self._config.retryable_exceptions:
                 if isinstance(exception, exc_type):
                     return True
             return False
-        
+
         return True
 
     def get_delay(self, attempt: int) -> float:
         """
         Calculate delay before next retry attempt.
-        
+
         Args:
             attempt: Current attempt number (0-indexed)
-            
+
         Returns:
             Delay in seconds before next attempt
         """
@@ -134,7 +140,7 @@ class RetryPolicy:
 
         # Apply jitter
         if self._config.jitter > 0:
-            jitter_range = delay * self._config.jitter
+            delay * self._config.jitter
             if self._config.jitter_type == "full":
                 delay = random.uniform(0, delay)
             elif self._config.jitter_type == "decorrelated":
@@ -154,10 +160,10 @@ class RetryPolicy:
     def get_next_delay(self, attempt: int) -> float:
         """
         Get delay for next attempt and update internal state.
-        
+
         Args:
             attempt: Current attempt number (0-indexed)
-            
+
         Returns:
             Delay in seconds
         """
@@ -187,10 +193,10 @@ class RetryExecutor:
     """
     Executes a function with retry logic.
     """
-    
+
     def __init__(self, policy: RetryPolicy) -> None:
         self._policy = policy
-    
+
     async def execute(
         self,
         func: Callable[..., Any],
@@ -199,15 +205,15 @@ class RetryExecutor:
     ) -> Any:
         """
         Execute function with retry logic.
-        
+
         Args:
             func: Async function to execute
             *args: Positional arguments
             **kwargs: Keyword arguments
-            
+
         Returns:
             Function result
-            
+
         Raises:
             Last exception if all retries exhausted
         """
@@ -225,17 +231,17 @@ class RetryExecutor:
                 last_exception = e
                 if not self._policy.should_retry(attempt, e):
                     raise
-                
+
                 delay = self._policy.get_delay(attempt)
-                
+
                 # Check timeout
-                if self._config.timeout > 0:
+                if self._policy.timeout > 0:
                     elapsed = time.monotonic() - start_time
-                    if elapsed + delay > self._config.timeout:
+                    if elapsed + delay > self._policy.timeout:
                         raise RetryPolicyError(
-                            f"Retry timeout exceeded ({self._config.timeout}s)"
+                            f"Retry timeout exceeded ({self._policy.timeout}s)"
                         ) from e
-                
+
                 await asyncio.sleep(delay)
                 attempt += 1
 
@@ -245,38 +251,36 @@ class RetryExecutor:
     def execute_sync(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         """
         Execute synchronous function with retry logic.
-        
+
         Args:
             func: Synchronous function to execute
             *args: Positional arguments
             **kwargs: Keyword arguments
-            
+
         Returns:
             Function result
-            
+
         Raises:
             Last exception if all retries exhausted
         """
         attempt = 0
         start_time = time.monotonic()
-        last_exception = None
 
         while True:
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                last_exception = e
                 if not self._policy.should_retry(attempt, e):
                     raise
 
                 delay = self._policy.get_delay(attempt)
 
                 # Check timeout
-                if self._config.timeout > 0:
+                if self._policy.timeout > 0:
                     elapsed = time.monotonic() - start_time
-                    if elapsed + delay > self._config.timeout:
+                    if elapsed + delay > self._policy.timeout:
                         raise RetryPolicyError(
-                            f"Retry timeout exceeded ({self._config.timeout}s)"
+                            f"Retry timeout exceeded ({self._policy.timeout}s)"
                         ) from e
 
                 time.sleep(delay)

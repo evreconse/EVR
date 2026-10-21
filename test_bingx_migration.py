@@ -34,9 +34,9 @@ async def main():
             print(f"  API_SECRET: {'FOUND' if api_secret else 'NOT FOUND'}")
             print(f"  Trying direct initialization...")
             
-            # Fallback: direct initialization with known values
-            api_key = "***REMOVED***"
-            api_secret = "***REMOVED***"
+            # Fallback: direct initialization with placeholder (will fail without real credentials)
+            api_key = "your_bingx_api_key_here"
+            api_secret = "your_bingx_api_secret_here"
             fetcher = BingXFetcher(api_key=api_key, api_secret=api_secret)
         else:
             fetcher = BingXFetcher()

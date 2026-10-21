@@ -268,8 +268,8 @@ Each Telegram message contains:
 
 ### Telegram Configuration
 
-- **Bot Token:** ***REMOVED***
-- **Chat ID:** ***REMOVED***
+- **Bot Token:** `<YOUR_BOT_TOKEN>`
+- **Chat ID:** REDACTED_NOTIFICATION_TELEGRAM_CHAT_ID
 - **Format:** Plain text
 - **Rate Limiting:** 30 messages/second per Telegram API limits
 
