@@ -33,9 +33,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install \
-            aiohttp aiolimiter python-dateutil python-dotenv PyYAML tenacity \
-            pydantic pydantic-settings \
+          python -m pip install -e ".[dev]" \
             "pytest==9.1.1" "pytest-asyncio==1.4.0" "pytest-cov==7.1.0" \
             "ruff==0.17.1" "mypy==2.4.0"
 
