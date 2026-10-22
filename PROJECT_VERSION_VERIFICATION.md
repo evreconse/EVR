@@ -17,6 +17,12 @@
 
 **Финальный аудит:** 2026-10-22, отчёт `PROJECT_FINAL_AUDIT.md`.
 
+**Сравнение версий:** `PROJECT_VERSION_COMPARISON.md`
+
+**Активная стратегия:** `STRATEGY_CAPITULATION_ABSORPTION.md`
+
+**Отчёт синхронизации:** `GITHUB_SERVER_SYNC_REPORT.md`
+
 **Production source of truth:** `evreconse.service` →
 `/home/evreconse/realtime_capitulation_monitor_fixed.py`
 
@@ -277,10 +283,11 @@ bd5ecc63cad03d229b298152e0662021046911ff50a1eca1d64cd1d4958f309f  LW001_METRIC_S
 
 | Проверка | Команда | Результат |
 |---|---|---|
-| Все unit/regression tests | `pytest -q` | **133 passed** |
+| Все unit/regression tests | `pytest -q` | **136 passed** |
 | Только серверная регрессия | `pytest -q tests/test_server_sync_algorithms.py` | **18 passed** |
+| Эквивалентность порогов | `pytest -q tests/test_monitor_threshold_equivalence.py` | **3 passed** |
 | Ruff | `ruff check src tests LW001_METRIC_SPEC.py` | **All checks passed** |
-| Mypy | `mypy src/ tests/ --explicit-package-bases` | **Success: no issues found** |
+| Mypy | `mypy src/ tests/ --explicit-package-bases` | **Success: no issues found in 117 source files** |
 | Compile | `py_compile` изменённых файлов | **OK** |
 | Algorithm imports | `strategy.capitulation_detector`, `config...`, `LW001_METRIC_SPEC` | **OK** |
 | Runtime package imports | `src.exchange`, `src.data_provider` | **OK** |
@@ -354,17 +361,19 @@ Push выполняется отдельным commit. При невозможн
    metadata-follow-up указан в финальном ответе.
 
 7. **Какие тесты прошли?**
-   `pytest -q` — **133 passed**, включая **18** regression tests;
-   `ruff` — passed; `mypy` — passed; `py_compile` — OK; imports — OK.
+   `pytest -q` — **136 passed**, включая **18** regression tests и **3** теста
+   эквивалентности `FIXED_THRESHOLDS`/`check_thresholds`; `ruff` — passed;
+   `mypy` — passed (117 source files); `py_compile` — OK; imports — OK.
    Production integrations не запускались.
 
 8. **Подтверждено ли соответствие опубликованного алгоритма серверному?**
    Да для числовых порогов/формул Capitulation и canonical LW-001; значения
    сведены в §7 и проверены тестами. Активный monitor и LW-001 monitor совпадают
    с серверными по SHA-256. Для detector/config/I/O есть только безопасные
-   адаптации package layout/форматирования, не меняющие алгоритм. При этом
-   active monitor использует собственный `FIXED_THRESHOLDS` для финальной
-   квалификации; это подтверждено статически, но не отдельным integration test.
+   адаптации package layout/форматирования, не меняющие алгоритм. Финальная
+   квалификация active monitor использует собственный `FIXED_THRESHOLDS`;
+   эквивалентность detector/config проверена отдельным тестом на 5 000
+   случайных свечах, границах и вырожденных данных.
 
 9. **Какие расхождения намеренно остались?**
    Секреты, `.env`, БД, логи, runtime cache, серверные абсолютные пути,
@@ -397,7 +406,9 @@ Push выполняется отдельным commit. При невозможн
 7. Active monitor использует dual-source thresholds: detector/config и
    `FIXED_THRESHOLDS`; сейчас значения совпадают, но автоматической связи нет.
 8. Universe provider не проверяет expiry active snapshot; snapshot на момент
-   baseline был stale (~14 дней), причина не исследовалась live.
+   baseline был stale. Причина установлена read-only: `data/cmc_universe.db`
+   принадлежит `root:root` (`0644`), процесс `evreconse` не может писать,
+   refresh завершается ошибкой `attempt to write a readonly database`.
 9. `BingXFetcher.get_klines()` при `limit=500` не применяет `startTime` как
    фильтр; фактическая история — до 500 свечей, а не строго 4 часа.
 10. В active monitor дважды определён `get_last_completed_candle`; определения

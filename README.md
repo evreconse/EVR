@@ -20,6 +20,9 @@ legacy-стратегия. Полная побайтовая идентично�
 
 Полное описание: `PROJECT_FULL_DOCUMENTATION.md`.
 История сверки: `PROJECT_VERSION_VERIFICATION.md`.
+Сравнение версий: `PROJECT_VERSION_COMPARISON.md`.
+Активная стратегия: `STRATEGY_CAPITULATION_ABSORPTION.md`.
+Отчёт синхронизации: `GITHUB_SERVER_SYNC_REPORT.md`.
 Финальный аудит и ограничения: `PROJECT_FINAL_AUDIT.md`.
 Спецификация LW-001: `LW001_PRODUCTION_SPEC.md`.
 
@@ -80,10 +83,13 @@ EVRECONSE/
 ├── backfill_capitulation_signals.py        # исторический backfill
 ├── evreconse.service                       # безопасный service-шаблон
 ├── LW001_METRIC_SPEC.py                    # canonical LW-001 formulas
-├── LW001_PRODUCTION_SPEC.md
 ├── PROJECT_FULL_DOCUMENTATION.md
 ├── PROJECT_VERSION_VERIFICATION.md
-└── PROJECT_FINAL_AUDIT.md
+├── PROJECT_VERSION_COMPARISON.md
+├── STRATEGY_CAPITULATION_ABSORPTION.md
+├── GITHUB_SERVER_SYNC_REPORT.md
+├── PROJECT_FINAL_AUDIT.md
+└── LW001_PRODUCTION_SPEC.md
 ```
 
 ## Основные команды
@@ -95,6 +101,7 @@ EVRECONSE/
 | `python realtime_lw001_monitor.py` | LW-001 legacy monitor; не включать без отдельного решения |
 | `pytest tests/` | Все тесты |
 | `pytest tests/test_server_sync_algorithms.py -v` | Регрессия серверных порогов и формул |
+| `pytest tests/test_monitor_threshold_equivalence.py -v` | Эквивалентность `FIXED_THRESHOLDS` и detector/config |
 | `ruff check src tests LW001_METRIC_SPEC.py` | Линтинг |
 | `mypy src/ tests/ --explicit-package-bases` | Проверка типов |
 

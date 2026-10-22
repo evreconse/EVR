@@ -18,9 +18,15 @@
 
 **Итоговый отчёт:** `PROJECT_FINAL_AUDIT.md`
 
+**Сравнение версий:** `PROJECT_VERSION_COMPARISON.md`
+
+**Активная стратегия:** `STRATEGY_CAPITULATION_ABSORPTION.md`
+
+**Отчёт синхронизации:** `GITHUB_SERVER_SYNC_REPORT.md`
+
 **Источник истины:** работающий production-сервер EVRECONSE, inspected read-only
 
-**Среда локальной проверки:** Python 3.11.17, macOS, отдельный clone
+**Среда локальной проверки:** Python 3.11.9, macOS, отдельный clone
 
 ---
 
@@ -182,8 +188,11 @@ is_red       = close < open
   24h, поэтому при отсутствии cache universe может быть пустым до первого
   refresh;
 - на момент проверки — 574 символа, `fetched_at=2026-10-08T09:25:51Z`;
-  snapshot был stale (~14 дней), причина отсутствия более свежего refresh
-  live не проверялась.
+  snapshot stale. Причина установлена read-only по journal и правам:
+  `data/cmc_universe.db` принадлежит `root:root` с режимом `0644`, процесс
+  работает под `evreconse` и не может писать; refresh 21 и 22 октября завершался
+  ошибкой `attempt to write a readonly database`. Это эксплуатационная
+  проблема, не расхождение GitHub-кода.
 
 ### 3.5. Dedup
 
@@ -403,10 +412,11 @@ websockets 17.0.1 и др.); GitHub сохраняет declared dependency range
 
 | Проверка | Результат |
 |---|---|
-| `pytest -q` | **133 passed** |
+| `pytest -q` | **136 passed** |
 | `pytest tests/test_server_sync_algorithms.py -q` | **18 passed** |
+| `pytest tests/test_monitor_threshold_equivalence.py -q` | **3 passed** |
 | `ruff check src tests LW001_METRIC_SPEC.py` | **All checks passed** |
-| `mypy src/ tests/ --explicit-package-bases` | **Success: no issues found** |
+| `mypy src/ tests/ --explicit-package-bases` | **Success: no issues found in 117 source files** |
 | `py_compile` изменённых Python-файлов | **OK** |
 | runtime import algorithm modules | **OK** |
 | runtime import `src.exchange` / `src.data_provider` | **OK** |
@@ -478,8 +488,10 @@ float-equality assertion. Это ограничение покрытия, а н�
     этого достаточно, но документация не должна называть это строгим 4h-окном.
 13. **Universe freshness**: provider не проверяет expiry active snapshot;
     refresh запускается только через 24h после старта, а не при initialize.
-    Snapshot на момент baseline был stale (~14 дней); причина live не
-    исследовалась.
+    Snapshot на момент baseline был stale; причина установлена read-only:
+    `data/cmc_universe.db` принадлежит `root:root` (`0644`), процесс
+    `evreconse` не может писать, refresh завершается ошибкой
+    `attempt to write a readonly database`.
 14. **Duplicate function**: `get_last_completed_candle` определён в active
     monitor дважды; определения идентичны, поведение не меняется.
 15. **Legacy LW-001**: `realtime_lw001_monitor_fixed.py` сохраняет Volume Ratio,

@@ -17,6 +17,17 @@
 только для чтения. Реальные торговые, Telegram, private BingX, CMC и
 CoinGlass действия не выполнялись.
 
+> **Post-audit addendum (2026-10-23).** После этого аудита дополнительно
+> выполнены read-only проверка journald и прав SQLite, а также тест
+> эквивалентности `FIXED_THRESHOLDS`/`check_thresholds`. Установлена причина
+> stale universe: `data/cmc_universe.db` принадлежит `root:root` (`0644`),
+> процесс `evreconse` не может писать, refresh завершается ошибкой
+> `attempt to write a readonly database`. Добавлены
+> `PROJECT_VERSION_COMPARISON.md`, `STRATEGY_CAPITULATION_ABSORPTION.md`,
+> `GITHUB_SERVER_SYNC_REPORT.md` и
+> `tests/test_monitor_threshold_equivalence.py`; полный прогон — **136 passed**.
+> Исторические результаты §9 (133 passed) относятся к дате исходного аудита.
+
 ---
 
 ## 1. Фактическое состояние GitHub
