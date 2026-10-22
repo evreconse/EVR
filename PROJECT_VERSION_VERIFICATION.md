@@ -12,6 +12,9 @@
 **Проверенный HEAD на начало финального аудита:**
 `3581bb24bd6bcbf00958b674b865cfa0e978125f` (docs-only follow-up)
 
+**Публикация audit report:**
+`3b85cab990772aef1132c5c41d6d3697d48c4918` (docs-only audit commit)
+
 **Финальный аудит:** 2026-10-22, отчёт `PROJECT_FINAL_AUDIT.md`.
 
 **Production source of truth:** `evreconse.service` →
@@ -346,8 +349,9 @@ Push выполняется отдельным commit. При невозможн
 6. **Какой SHA теперь опубликован?**
    На начало финального аудита remote HEAD —
    `3581bb24bd6bcbf00958b674b865cfa0e978125f`; sync commit —
-   `c6d00fa9623b83234c1674b8bf9bbbfe96500d96`. Audit docs commit публикуется
-   отдельно; его итоговый SHA указан в финальном ответе.
+   `c6d00fa9623b83234c1674b8bf9bbbfe96500d96`; docs-only audit commit —
+   `3b85cab990772aef1132c5c41d6d3697d48c4918`. Текущий HEAD после
+   metadata-follow-up указан в финальном ответе.
 
 7. **Какие тесты прошли?**
    `pytest -q` — **133 passed**, включая **18** regression tests;

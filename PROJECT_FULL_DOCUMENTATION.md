@@ -13,6 +13,9 @@
 
 **Дата подготовки / финального аудита:** 2026-10-22
 
+**Публикация финального отчёта:**
+`3b85cab990772aef1132c5c41d6d3697d48c4918` (docs-only audit commit)
+
 **Итоговый отчёт:** `PROJECT_FINAL_AUDIT.md`
 
 **Источник истины:** работающий production-сервер EVRECONSE, inspected read-only

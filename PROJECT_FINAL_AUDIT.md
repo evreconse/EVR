@@ -10,6 +10,9 @@
 **Предыдущий HEAD:**
 `21fc7fde3c605336bc5c4acf601de7660b2398c8`
 
+**Публикация отчёта:** `3b85cab990772aef1132c5c41d6d3697d48c4918`
+(docs-only audit commit)
+
 Аудит выполнен в отдельном полном clone. Production-сервер использовался
 только для чтения. Реальные торговые, Telegram, private BingX, CMC и
 CoinGlass действия не выполнялись.
