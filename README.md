@@ -8,15 +8,19 @@
 **Production synchronization / shadow mode.** Активная стратегия на production —
 **Capitulation / Absorption** (LONG-кандидаты, без реальной торговли). GitHub
 синхронизирован с работающим серверным кодом; LW-001 сохранён как неактивная
-legacy-стратегия.
+legacy-стратегия. Полная побайтовая идентичность не заявляется: runtime-секреты,
+БД, пути и окружение намеренно различаются, а stats-only правка активного файла
+не была загружена процессом без restart.
 
 - Активный entry point: `realtime_capitulation_monitor_fixed.py`
-- Активный systemd unit: `evreconse.service`
+- Активный systemd unit на сервере: `evreconse.service` (в GitHub — безопасный
+  шаблон, не точная копия серверного unit)
 - LW-001: `realtime_lw001_monitor.py` — **не запущен**
 - Секреты и runtime-данные в репозиторий не входят
 
 Полное описание: `PROJECT_FULL_DOCUMENTATION.md`.
 История сверки: `PROJECT_VERSION_VERIFICATION.md`.
+Финальный аудит и ограничения: `PROJECT_FINAL_AUDIT.md`.
 Спецификация LW-001: `LW001_PRODUCTION_SPEC.md`.
 
 ## Требования
@@ -78,7 +82,8 @@ EVRECONSE/
 ├── LW001_METRIC_SPEC.py                    # canonical LW-001 formulas
 ├── LW001_PRODUCTION_SPEC.md
 ├── PROJECT_FULL_DOCUMENTATION.md
-└── PROJECT_VERSION_VERIFICATION.md
+├── PROJECT_VERSION_VERIFICATION.md
+└── PROJECT_FINAL_AUDIT.md
 ```
 
 ## Основные команды

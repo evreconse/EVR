@@ -7,8 +7,12 @@
 **GitHub HEAD до синхронизации:**
 `21fc7fde3c605336bc5c4acf601de7660b2398c8` (`21fc7fd`)
 
-**GitHub HEAD после синхронизации:** `c6d00fa9623b83234c1674b8bf9bbbfe96500d96` (sync commit; docs follow-up
-commit updates this document)
+**Коммит синхронизации:** `c6d00fa9623b83234c1674b8bf9bbbfe96500d96`
+
+**Проверенный HEAD на начало финального аудита:**
+`3581bb24bd6bcbf00958b674b865cfa0e978125f` (docs-only follow-up)
+
+**Финальный аудит:** 2026-10-22, отчёт `PROJECT_FINAL_AUDIT.md`.
 
 **Production source of truth:** `evreconse.service` →
 `/home/evreconse/realtime_capitulation_monitor_fixed.py`
@@ -80,9 +84,9 @@ CoinGlass действия не выполнялись.
 | Объект | Значение |
 |---|---|
 | `sent_signals.db` | 663 строки: 468 pending, 195 sent |
-| Active universe | 574 символа |
+| Active universe | 574 символа (snapshot stale) |
 | BingX active contracts | 1239 |
-| Cache fetched_at | `2026-10-08T09:25:51Z` |
+| Cache fetched_at | `2026-10-08T09:25:51Z` (~14 дней на момент аудита) |
 | Cache id | 5 |
 
 ### 2.3. Оговорка о stats-only правке
@@ -253,9 +257,16 @@ bd5ecc63cad03d229b298152e0662021046911ff50a1eca1d64cd1d4958f309f  LW001_METRIC_S
 
 - серверные файлы прочитаны read-only;
 - значения вынесены в regression tests;
-- тесты проверяют inclusive boundaries и отсутствие score/volume gates;
-- активный monitor hash совпадает с серверным;
-- LW-001 monitor hash совпадает с серверным.
+- active monitor hash совпадает с серверным;
+- LW-001 monitor hash совпадает с серверным;
+- подтверждено, что active monitor выполняет финальную квалификацию через
+  собственный `check_thresholds()`/`FIXED_THRESHOLDS`, а не через
+  `result.qualified` detector; значения сейчас идентичны;
+- тесты не импортируют active monitor целиком; для LW-001 Body, LW/Body и
+  LW/Range используются соседние pass/fail значения, а не float-equality на
+  точной границе;
+- `BingXFetcher.get_klines()` при `limit=500` использует `endTime` и не
+  применяет `startTime` как фильтр; фактическая история — до 500 свечей.
 
 ---
 
@@ -286,6 +297,9 @@ Mypy exclusion: `src/data_provider/universe_provider.py` и
 - [x] нет `.env`/токенов/private keys/chat_id;
 - [x] нет production БД/логов/дампов;
 - [x] нет случайных артефактов;
+- [x] high-confidence secret scan текущего tree — 0 совпадений;
+- [x] high-confidence secret scan всей доступной истории на момент проверки
+  (22 коммита, 1490 уникальных blob) — 0 совпадений;
 - [x] пороги Capitulation совпадают с сервером;
 - [x] пороги LW-001 совпадают с сервером;
 - [x] unit указывает на активный Capitulation monitor;
@@ -330,26 +344,32 @@ Push выполняется отдельным commit. При невозможн
    README, LW001 spec, backfill, legacy shim и оба обязательных документа.
 
 6. **Какой SHA теперь опубликован?**
-   `c6d00fa9623b83234c1674b8bf9bbbfe96500d96` (sync commit). Последующий docs-only commit обновляет этот
-   документ; текущий remote HEAD указан в финальном отчёте.
+   На начало финального аудита remote HEAD —
+   `3581bb24bd6bcbf00958b674b865cfa0e978125f`; sync commit —
+   `c6d00fa9623b83234c1674b8bf9bbbfe96500d96`. Audit docs commit публикуется
+   отдельно; его итоговый SHA указан в финальном ответе.
 
 7. **Какие тесты прошли?**
-   `pytest -q` — **133 passed**, включая **18** новых regression tests;
-   `ruff` — passed; `mypy` — passed; `py_compile` — OK. Production integrations
-   не запускались.
+   `pytest -q` — **133 passed**, включая **18** regression tests;
+   `ruff` — passed; `mypy` — passed; `py_compile` — OK; imports — OK.
+   Production integrations не запускались.
 
 8. **Подтверждено ли соответствие опубликованного алгоритма серверному?**
-   Да, для порогов/формул Capitulation и LW-001; значения сведены в §7 и
-   проверены тестами. Активный monitor и LW-001 monitor совпадают с серверными
-   по SHA-256. Для detector/config/I/O есть только безопасные адаптации
-   package layout/форматирования, не меняющие алгоритм.
+   Да для числовых порогов/формул Capitulation и canonical LW-001; значения
+   сведены в §7 и проверены тестами. Активный monitor и LW-001 monitor совпадают
+   с серверными по SHA-256. Для detector/config/I/O есть только безопасные
+   адаптации package layout/форматирования, не меняющие алгоритм. При этом
+   active monitor использует собственный `FIXED_THRESHOLDS` для финальной
+   квалификации; это подтверждено статически, но не отдельным integration test.
 
 9. **Какие расхождения намеренно остались?**
    Секреты, `.env`, БД, логи, runtime cache, серверные абсолютные пути,
    dependency freeze и локальные service-настройки не публикуются. LW-001
    остаётся неактивным. Stats-only fix в активном monitor не был загружен
    процессом, так как сервер не перезапускался. Два server I/O-модуля исключены
-   из strict mypy.
+   из strict mypy. Universe snapshot был stale (~14 дней); provider не
+   проверяет expiry active snapshot перед выдачей, а initialize не делает
+   немедленный refresh.
 
 10. **Подтверди, что серверные файлы, конфигурация, службы и Git не
     изменялись.**
@@ -370,6 +390,14 @@ Push выполняется отдельным commit. При невозможн
 5. Абсолютные production paths в monitor сохранены; для переноса нужен
    deployment-конфиг.
 6. LW-001 остаётся legacy и не должен включаться без отдельного решения.
+7. Active monitor использует dual-source thresholds: detector/config и
+   `FIXED_THRESHOLDS`; сейчас значения совпадают, но автоматической связи нет.
+8. Universe provider не проверяет expiry active snapshot; snapshot на момент
+   baseline был stale (~14 дней), причина не исследовалась live.
+9. `BingXFetcher.get_klines()` при `limit=500` не применяет `startTime` как
+   фильтр; фактическая история — до 500 свечей, а не строго 4 часа.
+10. В active monitor дважды определён `get_last_completed_candle`; определения
+    идентичны. Legacy LW-001 содержит несовместимый/volume-based код.
 
 ---
 
@@ -378,4 +406,5 @@ Push выполняется отдельным commit. При невозможн
 GitHub отражает актуальную серверную реализацию EVRECONSE по активной стратегии
 Capitulation/Absorption и по canonical LW-001. Работающий сервер не изменялся.
 Публикация выполнена отдельным commit; точный SHA и результат проверки свежего
-clone указываются после push.
+clone указываются после push. Финальный аудит, найденные ограничения и
+непроверенные production-интеграции — в `PROJECT_FINAL_AUDIT.md`.

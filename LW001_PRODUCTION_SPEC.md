@@ -25,8 +25,10 @@ candle_close_time_ms = candle_timestamp_ms + 15 * 60 * 1000
 candle_close_time_ms <= now_ms
 ```
 
-The monitor fetches four hours of candles and selects the last completed candle.
-The legacy LW-001 monitor requires at least two candles and `candle_index >= 1`.
+The monitor passes `start_time = now - 4h`, but `BingXFetcher.get_klines()`
+uses `limit=500` and `endTime`; at this limit it does not apply `startTime` as a
+filter. The actual response can contain up to 500 M15 candles. The legacy LW-001
+monitor requires at least two candles and `candle_index >= 1`.
 
 ---
 
@@ -118,6 +120,11 @@ The legacy monitor is **not running** under `evreconse.service`. It also contain
 an optional demo auto-trader initialization path; that path is not active and no
 trading was executed during the audit.
 
+`realtime_lw001_monitor_fixed.py` is also historical and **not canonical**: it
+still contains old Volume Ratio logic and a call using the obsolete
+`reference_average_volume` keyword. Do not use either legacy entry point as a
+source of truth or enable them without a separate owner decision.
+
 ---
 
 ## Verification
@@ -126,8 +133,10 @@ The repository includes `tests/test_server_sync_algorithms.py`, which verifies:
 
 - exact LW-001 thresholds, including `open_to_low_pct == -5.0`;
 - exact metric formulas;
-- range/body/LW-body/LW-range boundaries;
-- inclusive Open→Low boundary;
+- range/body/LW-body/LW-range near-boundary pass/fail values (exact inclusive
+  equality is guaranteed by the comparison operators but is not asserted for
+  every float boundary);
+- inclusive Open→Low and Range boundaries;
 - absence of volume-ratio and score gates.
 
 For the active Capitulation strategy, the same test module verifies the

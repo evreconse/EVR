@@ -5,10 +5,15 @@
 
 **Состояние до синхронизации:** `21fc7fde3c605336bc5c4acf601de7660b2398c8`
 
-**Состояние после синхронизации:** `c6d00fa9623b83234c1674b8bf9bbbfe96500d96` (sync commit; subsequent
-docs-only commit updates the verification record)
+**Коммит синхронизации:** `c6d00fa9623b83234c1674b8bf9bbbfe96500d96`
 
-**Дата подготовки:** 2026-10-22
+**Проверенный HEAD на начало финального аудита:**
+`3581bb24bd6bcbf00958b674b865cfa0e978125f` (docs-only follow-up после
+синхронизации)
+
+**Дата подготовки / финального аудита:** 2026-10-22
+
+**Итоговый отчёт:** `PROJECT_FINAL_AUDIT.md`
 
 **Источник истины:** работающий production-сервер EVRECONSE, inspected read-only
 
@@ -95,9 +100,9 @@ Telegram-flow или universe. Алгоритмический эталон од�
 | Объект | Значение на момент проверки |
 |---|---|
 | `sent_signals.db` | 663 строки: 468 `pending`, 195 `sent` |
-| active universe cache | 574 символа |
+| active universe cache | 574 символа (snapshot stale) |
 | BingX active contracts | 1239 |
-| cache fetched_at | `2026-10-08T09:25:51Z` |
+| cache fetched_at | `2026-10-08T09:25:51Z` (~14 дней на момент аудита) |
 | cache id | 5 |
 
 Значения являются read-only снимком и меняются во время работы.
@@ -140,13 +145,25 @@ is_red       = close < open
 `config/capitulation_thresholds.py`; в GitHub он размещён внутри существующего
 пакета `src/config`, чтобы не конфликтовать с package layout.
 
+**Важно:** active monitor не использует `result.qualified` detector для
+окончательного решения. После вызова detector он отдельно вызывает
+`check_thresholds(metrics)` с собственным `FIXED_THRESHOLDS`
+(`-5.0`, `2.0`, `1.0`, `30.0`). Сейчас значения совпадают с config, поэтому
+поведение идентично; однако изменение только config не изменит фактическую
+квалификацию active monitor. Это dual source of truth и известный технический
+долг. В config также есть `range_pct_min=0.0` и `body_pct_max=100.0`; detector
+не использует их как активные фильтры.
+
 ### 3.3. Подтверждение свечи
 
 - timeframe: **15m**;
 - берётся последняя **закрытая** свеча;
 - закрытость: `timestamp + 15 * 60 * 1000 <= now_ms`;
-- запрашивается 4 часа истории;
-- нужно минимум `candle_index >= 31`, то есть **32 свечи**;
+- monitor передаёт `start_time = now - 4h`, но `BingXFetcher.get_klines()`
+  использует `limit=500` и `endTime`, а `startTime` не применяет как фильтр
+  при таком limit; фактически возвращается до **500** последних M15-свечей;
+- для расчёта median30 нужно минимум `candle_index >= 31`, то есть **32
+  свечи**; фактический объём истории обычно больше;
 - текущая незакрытая свеча игнорируется;
 - цикл запускается около `:01/:16/:31/:46` (после закрытия M15 + 60 секунд).
 
@@ -155,9 +172,15 @@ is_red       = close < open
 - все активные USDT perpetual contracts BingX;
 - без TOP-500 ограничения;
 - фильтры: stablecoin, wrapped, leveraged, synthetic, non-trading;
-- SQLite cache с TTL 24h;
-- fallback на last-good universe;
-- на момент проверки — 574 символа.
+- SQLite cache содержит TTL-хелперы (24h fresh / 72h max stale), но
+  `UniverseProvider.get_universe()` возвращает active snapshot без проверки
+  возраста/expiry; fallback используется только при отсутствии active cache;
+- `initialize()` не вызывает refresh; фоновый refresh стартует после sleep
+  24h, поэтому при отсутствии cache universe может быть пустым до первого
+  refresh;
+- на момент проверки — 574 символа, `fetched_at=2026-10-08T09:25:51Z`;
+  snapshot был stale (~14 дней), причина отсутствия более свежего refresh
+  live не проверялась.
 
 ### 3.5. Dedup
 
@@ -226,7 +249,8 @@ strategy носит информационный характер.
 
 - 15m, последняя закрытая свеча;
 - `timestamp + 15min <= now`;
-- 4 часа истории;
+- monitor передаёт `start_time = now - 4h`, но фактический fetcher использует
+  `limit=500` и `endTime`, поэтому доступно до 500 свечей;
 - минимум 2 свечи и `candle_index >= 1`;
 - legacy monitor содержит optional demo auto-trader path, но он не запущен.
 
@@ -308,23 +332,28 @@ systemd evreconse.service
       ├── load_dotenv()                         # .env, секреты
       ├── init_sent_signals_db()                # SQLite dedup
       ├── UniverseProvider.initialize()
-      │   ├── CMCUniverseCache                  # active snapshot / TTL
-      │   └── BingXFetcher.get_contracts()      # BingX public data
+      │   ├── CMCUniverseCache                  # active snapshot / TTL helpers
+      │   └── _auto_refresh_loop()              # sleep 24h, then refresh:
+      │       └── BingXFetcher.get_contracts()  # BingX public data
       ├── every ~15m + 60s:
-      │   ├── fetch 4h of 15m candles
+      │   ├── fetch latest M15 candles (limit=500, endTime=now;
+      │   │   start_time=now-4h is not used as a filter at this limit)
       │   ├── get_last_completed_candle()
       │   ├── require candle_index >= 31
       │   ├── calculate prev-30 volume median
-      │   ├── check_capitulation_signal()       # config thresholds
+      │   ├── check_capitulation_signal()       # detector + config metrics;
+      │   │                                     # result.qualified not used below
+      │   ├── check_thresholds()                # ACTUAL FIXED_THRESHOLDS pass/fail
       │   ├── claim_signal()                    # atomic dedup
       │   ├── send_signal_to_telegram()
       │   └── update / rollback status
       └── journald logs + optional forensic log
 ```
 
-Capitulation detector — единственный источник активных формул. Legacy
-`realtime_capitulation_monitor.py` не дублирует алгоритм, а делегирует в
-активный entry point.
+Detector — источник формул и config-метрик, но фактическую квалификацию active
+monitor выполняет через собственный `check_thresholds()`; значения сейчас
+совпадают. Legacy `realtime_capitulation_monitor.py` не дублирует алгоритм, а
+делегирует в активный entry point.
 
 ---
 
@@ -385,6 +414,13 @@ Mypy: два серверных I/O-модуля (`universe_provider.py`,
 fetcher/rate limiter и тесты проверяются. Это ограничение зафиксировано явно,
 а не замаскировано.
 
+Тесты не импортируют active monitor целиком (импорт инициализирует
+production-ориентированные пути/БД), поэтому hardcoded `check_thresholds()`
+монитора проверяется статически, а не отдельным unit test. Для LW-001 Body,
+LW/Body и LW/Range тесты используют соседние pass/fail значения; точная
+включительность следует из операторов `<`/`>`, но не проверяется отдельным
+float-equality assertion. Это ограничение покрытия, а не изменение алгоритма.
+
 Не выполнялись:
 
 - реальные сделки/ордера;
@@ -432,6 +468,23 @@ fetcher/rate limiter и тесты проверяются. Это огранич
 9. **Hardcoded production paths** в legacy/active monitor сохранены как
    серверное поведение; при переносе нужен deployment-конфиг.
 10. **Live-проверки** Telegram/BingX private/CMC не выполнялись.
+11. **Dual-source thresholds** active strategy: detector/config и
+    `FIXED_THRESHOLDS` monitor сейчас совпадают, но не связаны автоматически.
+12. **Fetch semantics**: `start_time=now-4h` не ограничивает выдачу при
+    `limit=500`; фактически доступно до 500 свечей. Для 32-свечного требования
+    этого достаточно, но документация не должна называть это строгим 4h-окном.
+13. **Universe freshness**: provider не проверяет expiry active snapshot;
+    refresh запускается только через 24h после старта, а не при initialize.
+    Snapshot на момент baseline был stale (~14 дней); причина live не
+    исследовалась.
+14. **Duplicate function**: `get_last_completed_candle` определён в active
+    monitor дважды; определения идентичны, поведение не меняется.
+15. **Legacy LW-001**: `realtime_lw001_monitor_fixed.py` сохраняет Volume Ratio,
+    а старый `verify_signal_comprehensive` в `realtime_lw001_monitor.py` вызывает
+    несовместимый keyword; оба пути не являются production/canonical.
+16. **Historical artifacts**: tracked `Default Project/EVRECONSE/historical_signals.json`
+    и vendored `.devin`/`.codeium` не являются production-кодом; high-confidence
+    секретов в них не найдено. Они не удалялись без отдельного решения владельца.
 
 ---
 
@@ -451,6 +504,10 @@ fetcher/rate limiter и тесты проверяются. Это огранич
 Локальный `SERVER_SOURCE_OF_TRUTH.md` содержит инфраструктурные детали и
 **не публикуется**.
 
+Финальный аудит подтвердил отсутствие изменений на production: сервис остался
+active, без restart, а ключевые файлы/хэши не изменились. Секреты, БД и логи
+не копировались.
+
 ---
 
 ## 13. Ссылки
@@ -459,4 +516,5 @@ fetcher/rate limiter и тесты проверяются. Это огранич
 - `LW001_PRODUCTION_SPEC.md` — LW-001 canonical spec.
 - `PROJECT_VERSION_VERIFICATION.md` — журнал сверки, component table, тесты,
   ответы на 10 вопросов.
+- `PROJECT_FINAL_AUDIT.md` — финальный аудит, риски и границы проверки.
 - `tests/test_server_sync_algorithms.py` — regression tests серверных порогов.
