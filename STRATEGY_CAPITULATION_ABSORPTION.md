@@ -457,6 +457,9 @@ offline, network, API/exception; статистика пишется в journald
   - `FIXED_THRESHOLDS` совпадают с config;
   - 5 000 случайных свечей дают одинаковое решение detector и monitor;
   - границы и вырожденные свечи дают одинаковое решение.
+- Дополнительно серверный detector (baseline, SHA-256 `3b239a00…`) и
+  GitHub detector загружены раздельно и прогнаны на 5 007 одинаковых кейсах;
+  `qualified`, `failed_conditions` и `metrics` совпали побайтово.
 
 Полный прогон после добавления: **136 passed**. Тесты не вызывают внешние
 сервисы и не используют production-БД.

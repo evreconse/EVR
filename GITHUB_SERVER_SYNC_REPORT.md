@@ -175,6 +175,11 @@ formatting, typing, lint-заголовки, удалённый недостиж
 - нулевые body/range/open;
 - зелёная свеча.
 
+Серверный `capitulation_detector.py` (baseline, SHA-256 `3b239a00…`) и
+GitHub-версия загружены раздельно и прогнаны на **5 007** одинаковых кейсах.
+JSON-выходы с `qualified`, `failed_conditions` и всеми `metrics` совпали
+побайтово.
+
 `result.qualified` detector и финальное решение monitor по `check_thresholds`
 совпали во всех случаях. Это не отменяет архитектурный риск dual-source: при
 изменении только config active monitor продолжит использовать
