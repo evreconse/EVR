@@ -2,11 +2,16 @@
 
 **Репозиторий:** `https://github.com/evreconse/EVR`
 **Ветка:** `main`
+
 **Состояние до синхронизации:** `21fc7fde3c605336bc5c4acf601de7660b2398c8`
-**Состояние после синхронизации:** `{{FINAL_SHA}}` (уточняется после push; см.
-`PROJECT_VERSION_VERIFICATION.md`)
+
+**Состояние после синхронизации:** `c6d00fa9623b83234c1674b8bf9bbbfe96500d96` (sync commit; subsequent
+docs-only commit updates the verification record)
+
 **Дата подготовки:** 2026-10-22
+
 **Источник истины:** работающий production-сервер EVRECONSE, inspected read-only
+
 **Среда локальной проверки:** Python 3.11.17, macOS, отдельный clone
 
 ---

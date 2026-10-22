@@ -3,12 +3,18 @@
 **Дата проверки:** 2026-10-22
 **Репозиторий:** `https://github.com/evreconse/EVR`
 **Ветка:** `main`
+
 **GitHub HEAD до синхронизации:**
 `21fc7fde3c605336bc5c4acf601de7660b2398c8` (`21fc7fd`)
-**GitHub HEAD после синхронизации:** `{{FINAL_SHA}}`
+
+**GitHub HEAD после синхронизации:** `c6d00fa9623b83234c1674b8bf9bbbfe96500d96` (sync commit; docs follow-up
+commit updates this document)
+
 **Production source of truth:** `evreconse.service` →
 `/home/evreconse/realtime_capitulation_monitor_fixed.py`
+
 **Режим доступа к серверу:** read-only
+
 **Локальный рабочий clone:** отдельный clone GitHub, не сервер
 
 Секреты, токены, chat_id, содержимое `.env`, production БД и логи в документе
@@ -324,7 +330,8 @@ Push выполняется отдельным commit. При невозможн
    README, LW001 spec, backfill, legacy shim и оба обязательных документа.
 
 6. **Какой SHA теперь опубликован?**
-   `{{FINAL_SHA}}` (будет заменён точным SHA после push; см. финальный отчёт).
+   `c6d00fa9623b83234c1674b8bf9bbbfe96500d96` (sync commit). Последующий docs-only commit обновляет этот
+   документ; текущий remote HEAD указан в финальном отчёте.
 
 7. **Какие тесты прошли?**
    `pytest -q` — **133 passed**, включая **18** новых regression tests;
