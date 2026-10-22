@@ -1,27 +1,20 @@
 [Unit]
-Description=EVRECONSE LW-001 Realtime Monitor
-After=network-online.target
-Wants=network-online.target
+Description=EVRECONSE Capitulation/Absorption Monitor
+After=network.target
 
 [Service]
 Type=simple
 User=evreconse
-Group=evreconse
 WorkingDirectory=/home/evreconse
-ExecStart=/usr/bin/python3 realtime_lw001_monitor.py
-Restart=on-failure
-RestartSec=10
+ExecStart=/usr/bin/python3 /home/evreconse/realtime_capitulation_monitor_fixed.py
+Restart=always
+RestartSec=15
 StandardOutput=journal
 StandardError=journal
-# Secrets are intentionally not stored in this unit file.
-# Provide them via a root-readable environment file, for example:
-#   install -m 600 /dev/null /etc/evreconse/evreconse.env
-#   $EDITOR /etc/evreconse/evreconse.env
-EnvironmentFile=-/etc/evreconse/evreconse.env
-Environment=EVRECONSE_SYSTEM__LOG_LEVEL=INFO
-Environment=EVRECONSE_SYSTEM__TIMEZONE=UTC
-Environment=EVRECONSE_STORAGE__DATA_PATH=./data
-Environment=EVRECONSE_SYSTEM__LOG_PATH=./logs/evreconse.log
+Environment=PYTHONUNBUFFERED=1
+
+# Runtime credentials are loaded from /home/evreconse/.env by python-dotenv.
+# Do not store API keys, Telegram tokens, or chat IDs in this unit file.
 
 [Install]
 WantedBy=multi-user.target

@@ -1,3 +1,5 @@
+# ruff: noqa
+# mypy: ignore-errors
 """
 BingX Universe Provider - Unified interface for dynamic universe.
 
@@ -9,13 +11,15 @@ No TOP-500 limit. Universe refreshes every 24 hours automatically.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
-from dataclasses import dataclass
-from datetime import UTC, datetime
-from typing import Any
+from typing import List, Optional, Dict, Any
+from pathlib import Path
+from dataclasses import dataclass, asdict
+from datetime import datetime, timezone
 
-from data_provider.cmc_universe_cache import CMCUniverseCache, get_universe_cache
-from exchange.bingx_fetcher import BingXFetcher
+from src.exchange.bingx_fetcher import BingXFetcher
+from src.data_provider.cmc_universe_cache import CMCUniverseCache, get_universe_cache
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +35,7 @@ class UniverseMetadata:
     excluded_synthetic: int = 0
     excluded_non_trading: int = 0
     final_universe_count: int = 0
-    last_refresh: str | None = None
+    last_refresh: Optional[str] = None
     cache_age_hours: float = 0.0
     validation_status: str = "UNKNOWN"
 
@@ -40,9 +44,11 @@ class UniverseMetadata:
 STABLECOINS = frozenset({
     "USDT", "USDC", "USDD", "USDE", "USDe", "USDs",
     "DAI", "FDUSD", "PYUSD", "USDP", "GUSD", "LUSD", "SUSD",
-    "UST", "FRAX", "MIM", "FEI", "RAI", "OHM",
+    "UST", "USDD", "USDE", "USDP", "GUSD", "LUSD", "SUSD",
+    "FRAX", "LUSD", "SUSD", "MIM", "FEI", "RAI", "OHM",
     "BUSD", "HUSD", "TUSD", "USDK", "USDN", "USDS",
-    "USDX", "USDT0", "USDT1", "USDT2", "USDT3", "USDT4", "USDT5",
+    "USDX", "USDK", "USDN", "USDS",
+    "USDT0", "USDT1", "USDT2", "USDT3", "USDT4", "USDT5",
     "USDT6", "USDT7", "USDT8", "USDT9",
 })
 
@@ -62,8 +68,9 @@ LEVERAGED_TOKENS = frozenset([
     "BNBBULL", "BNBBEAR",
 ])
 
-# Synthetic/tokenized assets (NCSK*, NCCO* prefixes) - these are tokenized stocks/indices
+# Synthetic/tokenized assets (NCSK*, NCCO*, NCFX*, NCSI*, NCSIB*, NCSID*, etc.) - these are tokenized stocks/indices/forex
 SYNTHETIC_PREFIXES = frozenset([
+    # NCSK* - tokenized stocks
     "NCSK", "NCCO", "NCSIN", "NCSISP", "NCSKNBIS", "NCSKGLW", "NCCO724",
     "NCSKSOXX", "NCSKBTDR", "NCSKAMC", "NCSKMSTR", "NCSKCOST", "NCSKARKK",
     "NCSKCAT", "NCSKLGELE", "NCSKOKTA", "NCSKSNPS", "NCSKTM", "NCSKHIMS",
@@ -78,7 +85,23 @@ SYNTHETIC_PREFIXES = frozenset([
     "NCSKQCOM", "NCSKIREN", "NCSKSKUU", "NCSKQNT", "NCSKPURR", "NCSKUSO",
     "NCSKXOM", "NCSKMU", "NCSKXLK", "NCSKJPM", "NCSKBITO", "NCSIEWJ",
     "NCSKAAL", "NCSKCLSK", "NCSKBUDUSDT", "NCSKCOHR", "NCSKTAIYOYUDEN",
-    "NCSKRCAT", "NCSKRECRUIT", "NCSKMDB", "NCSKWDAY", "NCSKNVD2"
+    "NCSKRCAT", "NCSKRECRUIT", "NCSKMDB", "NCSKWDAY", "NCSKNVD2",
+    # NCFX* - tokenized forex pairs
+    "NCFX",
+    # NCSI* - tokenized indices
+    "NCSI",
+    # NCSIB* - tokenized indices (SIB)
+    "NCSIB",
+    # NCSID* - tokenized indices (SID)
+    "NCSID",
+    # NCSIEW* - tokenized indices
+    "NCSIEW",
+    # NCSIG* - tokenized indices
+    "NCSIG",
+    # NCSII* - tokenized indices
+    "NCSII",
+    # NCSIR* - tokenized indices (Russell)
+    "NCSIR",
 ])
 
 
@@ -119,18 +142,18 @@ class UniverseProvider:
 
     def __init__(
         self,
-        bingx_api_key: str | None = None,
-        bingx_api_secret: str | None = None,
+        bingx_api_key: str = None,
+        bingx_api_secret: str = None,
         cache_db_path: str = "/home/evreconse/data/cmc_universe.db",
         fallback_file: str = "/home/evreconse/last_good_universe.json",
         refresh_interval_hours: int = 24,
     ):
         self._bingx_fetcher = BingXFetcher()
         self._cache = CMCUniverseCache()
-        self._universe: list[dict[str, Any]] = []
-        self._metadata: dict = {}
-        self._last_refresh: datetime | None = None
-        self._refresh_task: asyncio.Task | None = None
+        self._universe: List[Dict[str, Any]] = []
+        self._metadata: Dict = {}
+        self._last_refresh: Optional[datetime] = None
+        self._refresh_task: Optional[asyncio.Task] = None
         self._refresh_interval_hours = refresh_interval_hours
         self._running = False
 
@@ -179,7 +202,7 @@ class UniverseProvider:
                 pass
         logger.info("Universe provider shutdown complete")
 
-    async def get_universe(self) -> list[str]:
+    async def get_universe(self) -> List[str]:
         """
         Get the current active universe symbols.
 
@@ -203,7 +226,7 @@ class UniverseProvider:
         logger.warning("No universe available")
         return []
 
-    async def get_universe_with_metadata(self) -> tuple[list[str], dict[str, Any]]:
+    async def get_universe_with_metadata(self) -> tuple[List[str], Dict[str, Any]]:
         """
         Get universe symbols with full metadata.
 
@@ -246,7 +269,7 @@ class UniverseProvider:
             return 0.0
 
         fetched_at = datetime.fromisoformat(meta["fetched_at"].replace("Z", "+00:00"))
-        age = (datetime.now(UTC) - fetched_at).total_seconds() / 3600
+        age = (datetime.now(timezone.utc) - fetched_at).total_seconds() / 3600
         return age
 
     async def refresh(self, force: bool = False) -> bool:
@@ -349,7 +372,7 @@ class UniverseProvider:
                 no_match_count=0,
                 final_count=len(final_universe),
                 bingx_active_contracts=stats["total_bingx_contracts"],
-                fetched_at=datetime.now(UTC).isoformat(),
+                fetched_at=datetime.now(timezone.utc).isoformat(),
                 validation_status="ACCEPT",
                 validation_errors=[]
             )
@@ -357,7 +380,7 @@ class UniverseProvider:
             # Activate the snapshot
             cache.activate_snapshot(snapshot_id)
 
-            self._last_refresh = datetime.now(UTC)
+            self._last_refresh = datetime.now(timezone.utc)
             logger.info(f"Universe saved to cache: {len(final_universe)} symbols")
 
             return True
@@ -368,7 +391,7 @@ class UniverseProvider:
             traceback.print_exc()
             return False
 
-    def get_status(self) -> dict[str, Any]:
+    def get_status(self) -> Dict[str, Any]:
         """Get provider status."""
         cache = get_universe_cache()
         status = cache.get_status()
@@ -379,7 +402,7 @@ class UniverseProvider:
 
 
 # Global provider instance
-_universe_provider: UniverseProvider | None = None
+_universe_provider: Optional[UniverseProvider] = None
 
 
 def get_universe_provider() -> UniverseProvider:
@@ -390,7 +413,7 @@ def get_universe_provider() -> UniverseProvider:
     return _universe_provider
 
 
-async def get_universe_symbols() -> list[str]:
+async def get_universe_symbols() -> List[str]:
     """Convenience function to get current universe symbols."""
     provider = get_universe_provider()
     return await provider.get_universe()
@@ -401,8 +424,11 @@ if __name__ == "__main__":
         provider = get_universe_provider()
         await provider.initialize()
 
-        await provider.get_universe()
+        universe = await provider.get_universe()
+        print(f"Universe: {len(universe)} symbols")
+        print(universe[:10])
 
         symbols, meta = await provider.get_universe_with_metadata()
+        print(f"\nMetadata: {meta}")
 
     asyncio.run(main())

@@ -129,7 +129,7 @@ FIXED_THRESHOLDS = {
     "body_pct": 0.8,
     "lw_body_ratio": 1.3,
     "lw_range_pct": 55.0,  # FIXED: was 45.0, now 55.0 per Production Spec
-    "open_low_pct": -2.5,
+    "open_low_pct": -5.0,
 }
 
 
@@ -254,7 +254,7 @@ def format_telegram_message(signal, results):
         format_condition_line("Body", "≥ 0.8%", results["body_pct"]),
         format_condition_line("LW/Body", "≥ 1.3x", results["lw_body_ratio"]),
         format_condition_line("LW/Range", "≥ 55%", results["lw_range_pct"]),
-        format_condition_line("Open→Low", "≤ -2.5%", results["open_low_pct"]),
+        format_condition_line("Open→Low", "≤ -5.0%", results["open_low_pct"]),
         # Volume Ratio REMOVED - not part of LW-001 strategy
     ]
     
@@ -446,7 +446,7 @@ async def monitor_symbols(universe_provider, auto_trader=None):
     print(f"Universe: ALL active USDT Perpetual contracts from BingX (NO TOP-500 limit)")
     print(f"Timeframe: 15m")
     print(f"Thresholds: Range >= 4.5%, Body >= 0.8%, LW/Body >= 1.3x, LW/Range >= 55%")
-    print(f"           Open->Low <= -2.5%")
+    print(f"           Open->Low <= -5.0%")
     print(f"Candle direction: RED only (Close < Open)")
     print(f"Only CLOSED candles used")
     print()

@@ -40,7 +40,7 @@ class LW001Strategy(Strategy):
     3. Body % >= 0.8%
     4. LW/Body >= 1.3x
     5. LW/Range % >= 55.0%
-    6. Open->Low % <= -2.5%
+    6. Open->Low % <= -5.0%
 
     Volume Ratio REMOVED - not part of LW-001 strategy.
 
@@ -69,7 +69,7 @@ class LW001Strategy(Strategy):
         return (
             "Identifies bullish reversal patterns using 6 canonical conditions: "
             "red candle, Range>=4.5%, Body>=0.8%, LW/Body>=1.3x, "
-            "LW/Range>=55%, Open->Low<=-2.5%. "
+            "LW/Range>=55%, Open->Low<=-5.0%. "
             "Only operates on M15 timeframe with real BingX data. Only closed candles."
         )
 
@@ -217,7 +217,7 @@ class LW001Strategy(Strategy):
                     f"  Body: {metrics.body_pct:.2f}% (threshold: >= 0.8%)\n"
                     f"  LW/Body: {metrics.lw_body_ratio:.2f}x (threshold: >= 1.3x)\n"
                     f"  LW/Range: {metrics.lw_range_pct:.2f}% (threshold: >= 55.0%)\n"
-                    f"  Open->Low: {metrics.open_to_low_pct:.2f}% (threshold: <= -2.5%)\n"
+                    f"  Open->Low: {metrics.open_to_low_pct:.2f}% (threshold: <= -5.0%)\n"
                 )
             else:
                 explanation = (
@@ -231,7 +231,7 @@ class LW001Strategy(Strategy):
                     f"  Body: {metrics.body_pct:.2f}% (threshold: >= 0.8%)\n"
                     f"  LW/Body: {metrics.lw_body_ratio:.2f}x (threshold: >= 1.3x)\n"
                     f"  LW/Range: {metrics.lw_range_pct:.2f}% (threshold: >= 55.0%)\n"
-                    f"  Open->Low: {metrics.open_to_low_pct:.2f}% (threshold: <= -2.5%)\n"
+                    f"  Open->Low: {metrics.open_to_low_pct:.2f}% (threshold: <= -5.0%)\n"
                 )
 
             execution_time_ms = (time.perf_counter() - start_time) * 1000

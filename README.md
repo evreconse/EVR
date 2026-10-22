@@ -1,125 +1,136 @@
 # EVRECONSE
 
-Автоматизированная система идентификации и оценки разворотных паттернов на криптовалютном рынке.
+Автоматизированная система идентификации и оценки разворотных паттернов на
+криптовалютном рынке.
 
 ## Status
 
-**Foundation Stage**
+**Production synchronization / shadow mode.** Активная стратегия на production —
+**Capitulation / Absorption** (LONG-кандидаты, без реальной торговли). GitHub
+синхронизирован с работающим серверным кодом; LW-001 сохранён как неактивная
+legacy-стратегия.
+
+- Активный entry point: `realtime_capitulation_monitor_fixed.py`
+- Активный systemd unit: `evreconse.service`
+- LW-001: `realtime_lw001_monitor.py` — **не запущен**
+- Секреты и runtime-данные в репозиторий не входят
+
+Полное описание: `PROJECT_FULL_DOCUMENTATION.md`.
+История сверки: `PROJECT_VERSION_VERIFICATION.md`.
+Спецификация LW-001: `LW001_PRODUCTION_SPEC.md`.
 
 ## Требования
 
-- **Python 3.11+** (обязательно — используется `datetime.UTC`, добавлен в Python 3.11)
+- **Python 3.11+** (используется `datetime.UTC` и современная типизация)
 - pip / venv
 
 ## Быстрый старт (Linux/macOS)
 
 ```bash
-# 1. Клонирование и вход в директорию
 git clone https://github.com/evreconse/EVR.git
 cd EVR
 
-# 2. Создание виртуального окружения Python 3.11+
 python3.11 -m venv .venv
 source .venv/bin/activate
 
-# 3. Установка зависимостей
 pip install --upgrade pip
 pip install -e ".[dev]"
 
-# 4. Настройка конфигурации
 cp .env.example .env
-# Отредактируйте .env — добавьте свои API ключи (BingX, Telegram, CoinGlass, CMC)
+# Заполните .env своими ключами. Не коммитьте .env.
 
-# 5. Запуск тестов (проверка окружения)
 pytest tests/ -v
 ```
 
 ## Быстрый старт (Windows PowerShell)
 
 ```powershell
-# 1. Клонирование и вход в директорию
 git clone https://github.com/evreconse/EVR.git
 cd EVR
 
-# 2. Создание виртуального окружения Python 3.11+
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
-# 3. Установка зависимостей
 python -m pip install --upgrade pip
 pip install -e ".[dev]"
 
-# 4. Настройка конфигурации
 Copy-Item .env.example .env
-# Отредактируйте .env — добавьте свои API ключи
+# Заполните .env своими ключами. Не коммитьте .env.
 
-# 5. Запуск тестов
 pytest tests/ -v
 ```
 
 ## Project Structure
 
-```
+```text
 EVRECONSE/
-├── docs/              # Документация и спецификации
-├── strategies/        # Описание торговых стратегий
-├── research/          # Исследования
-├── src/              # Исходный код
-├── tests/            # Тесты
-├── configs/          # Конфигурационные файлы
-├── scripts/          # Скрипты
-├── logs/             # Логи
-├── data/             # Данные
-│   ├── raw/          # Сырые данные
-│   ├── processed/    # Обработанные данные
-│   └── exports/      # Экспортированные данные
-├── .github/          # GitHub конфигурация
-├── README.md
-├── .gitignore
-├── .env.example
-├── pyproject.toml
-├── requirements.txt
-├── config.yaml
-└── LICENSE
+├── src/                          # основной код и стратегии
+│   ├── config/                   # конфигурация приложения и пороги
+│   ├── data_provider/            # universe и рыночные данные
+│   ├── exchange/                 # BingX fetcher, rate limiter, endpoints
+│   └── strategy/                 # Capitulation и LW-001
+├── tests/                        # unit/regression tests
+├── realtime_capitulation_monitor_fixed.py  # активный production monitor
+├── realtime_capitulation_monitor.py        # legacy shim
+├── realtime_lw001_monitor.py               # неактивный LW-001 monitor
+├── backfill_capitulation_signals.py        # исторический backfill
+├── evreconse.service                       # безопасный service-шаблон
+├── LW001_METRIC_SPEC.py                    # canonical LW-001 formulas
+├── LW001_PRODUCTION_SPEC.md
+├── PROJECT_FULL_DOCUMENTATION.md
+└── PROJECT_VERSION_VERIFICATION.md
 ```
-
-## Documentation First Development
-
-Проект следует принципу **Documentation First Development**: все решения сначала документируются, затем реализуются.
 
 ## Основные команды
 
 | Команда | Описание |
 |---------|----------|
-| `python -m src.main` | Запуск основного приложения |
-| `python -m src.main --dry-run` | Проверка инициализации без запуска |
-| `pytest tests/` | Запуск тестов |
-| `pytest tests/ --cov=src` | Тесты с покрытием |
-| `ruff check src/` | Линтинг кода |
-| `mypy src/` | Проверка типов |
+| `python realtime_capitulation_monitor_fixed.py` | Активный Capitulation monitor |
+| `python realtime_capitulation_monitor.py` | Legacy-совместимый entry point (делегирует в активный) |
+| `python realtime_lw001_monitor.py` | LW-001 legacy monitor; не включать без отдельного решения |
+| `pytest tests/` | Все тесты |
+| `pytest tests/test_server_sync_algorithms.py -v` | Регрессия серверных порогов и формул |
+| `ruff check src tests LW001_METRIC_SPEC.py` | Линтинг |
+| `mypy src/ tests/ --explicit-package-bases` | Проверка типов |
 
-## Запуск стратегий
+## Активная стратегия
 
-### Capitulation/Absorption Monitor (SHADOW MODE)
-```bash
-python realtime_capitulation_monitor.py
+Capitulation/Absorption, 15m, только закрытые свечи:
+
+```text
+red candle:        close < open
+open_to_low_pct:   <= -5.0%
+volume_30_ratio:   >= 2.0x
+lw_body_ratio:     >= 1.0x
+reclaim_pct:       >= 30.0%
+all conditions:    AND
+score gate:        none
 ```
 
-### Исторический бэкфилл
-```bash
-# Dry run (без отправки в Telegram)
-python backfill_capitulation_signals.py --dry-run
+Активный монитор работает в shadow mode: реальные ордера не отправляются.
+Уведомления идут в Telegram; dedup хранится в SQLite `sent_signals.db`.
 
-# С отправкой в Telegram
-python backfill_capitulation_signals.py --send-telegram
+## LW-001 (inactive)
+
+```text
+range_pct:          >= 4.5%
+body_pct:           >= 0.8%
+lower_wick/body:    >= 1.3x
+lower_wick/range:   >= 55.0%
+open_to_low_pct:    <= -5.0%   # server value; older GitHub used -2.5%
+red candle:         close < open
+volume ratio:       NOT used
+score gate:         none
 ```
+
+LW-001 не является работающим сервисом. Не переключайте `evreconse.service` на
+него без отдельного решения владельца.
 
 ## Конфигурация
 
-Основные настройки в `config.yaml`:
-- `exchange` — настройки BingX API
-- `strategies` — параметры LW-001 и Capitulation
-- `notifications` — Telegram bot token, chat ID
-- `storage` — пути к данным и логам
+- Секреты: `.env` (не коммитится), загружается через `python-dotenv`.
+- Пороги Capitulation: `src/config/capitulation_thresholds.py`.
+- Пороги LW-001: `LW001_METRIC_SPEC.py`.
+- Service-шаблон: `evreconse.service`; секреты в unit-файл не записываются.
 
-Переменные окружения (`.env`) имеют приоритет над `config.yaml`.
+Переменные окружения имеют приоритет над статическими настройками.

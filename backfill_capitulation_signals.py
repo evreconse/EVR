@@ -23,16 +23,7 @@ sys.path.insert(0, "/home/evreconse/src/strategy")
 
 from src.exchange.bingx_fetcher import BingXFetcher
 from src.data_provider.universe_provider import get_universe_provider
-from strategy.capitulation_detector import (
-    calculate_metrics,
-    check_thresholds,
-    get_fail_reason,
-    get_last_completed_candle,
-    FIXED_THRESHOLDS,
-    SignalMetrics,
-    FilterResult,
-    SignalCandidate,
-)
+from strategy.capitulation_detector import check_capitulation_signal
 
 # Telegram imports
 import aiohttp
@@ -55,7 +46,7 @@ class BackfillEngine:
         self.fetcher = BingXFetcher()
         self.universe_provider = None
         self.universe = []
-        
+
         # Statistics
         self.stats = {
             'symbols_requested': 0,
@@ -70,11 +61,11 @@ class BackfillEngine:
             'gaps': [],
             'symbol_details': {}
         }
-        
+
         # Telegram config
         self.bot_token = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__BOT_TOKEN") or os.getenv("EVRECONSE_TELEGRAM_BOT_TOKEN")
         self.chat_id = os.getenv("EVRECONSE_NOTIFICATION__TELEGRAM__CHAT_ID") or os.getenv("EVRECONSE_TELEGRAM_CHAT_ID")
-        
+
     async def initialize(self):
         """Initialize universe provider and load universe."""
         self.universe_provider = get_universe_provider()
@@ -82,14 +73,14 @@ class BackfillEngine:
         self.universe = await self.universe_provider.get_universe()
         self.stats['symbols_requested'] = len(self.universe)
         print(f"Universe loaded: {len(self.universe)} symbols")
-        
+
     async def fetch_symbol_data(self, symbol):
         """Fetch M15 OHLCV data for a symbol from START_UTC - 8 hours to END_UTC."""
         try:
             # Fetch extra data for Volume30 median calculation (need 30 candles before first evaluation)
             fetch_start = START_UTC - timedelta(hours=8)
             fetch_end = END_UTC + timedelta(hours=1)  # Extra buffer
-            
+
             candles = await self.fetcher.get_klines(
                 symbol=symbol,
                 interval="15m",
@@ -97,18 +88,18 @@ class BackfillEngine:
                 end_time=int(fetch_end.timestamp() * 1000),
                 limit=1000
             )
-            
+
             if not candles:
                 return None
-                
+
             # Sort by timestamp
             candles.sort(key=lambda c: c.get('time', c.get('timestamp', 0)))
             return candles
-            
+
         except Exception as e:
             print(f"  Error fetching {symbol}: {e}")
             return None
-    
+
     def find_completed_candles(self, candles, now_ms):
         """Find all completed candles using production logic."""
         completed = []
@@ -122,11 +113,11 @@ class BackfillEngine:
                 completed.append((i, c))
         completed.reverse()
         return completed
-    
+
     def evaluate_candle(self, symbol, idx, candle, candles):
         """Evaluate a single candle using production detector logic."""
         ts = candle.get('time', candle.get('timestamp', 0))
-        
+
         # CHECK PRODUCTION DEDUP - skip if already sent in production
         conn = sqlite3.connect("/home/evreconse/sent_signals.db")
         try:
@@ -136,49 +127,33 @@ class BackfillEngine:
                 return None, "already_sent_in_production"
         finally:
             conn.close()
-        
+
         o = float(candle['open'])
         h = float(candle['high'])
         l = float(candle['low'])
         c = float(candle['close'])
         v = float(candle['volume'])
-        
+
         # Need at least 30 previous candles for Volume30
         if idx < 30:
             return None, "insufficient_history"
-        
+
         prev_30 = [float(candles[idx-30+j]['volume']) for j in range(30)]
         median30 = statistics.median(prev_30)
-        
-        # Use production detector
-        from strategy.capitulation_detector import check_red_candle, calculate_metrics, check_thresholds, get_fail_reason
-        
-        o = float(candle['open'])
-        h = float(candle['high'])
-        l = float(candle['low'])
-        c = float(candle['close'])
-        v = float(candle['volume'])
-        
-        # Check red candle
-        if not check_red_candle(o, c):
-            return None, "not_red"
-        
-        # Calculate metrics
-        metrics = calculate_metrics(o, h, l, c, v, ts, prev_30)
-        
-        # Check thresholds
-        passed, results = check_thresholds(metrics)
-        if not passed:
-            return None, get_fail_reason(metrics, results)
-        
-        return metrics, "ok"
-    
+
+        # Use the same server-synchronized detector as the live monitor
+        result = check_capitulation_signal(o, h, l, c, v, ts, prev_30)
+        if not result.qualified:
+            return None, "; ".join(result.failed_conditions)
+
+        return result, "ok"
+
     def format_telegram_message(self, symbol, event_time_utc, result, is_historical=True):
         """Format message for Telegram with HISTORICAL BACKFILL label."""
         m = result.metrics
-        
+
         prefix = "🔍 HISTORICAL BACKFILL\n\n" if is_historical else "🟢 LONG CAPITULATION / ABSORPTION\n\n"
-        
+
         message = (
             f"{prefix}"
             f"Symbol: {symbol}\n\n"
@@ -202,7 +177,7 @@ class BackfillEngine:
             f"Median30: {m.volume_30_median:,.0f}\n"
             f"Volume Ratio: {m.volume_30_ratio:.2f}x\n\n"
             f"✅ Conditions\n"
-            f"Open→Low ≤ -2.5% — PASS\n"
+            f"Open→Low ≤ -5.0% — PASS\n"
             f"Volume30Ratio ≥ 2.0x — PASS\n"
             f"LW/Body ≥ 1.0x — PASS\n"
             f"Reclaim ≥ 30% — PASS\n\n"
@@ -211,15 +186,15 @@ class BackfillEngine:
             f"Mode: {'HISTORICAL BACKFILL' if is_historical else 'SHADOW'}"
         )
         return message
-    
+
     async def send_telegram(self, message):
         """Send message to Telegram."""
         if not self.bot_token or not self.chat_id:
             return False, "No credentials"
-        
+
         url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
         payload = {"chat_id": self.chat_id, "text": message}
-        
+
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, json=payload) as resp:
@@ -231,7 +206,7 @@ class BackfillEngine:
                         return False, f"HTTP {resp.status}: {error_text}"
         except Exception as e:
             return False, f"Exception: {e}"
-    
+
     async def run_backfill(self):
         """Run the complete backfill process."""
         print("=" * 80)
@@ -240,22 +215,22 @@ class BackfillEngine:
         print(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE'}")
         print(f"Telegram: {'ENABLED' if self.send_telegram else 'DISABLED'}")
         print("=" * 80)
-        
+
         await self.initialize()
-        
+
         signals = []
-        
+
         semaphore = asyncio.Semaphore(5)
-        
+
         async def process_symbol(symbol):
             async with semaphore:
                 candles = await self.fetch_symbol_data(symbol)
                 if not candles:
                     return []
-                
+
                 now_ms = int(END_UTC.timestamp() * 1000)
                 completed = self.find_completed_candles(candles, now_ms)
-                
+
                 symbol_signals = []
                 for idx, candle in completed:
                     self.stats['total_evaluations'] += 1
@@ -263,38 +238,37 @@ class BackfillEngine:
                     if result:
                         ts = candle.get('time', candle.get('timestamp', 0))
                         event_time_utc = datetime.fromtimestamp(ts / 1000, tz=timezone.utc).strftime("%d.%m.%Y %H:%M UTC")
-                        
+
+                        m = result.metrics
                         signal = {
                             'symbol': symbol,
                             'timestamp': ts,
                             'event_time_utc': event_time_utc,
                             'metrics': {
-                                'open': float(result.open),
-                                'high': float(result.high),
-                                'low': float(result.low),
-                                'close': float(result.close),
-                                'volume': float(result.volume),
-                                'open_to_low_pct': result.open_to_low_pct,
-                                'lw_body_ratio': result.lw_body_ratio,
-                                'reclaim_pct': result.reclaim_pct,
-                                'volume_30_ratio': result.volume_30_ratio,
+                                'open': float(m.open),
+                                'high': float(m.high),
+                                'low': float(m.low),
+                                'close': float(m.close),
+                                'volume': float(m.volume),
+                                'open_to_low_pct': m.open_to_low_pct,
+                                'lw_body_ratio': m.lw_body_ratio,
+                                'reclaim_pct': m.reclaim_pct,
+                                'volume_30_ratio': m.volume_30_ratio,
                             },
                         }
                         signals.append(signal)
                         self.stats['signals_found'] += 1
-                        
+
                         if self.send_telegram and not self.dry_run:
                             message = self.format_telegram_message(symbol, event_time_utc, result)
-                            success, msg_id = await self.send_telegram(
-                                f"🔍 HISTORICAL BACKFILL\n\nSymbol: {symbol}\n\nTime: {event_time_utc}\n\nOHLCV\nOpen: {result.open:.6f}\nHigh: {result.high:.6f}\nLow: {result.low:.6f}\nClose: {result.close:.6f}\nVolume: {result.volume:,.0f}\n\nMetrics\nRange: {result.range_pct:.2f}%\nOpen→Low: {result.open_to_low_pct:.2f}%\nBody: {result.body_pct:.2f}%\nLower Wick: {result.lower_wick:.6f}\nLW/Body: {result.lw_body_ratio:.2f}x\nLW/Range: {result.lw_range_pct:.2f}%\nReclaim: {result.reclaim_pct:.2f}%\nClose Position: {result.close_position_pct:.2f}%\n\nVolume\nMedian30: {result.volume_30_median:,.0f}\nVolume Ratio: {result.volume_30_ratio:.2f}x\n\n✅ Conditions\nOpen→Low ≤ -2.5% — PASS\nVolume30Ratio ≥ 2.0x — PASS\nLW/Body ≥ 1.0x — PASS\nReclaim ≥ 30% — PASS\n\nDirection: LONG\nType: CAPITULATION_ABSORPTION\nMode: HISTORICAL BACKFILL"
-                            )
+                            success, msg_id = await self.send_telegram(message)
                             if success:
                                 self.stats['signals_telegram_sent'] += 1
                             else:
                                 self.stats['signals_telegram_failed'] += 1
-                
+
         await asyncio.gather(*[process_symbol(s) for s in self.universe])
-        
+
         # Save report
         report = {
             'period': {'start': START_UTC.isoformat(), 'end': END_UTC.isoformat()},
@@ -302,10 +276,10 @@ class BackfillEngine:
             'dry_run': self.dry_run,
             'telegram_enabled': self.send_telegram,
         }
-        
+
         with open(BACKFILL_REPORT, 'w') as f:
             json.dump(report, f, indent=2, default=str)
-        
+
         print(f"\n{'='*80}")
         print(f"BACKFILL COMPLETE")
         print(f"Signals found: {self.stats['signals_found']}")
@@ -322,13 +296,13 @@ async def main():
     parser.add_argument('--start', type=str, help='Start date (YYYY-MM-DD)')
     parser.add_argument('--end', type=str, help='End date (YYYY-MM-DD)')
     args = parser.parse_args()
-    
+
     global START_UTC, END_UTC
     if args.start:
         START_UTC = datetime.fromisoformat(args.start).replace(tzinfo=timezone.utc)
     if args.end:
         END_UTC = datetime.fromisoformat(args.end).replace(tzinfo=timezone.utc)
-    
+
     engine = BackfillEngine(send_telegram=args.send_telegram, dry_run=args.dry_run)
     await engine.run_backfill()
 

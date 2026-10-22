@@ -118,7 +118,7 @@ def check_lw001_signal(
     3. Body % >= 0.8%
     4. LW/Body >= 1.3x
     5. LW/Range % >= 55.0%
-    6. Open→Low % <= -2.5%
+    6. Open→Low % <= -5.0%
 
     Volume is NOT used for signal qualification (Volume Ratio removed).
 
@@ -200,7 +200,7 @@ def format_lw001_telegram_message(
         f"Body >= 0.8% - {'PASS' if metrics.body_pct >= 0.8 else 'FAIL'}\n"
         f"LW/Body >= 1.3x - {'PASS' if metrics.lw_body_ratio >= 1.3 else 'FAIL'}\n"
         f"LW/Range >= 55% - {'PASS' if metrics.lw_range_pct >= 55.0 else 'FAIL'}\n"
-        f"Open-Low <= -2.5% - {'PASS' if metrics.open_to_low_pct <= -2.5 else 'FAIL'}\n\n"
+        f"Open-Low <= -5.0% - {'PASS' if metrics.open_to_low_pct <= -5.0 else 'FAIL'}\n\n"
         "VALID SIGNAL"
     )
 
@@ -305,24 +305,23 @@ def run_unit_tests() -> bool:
     )
     assert_bool(result.qualified, True, "Test 6: Body 0.80% should PASS")
 
-    # Test 7: Open->Low = -2.49% should FAIL
+    # Test 7: Open->Low = -4.99% should FAIL (above the -5.0% threshold)
     result = check_lw001_signal(
         open_price=100.0,
         high_price=100.75,
-        low_price=97.51,  # Open->Low = -2.49%
-        close_price=98.5  # LW=1.0, Body=1.5, LW/Body=0.67 - FAIL
-    )
-    assert_bool(result.qualified, False, "Test 7: Open->Low -2.49% should FAIL")
-
-    # Test 8: Open->Low = -2.50% should PASS
-    # Use base candle with Low=95.75 -> Open->Low=-4.25% (passes)
-    result = check_lw001_signal(
-        open_price=100.0,
-        high_price=100.75,
-        low_price=95.75,
+        low_price=95.01,  # Open->Low = -4.99%
         close_price=98.5
     )
-    assert_bool(result.qualified, True, "Test 8: Open->Low -2.50% should PASS")
+    assert_bool(result.qualified, False, "Test 7: Open->Low -4.99% should FAIL")
+
+    # Test 8: Open->Low = -5.00% should PASS (inclusive boundary)
+    result = check_lw001_signal(
+        open_price=100.0,
+        high_price=100.75,
+        low_price=95.00,
+        close_price=98.5
+    )
+    assert_bool(result.qualified, True, "Test 8: Open->Low -5.00% should PASS")
 
     # Test 9: Volume independence - changing volume should not affect signal result
     # Volume is NOT used in LW-001 signal qualification (Volume Ratio removed)

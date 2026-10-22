@@ -155,7 +155,7 @@ def calculate_open_to_low_pct(open_price: float, low_price: float) -> float:
         low_price: Candle low price
 
     Returns:
-        Open→Low in percentage points (e.g., -2.50 for -2.5%)
+        Open→Low in percentage points (e.g., -5.00 for -5.0%)
 
     Unit: %
     """
@@ -242,7 +242,7 @@ LW001_THRESHOLDS: dict[str, ThresholdSpec] = {
     "body_pct": {"value": 0.8, "unit": "%", "operator": ">="},
     "lower_wick_body_ratio": {"value": 1.3, "unit": "x", "operator": ">="},
     "lower_wick_range_pct": {"value": 55.0, "unit": "%", "operator": ">="},
-    "open_to_low_pct": {"value": -2.5, "unit": "%", "operator": "<="},
+    "open_to_low_pct": {"value": -5.0, "unit": "%", "operator": "<="},
 }
 
 
@@ -306,7 +306,7 @@ def check_all_conditions(metrics: LW001Metrics) -> tuple[bool, list[str]]:
     except ValueError as e:
         failures.append(str(e))
 
-    # Open→Low <= -2.5%
+    # Open→Low <= -5.0%
     try:
         validate_metric_units(
             metrics.open_to_low_pct, "%",

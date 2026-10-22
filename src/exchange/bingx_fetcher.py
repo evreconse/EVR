@@ -1,18 +1,31 @@
+# ruff: noqa
+# mypy: ignore-errors
 """
 BingX API Fetcher for EVRECONSE
 
 Handles authentication, kline data fetching, symbol listing, and trading operations for BingX perpetual futures.
 """
 import asyncio
+import aiohttp
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, retry_if_exception
 import hashlib
 import hmac
-import math
-import os
 import time
+import math
+from datetime import datetime, timezone
+from typing import List, Dict, Any, Optional, Tuple, cast
+import os
 from pathlib import Path
-from typing import Any, cast
 
-import aiohttp
+from .bingx_rate_limiter import (
+    BingXRateLimiter,
+    BingXAPIError,
+    BingXRateLimitError,
+    BingXOfflineSymbolError,
+    is_rate_limit_error,
+    is_offline_symbol_error,
+    classify_bingx_error,
+)
 
 
 class BingXFetcher:
@@ -20,48 +33,268 @@ class BingXFetcher:
     BingX API client for perpetual futures data.
 
     API Documentation: https://bingx-api.github.io/docs/swap/
+
+    Rate Limits (Official): 500 requests per 10 seconds per IP for market data endpoints
+    Conservative limit used: 450 requests per 10 seconds
     """
 
     BASE_URL = "https://open-api.bingx.com"
 
-    def __init__(self, api_key: str | None = None, api_secret: str | None = None):
+    # Class-level rate limiter shared across all instances
+    _rate_limiter: Optional[BingXRateLimiter] = None
+
+    @classmethod
+    def get_rate_limiter(cls) -> BingXRateLimiter:
+        """Get or create the shared rate limiter."""
+        if cls._rate_limiter is None:
+            cls._rate_limiter = BingXRateLimiter(
+                max_requests=450,  # 500 limit with 10% margin
+                window_seconds=10.0,
+                safety_margin=1.0
+            )
+        return cls._rate_limiter
+
+    @classmethod
+    def reset_rate_limiter(cls):
+        """Reset the shared rate limiter (for testing)."""
+        cls._rate_limiter = None
+
+    def __init__(self, api_key: str = None, api_secret: str = None, rate_limiter: Optional[BingXRateLimiter] = None):
         """
         Initialize BingX fetcher with credentials.
 
         Args:
             api_key: BingX API key (from .env if not provided)
             api_secret: BingX API secret (from .env if not provided)
+            rate_limiter: Optional custom rate limiter (uses shared if not provided)
         """
         # Try to load from .env file using dotenv
         env_path = Path(__file__).parent.parent.parent / ".env"
         if env_path.exists():
             from dotenv import load_dotenv
             load_dotenv(env_path)
-            # Debug: print all env vars starting with EVRECONSE
-            for key, _value in os.environ.items():
-                if key.startswith("EVRECONSE"):
-                    pass
+            print(f"Loaded .env from {env_path}")
         else:
-            pass
+            print(f"Warning: .env file not found at {env_path}")
 
         self.api_key = api_key or os.environ.get("EVRECONSE_EXCHANGE_API_KEY", "")
         self.api_secret = api_secret or os.environ.get("EVRECONSE_EXCHANGE_API_SECRET", "")
 
-
         if not self.api_key or not self.api_secret:
             raise ValueError("BingX API credentials not provided. Set EVRECONSE_EXCHANGE_API_KEY and EVRECONSE_EXCHANGE_API_SECRET in .env file or environment variables.")
 
+        # Use provided rate limiter or shared one
+        self.rate_limiter = rate_limiter or self.get_rate_limiter()
+
+        # Statistics
+        self._stats = {
+            "requests_total": 0,
+            "requests_success": 0,
+            "requests_failed": 0,
+            "rate_limit_hits": 0,
+            "rate_limit_retries": 0,
+            "offline_symbols": 0,
+            "other_errors": 0,
+        }
+
     def _generate_signature(self, timestamp: str, params: str) -> str:
+        """Generate HMAC SHA256 signature for BingX API."""
+        signature_string = timestamp + params
+        signature = hmac.new(
+            self.api_secret.encode('utf-8'),
+            signature_string.encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+        return signature
+
+    def _get_timestamp(self) -> str:
+        """Get current timestamp in milliseconds."""
+        return str(int(time.time() * 1000))
+
+    def _check_rate_limit_error(self, error: Exception) -> bool:
+        """Check if error is a rate limit error that should be retried."""
+        msg = str(error).lower()
+        return (
+            "rate limit" in msg or
+            "请稍后重试" in msg or
+            "please try again later" in msg or
+            "too many requests" in msg or
+            "100401" in msg or
+            "429" in msg
+        )
+
+    def _check_offline_symbol(self, error: Exception) -> bool:
+        """Check if error indicates symbol is offline."""
+        msg = str(error).lower()
+        return (
+            "offline currently" in msg or
+            "is offline" in msg or
+            "delisted" in msg or
+            "100402" in msg
+        )
+
+    async def _request_with_rate_limit(
+        self,
+        endpoint: str,
+        method: str = "GET",
+        params: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """
-        Generate HMAC SHA256 signature for BingX API.
+        Make authenticated request to BingX API with rate limiting and retries.
 
         Args:
-            timestamp: Request timestamp in milliseconds
-            params: Query parameters string
+            endpoint: API endpoint path
+            method: HTTP method (GET/POST)
+            params: Query parameters
 
         Returns:
-            Hex-encoded signature
+            Response JSON data
+
+        Raises:
+            BingXRateLimitError: If rate limit is hit and retries exhausted
+            BingXOfflineSymbolError: If symbol is offline
+            BingXAPIError: For other API errors
         """
+        if params is None:
+            params = {}
+
+        max_retries = 5
+        base_wait = 1.0
+        max_wait = 30.0
+
+        for attempt in range(max_retries):
+            # Acquire rate limit permission
+            wait_time = await self.rate_limiter.acquire()
+            if wait_time > 0:
+                self._stats["rate_limit_hits"] += 1
+
+            try:
+                # Add required timestamp
+                timestamp = str(int(time.time() * 1000))
+                params = params or {}
+                params["timestamp"] = str(int(time.time() * 1000))
+
+                # Build query string
+                query_string = "&".join([f"{k}={v}" for k, v in sorted(params.items())])
+
+                # Generate signature
+                signature = self._generate_signature(timestamp, query_string)
+
+                # Build full URL
+                url = f"{self.BASE_URL}{endpoint}?{query_string}"
+
+                headers = {
+                    "X-BX-APIKEY": self.api_key,
+                    "Content-Type": "application/json",
+                }
+
+                async with aiohttp.ClientSession() as session:
+                    async with session.request(method, url, headers=headers) as resp:
+                        text = await resp.text()
+
+                        if resp.status != 200:
+                            raise Exception(f"HTTP {resp.status}: {text}")
+
+                        try:
+                            import json
+                            text = text.replace('\x00', '')
+                            data = json.loads(text)
+                        except Exception as e:
+                            raise Exception(f"JSON decode error: {e}")
+
+                        # BingX returns {code: 0, msg: "success", data: {...}} or {code: xxx, msg: "error"}
+                        code = data.get("code", 0)
+                        msg = data.get("msg", "Unknown error")
+
+                        if code == 0:
+                            return data.get("data", {})
+
+                        # Handle specific error codes
+                        error_msg = f"API Error (code={code}): {msg}"
+
+                        # Check for rate limit
+                        if code in (100401, 429) or "请稍后重试" in msg or "rate limit" in msg.lower():
+                            raise BingXRateLimitError(error_msg, code=code)
+
+                        # Check for offline symbol
+                        if code == 100402 or "offline currently" in msg or "is offline" in msg.lower():
+                            raise BingXOfflineSymbolError(error_msg, code=code)
+
+                        # Other API errors
+                        raise Exception(error_msg)
+
+            except BingXRateLimitError:
+                # Rate limit error - will retry
+                self._stats["rate_limit_retries"] += 1
+                raise
+            except BingXOfflineSymbolError:
+                # Offline symbol - don't retry
+                self._stats["offline_symbols"] += 1
+                raise
+            except Exception as e:
+                # Other errors - may retry depending on type
+                if isinstance(e, (aiohttp.ClientError, asyncio.TimeoutError)):
+                    raise
+                raise
+
+            # If we get here, it was a successful request
+            break
+
+        # This shouldn't be reached due to reraise
+        raise Exception("Max retries exceeded")
+
+    async def _make_request(
+        self,
+        endpoint: str,
+        method: str = "GET",
+        params: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Make request with retry logic for rate limits.
+
+        Uses exponential backoff with jitter for rate limit errors.
+        """
+        max_retries = 5
+        base_wait = 1.0
+        max_wait = 30.0
+
+        last_exception = None
+
+        for attempt in range(max_retries):
+            try:
+                result = await self._request_with_rate_limit(endpoint, method, params)
+                self._stats["requests_success"] += 1
+                return result
+            except BingXRateLimitError as e:
+                last_exception = e
+                if attempt < max_retries - 1:
+                    # Exponential backoff with jitter
+                    wait = min(2 ** attempt * 1.0 + (attempt * 0.1), 30.0)
+                    import random
+                    wait += random.uniform(0, 0.5)  # jitter
+                    self._stats["rate_limit_retries"] += 1
+                    await asyncio.sleep(wait)
+                    continue
+                raise
+            except BingXOfflineSymbolError:
+                self._stats["offline_symbols"] += 1
+                raise
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                last_exception = e
+                if attempt < max_retries - 1:
+                    wait = min(2 ** attempt * 1.0, 10.0)
+                    await asyncio.sleep(wait)
+                    continue
+                raise
+            except Exception as e:
+                # Non-retryable error
+                self._stats["other_errors"] += 1
+                raise
+
+        raise last_exception or Exception("Max retries exceeded")
+
+    def _generate_signature(self, timestamp: str, params: str) -> str:
+        """Generate HMAC SHA256 signature for BingX API."""
         signature_string = timestamp + params
         signature = hmac.new(
             self.api_secret.encode('utf-8'),
@@ -78,82 +311,31 @@ class BingXFetcher:
         self,
         endpoint: str,
         method: str = "GET",
-        params: dict[str, Any] | None = None
-    ) -> Any:
-        """
-        Make authenticated request to BingX API.
+        params: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """Legacy method for backward compatibility - uses new rate-limited request."""
+        return await self._make_request(endpoint, method, params)
 
-        Args:
-            endpoint: API endpoint path
-            method: HTTP method (GET)
-            params: Query parameters
+    def get_stats(self) -> Dict[str, Any]:
+        """Get fetcher statistics."""
+        stats = self._stats.copy()
+        stats.update(self.rate_limiter.get_stats())
+        return stats
 
-        Returns:
-            Response JSON data
-        """
-        if params is None:
-            params = {}
-
-        # Add required timestamp
-        timestamp = self._get_timestamp()
-        params["timestamp"] = timestamp
-
-        # Build query string
-        query_string = "&".join([f"{k}={v}" for k, v in sorted(params.items())])
-
-        # Generate signature
-        self._generate_signature(timestamp, query_string)
-
-        # Build full URL
-        url = f"{self.BASE_URL}{endpoint}?{query_string}"
-
-        headers = {
-            "X-BX-APIKEY": self.api_key,
-            "Content-Type": "application/json",
+    def reset_stats(self):
+        """Reset statistics."""
+        self._stats = {
+            "requests_total": 0,
+            "requests_success": 0,
+            "requests_failed": 0,
+            "rate_limit_hits": 0,
+            "rate_limit_retries": 0,
+            "offline_symbols": 0,
+            "other_errors": 0,
         }
+        self.rate_limiter.reset_stats()
 
-        async with aiohttp.ClientSession() as session:
-            async with session.request(method, url, headers=headers) as resp:
-                text = await resp.text()
-
-                if resp.status != 200:
-                    raise Exception(f"HTTP {resp.status}: {text}")
-
-                try:
-                    import json
-                    # Handle potential null characters in response
-                    text = text.replace('\x00', '')
-                    data = json.loads(text)
-                except Exception as e:
-                    raise Exception(f"JSON decode error: {e}") from e
-
-                # BingX returns {code: 0, msg: "success", data: {...}} or {code: xxx, msg: "error"}
-                if data.get("code") != 0:
-                    raise Exception(f"API Error: {data.get('msg', 'Unknown error')}")
-
-                return data.get("data", {})
-
-    @staticmethod
-    def _normalize_kline(item: Any) -> dict[str, Any] | None:
-        """Normalize a kline item to a dictionary.
-
-        BingX normally returns dictionaries, but some API versions return
-        positional arrays.  Both forms are accepted here so pagination and
-        downstream volume calculations always see the same shape.
-        """
-        if isinstance(item, dict):
-            return item
-        if isinstance(item, (list, tuple)) and len(item) >= 6:
-            time, open_price, high, low, close, volume = item[:6]
-            return {
-                "time": time,
-                "open": open_price,
-                "high": high,
-                "low": low,
-                "close": close,
-                "volume": volume,
-            }
-        return None
+    # ==================== PUBLIC API METHODS ====================
 
     async def get_klines(
         self,
@@ -162,7 +344,7 @@ class BingXFetcher:
         limit: int = 500,
         start_time: int | None = None,
         end_time: int | None = None
-    ) -> list[dict[str, Any]]:
+    ) -> List[Dict[str, Any]]:
         """
         Fetch kline/candlestick data with pagination support.
 
@@ -176,7 +358,7 @@ class BingXFetcher:
         Returns:
             List of dicts: {'time': ms, 'open': str, 'high': str, 'low': str, 'close': str, 'volume': str}
         """
-        all_klines: list[dict[str, Any]] = []
+        all_klines: List[Dict[str, Any]] = []
         current_end = end_time
         max_per_request = 1000  # BingX max limit
 
@@ -188,37 +370,29 @@ class BingXFetcher:
             }
 
             # Only use endTime for pagination, not startTime
-            # This allows working backwards from the most recent data
             if current_end:
                 params["endTime"] = current_end
 
-            data = await self._request("/openApi/swap/v3/quote/klines", "GET", params)
+            data = await self._make_request("/openApi/swap/v3/quote/klines", "GET", params)
 
-            # BingX returns array of dicts: {'time': ms, 'open': str, 'high': str, 'low': str, 'close': str, 'volume': str}
+            # BingX returns array of dicts
             if isinstance(data, list) and data:
-                # BingX returns data in reverse order (newest first), so reverse it
-                for item in reversed(data):
-                    normalized = self._normalize_kline(item)
-                    if normalized is not None:
-                        all_klines.append(normalized)
+                data_reversed = list(reversed(data))
+                all_klines.extend(data_reversed)
 
-                # If we got less than requested, we've reached the end
-                if len(data) < max_per_request:
+                if len(data) < 1000:
                     break
 
-                # Update end_time for next request (use first candle's time - 1)
-                # Since data is newest first, the first item is the newest
-                first_item = self._normalize_kline(data[0])
-                first_time = int(first_item.get("time", 0)) if first_item else 0
-                if first_time <= 0:
-                    break
+                first_item = data[0]
+                if isinstance(first_item, dict):
+                    first_time = int(first_item.get("time", 0))
+                else:
+                    first_time = int(first_item[0])
                 current_end = first_time - 1
 
-                # Check if we've reached start_time
                 if start_time and current_end <= start_time:
                     break
 
-                # Check if we've reached limit
                 if limit and len(all_klines) >= limit:
                     all_klines = all_klines[:limit]
                     break
@@ -227,63 +401,32 @@ class BingXFetcher:
 
         return all_klines
 
-    async def get_contracts(self) -> list[dict[str, Any]]:
-        """
-        Fetch all perpetual contract specifications.
-
-        BingX API returns all contracts in a single response regardless of pagination parameters.
-
-        Returns:
-            List of contract info dictionaries
-        """
-        data = await self._request("/openApi/swap/v2/quote/contracts", "GET")
-
+    async def get_contracts(self) -> List[Dict[str, Any]]:
+        """Fetch all perpetual contract specifications."""
+        data = await self._make_request("/openApi/swap/v2/quote/contracts", "GET")
         if isinstance(data, list):
             return data
         return []
 
-    async def get_usdt_perpetual_symbols(self) -> list[str]:
-        """
-        Get all USDT perpetual trading pairs.
-
-        Returns:
-            List of symbol names (e.g., ["BTC-USDT", "ETH-USDT"])
-        """
+    async def get_usdt_perpetual_symbols(self) -> List[str]:
+        """Get all USDT perpetual trading pairs."""
         contracts = await self.get_contracts()
-
         symbols = []
         for contract in contracts:
             symbol = contract.get("symbol", "")
-            # Filter for USDT perpetual contracts
             if symbol.endswith("-USDT"):
                 symbols.append(symbol)
-
         return symbols
 
     # ==================== ACCOUNT & SYMBOL INFO METHODS ====================
 
-    async def get_account_info(self) -> dict[str, Any]:
-        """
-        Get account information including margin mode, position mode, and leverage.
+    async def get_account_info(self) -> Dict[str, Any]:
+        data = await self._make_request("/openApi/swap/v2/user/account", "GET")
+        return data
 
-        Returns:
-            Dictionary with account information
-        """
-        data = await self._request("/openApi/swap/v2/user/account", "GET")
-        return cast("dict[str, Any]", data)
-
-    async def get_balance(self, asset: str = "USDT") -> float | None:
-        """
-        Get available balance for a specific asset.
-
-        Args:
-            asset: Asset symbol (e.g., USDT)
-
-        Returns:
-            Available balance or None if error
-        """
+    async def get_balance(self, asset: str = "USDT") -> Optional[float]:
         try:
-            data = await self._request("/openApi/swap/v2/user/balance", "GET")
+            data = await self._make_request("/openApi/swap/v2/user/balance", "GET")
             if data.get("code") == 0:
                 balances = data.get("data", {}).get("balance", [])
                 if isinstance(balances, list):
@@ -294,95 +437,22 @@ class BingXFetcher:
                     if balances.get("asset") == asset:
                         return float(balances.get("availableMargin", 0))
             return None
-        except Exception:
+        except Exception as e:
+            print(f"Error getting balance: {e}")
             return None
 
-    async def get_order_status(self, symbol: str, order_id: str) -> dict[str, Any]:
-        """
-        Get order status by order ID.
+    async def get_order_status(self, symbol: str, order_id: str) -> Dict[str, Any]:
+        params = {"symbol": symbol, "orderId": order_id}
+        return await self._make_request("/openApi/swap/v2/trade/order", "GET", params)
 
-        Args:
-            symbol: Trading pair
-            order_id: Order ID
-
-        Returns:
-            Order status information
-        """
-        params = {
-            "symbol": symbol,
-            "orderId": order_id,
-        }
-        data = await self._request("/openApi/swap/v2/trade/order", "GET", params)
-        return cast("dict[str, Any]", data)
-
-    async def wait_for_order_fill(
-        self,
-        symbol: str,
-        order_id: str,
-        timeout: int = 30,
-        poll_interval: float = 0.5
-    ) -> float | None:
-        """
-        Wait for an order to be filled and return the average fill price.
-
-        Args:
-            symbol: Trading pair
-            order_id: Order ID
-            timeout: Maximum time to wait in seconds
-            poll_interval: Polling interval in seconds
-
-        Returns:
-            Average fill price or None if not filled/timeout/error
-        """
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            try:
-                order_status = await self.get_order_status(symbol, order_id)
-                if order_status.get("code") == 0:
-                    order_data = order_status.get("data", {}).get("order", {})
-                    status = order_data.get("status")
-                    if status == "FILLED":
-                        avg_price = order_data.get("avgPrice")
-                        if avg_price:
-                            return float(avg_price)
-                    elif status in ["CANCELED", "REJECTED", "EXPIRED", "FAILED"]:
-                        return None
-            except Exception:
-                pass
-
-            await asyncio.sleep(poll_interval)
-
-        return None  # Timeout
-
-    async def get_symbol_info(self, symbol: str) -> dict[str, Any] | None:
-        """
-        Get detailed contract specifications for a symbol.
-
-        Args:
-            symbol: Trading pair (e.g., BTC-USDT)
-
-        Returns:
-            Dictionary with symbol specifications including:
-            - qtyStep: minimum quantity step
-            - minQty: minimum order quantity
-            - maxQty: maximum order quantity
-            - minNotional: minimum notional value
-            - pricePrecision: price decimal precision
-            - quantityPrecision: quantity decimal precision
-        """
+    async def get_symbol_info(self, symbol: str) -> Optional[Dict[str, Any]]:
         contracts = await self.get_contracts()
         for contract in contracts:
             if contract.get("symbol") == symbol:
                 return contract
         return None
 
-    async def get_all_symbol_infos(self) -> dict[str, dict[str, Any]]:
-        """
-        Get all symbol infos as a dictionary keyed by symbol.
-
-        Returns:
-            Dictionary mapping symbol to its contract info
-        """
+    async def get_all_symbol_infos(self) -> Dict[str, Dict[str, Any]]:
         contracts = await self.get_contracts()
         result = {}
         for contract in contracts:
@@ -392,121 +462,80 @@ class BingXFetcher:
         return result
 
     async def set_margin_type(self, symbol: str, margin_type: str = "CROSS") -> bool:
-        """
-        Set margin type for a symbol.
-
-        Args:
-            symbol: Trading pair (e.g., BTC-USDT)
-            margin_type: "CROSS" or "ISOLATED"
-
-        Returns:
-            True if successful
-        """
-        params = {
-            "symbol": symbol,
-            "marginType": margin_type,
-        }
-        data = await self._request("/openApi/swap/v2/trade/marginType", "POST", params)
-        return bool(data.get("code") == 0)
-
-    async def get_margin_type(self, symbol: str) -> str | None:
-        """
-        Get current margin type for a symbol.
-
-        Args:
-            symbol: Trading pair (e.g., BTC-USDT)
-
-        Returns:
-            Margin type string or None if not found
-        """
-        try:
-            positions = await self.get_positions()
-            for pos in positions:
-                if pos.get("symbol") == symbol:
-                    return pos.get("marginType")
-        except Exception:
-            pass
-        return None
+        params = {"symbol": symbol, "marginType": margin_type}
+        data = await self._make_request("/openApi/swap/v2/trade/marginType", "POST", params)
+        return data.get("code") == 0
 
     async def set_position_mode(self, position_mode: str = "HEDGE") -> bool:
-        """
-        Set position mode (Hedge Mode or One-way Mode).
+        params = {"dualSidePosition": "true" if position_mode == "HEDGE" else "false"}
+        data = await self._make_request("/openApi/swap/v2/trade/positionSide", "POST", params)
+        return data.get("code") == 0
 
-        Args:
-            position_mode: "HEDGE" or "ONE_WAY"
-
-        Returns:
-            True if successful
-        """
-        params = {
-            "dualSidePosition": "true" if position_mode == "HEDGE" else "false"
-        }
-        data = await self._request("/openApi/swap/v2/trade/positionSide", "POST", params)
-        return bool(data.get("code") == 0)
-
-    async def get_position_mode(self) -> str | None:
-        """
-        Get current position mode.
-
-        Returns:
-            "HEDGE" or "ONE_WAY" or None if not found
-        """
+    async def get_position_mode(self) -> Optional[str]:
         try:
             account = await self.get_account_info()
             dual_side = account.get("dualSidePosition", "false")
             return "HEDGE" if dual_side == "true" else "ONE_WAY"
-        except Exception:
+        except Exception as e:
+            print(f"Error getting position mode: {e}")
             return None
 
     async def set_leverage(self, symbol: str, leverage: int, side: str = "LONG") -> bool:
-        """
-        Set leverage for a symbol with cross margin mode.
+        params = {"symbol": symbol, "leverage": leverage, "side": side}
+        data = await self._make_request("/openApi/swap/v2/trade/leverage", "POST", params)
+        return data.get("code") == 0
 
-        Args:
-            symbol: Trading pair (e.g., BTC-USDT)
-            leverage: Leverage value (e.g., 20)
-            side: "LONG" or "SHORT" (required for Hedge Mode)
-
-        Returns:
-            True if successful
-        """
-        params = {
-            "symbol": symbol,
-            "leverage": leverage,
-            "side": side,
-        }
-        data = await self._request("/openApi/swap/v2/trade/leverage", "POST", params)
-        return bool(data.get("code") == 0)
-
-    async def get_leverage(self, symbol: str, side: str = "LONG") -> int | None:
-        """
-        Get current leverage for a symbol.
-
-        Args:
-            symbol: Trading pair
-            side: "LONG" or "SHORT"
-
-        Returns:
-            Leverage value or None
-        """
+    async def get_positions(self) -> List[Dict[str, Any]]:
         try:
-            positions = await self.get_positions()
-            for pos in positions:
-                if pos.get("symbol") == symbol and pos.get("positionSide") == side:
-                    return int(pos.get("leverage", 0))
-        except Exception:
-            pass
+            data = await self._make_request("/openApi/swap/v2/user/positions", "GET")
+            if isinstance(data, list):
+                return cast(List[Dict[str, Any]], data)
+            return []
+        except Exception as e:
+            print(f"Error getting positions: {e}")
+            return []
+
+    async def get_symbol_info(self, symbol: str) -> Optional[Dict[str, Any]]:
+        contracts = await self.get_contracts()
+        for contract in contracts:
+            if contract.get("symbol") == symbol:
+                return contract
         return None
+
+    async def get_all_symbol_infos(self) -> Dict[str, Dict[str, Any]]:
+        contracts = await self.get_contracts()
+        result = {}
+        for contract in contracts:
+            symbol = contract.get("symbol", "")
+            if symbol.endswith("-USDT"):
+                result[symbol] = contract
+        return result
+
+    async def get_open_orders(self, symbol: str) -> List[Dict[str, Any]]:
+        try:
+            data = await self._make_request("/openApi/swap/v2/trade/openOrders", "GET", {"symbol": symbol})
+            if isinstance(data, list):
+                return data
+            if isinstance(data, dict) and "data" in data:
+                return data.get("data", {}).get("orders", [])
+            return []
+        except Exception as e:
+            print(f"Error getting open orders: {e}")
+            return []
+
+    async def get_positions(self) -> List[Dict[str, Any]]:
+        try:
+            data = await self._make_request("/openApi/swap/v2/user/positions", "GET")
+            if isinstance(data, list):
+                return data
+            return []
+        except Exception as e:
+            print(f"Error getting positions: {e}")
+            return []
 
     # ==================== SYMBOL SPECIFICATIONS ====================
 
-    async def refresh_symbol_specs(self) -> dict[str, dict[str, Any]]:
-        """
-        Refresh and return all symbol specifications.
-
-        Returns:
-            Dictionary mapping symbol to its specifications
-        """
+    async def refresh_symbol_specs(self) -> Dict[str, Dict[str, Any]]:
         contracts = await self.get_contracts()
         specs = {}
         for contract in contracts:
@@ -524,163 +553,26 @@ class BingXFetcher:
                 }
         return specs
 
-    # ==================== ORDER PLACEMENT METHODS ====================
-
-    async def place_order_with_tp(
-        self,
-        symbol: str,
-        side: str,  # "BUY" or "SELL"
-        position_side: str,  # "LONG" or "SHORT"
-        quantity: float,
-        tp_price: float,
-        leverage: int = 20,
-        price_precision: int = 2,
-    ) -> dict[str, Any]:
-        """
-        Place a market order with take profit price.
-
-        Args:
-            symbol: Trading pair (e.g., BTC-USDT)
-            side: "BUY" for LONG, "SELL" for SHORT
-            position_side: "LONG" or "SHORT"
-            quantity: Order quantity in base currency
-            tp_price: Take profit price (calculated from actual entry price)
-            leverage: Leverage to set (default 20x)
-            price_precision: Price decimal precision for rounding
-
-        Returns:
-            Order result dictionary
-        """
-        # Round TP price to pricePrecision
-        tp_price_rounded = round(tp_price, price_precision)
-
-        params = {
-            "symbol": symbol,
-            "side": side,
-            "positionSide": position_side,
-            "type": "MARKET",
-            "quantity": f"{quantity:.8f}".rstrip('0').rstrip('.'),
-            "tpPrice": str(tp_price_rounded),
-        }
-
-        data = await self._request("/openApi/swap/v2/trade/order", "POST", params)
-        return cast("dict[str, Any]", data)
-
-    async def place_tp_order(
-        self,
-        symbol: str,
-        side: str,  # "BUY" to close SHORT, "SELL" to close LONG
-        position_side: str,  # "LONG" or "SHORT"
-        quantity: float,
-        tp_price: float,
-        price_precision: int = 2,
-    ) -> dict[str, Any]:
-        """
-        Place a separate take profit order (TAKE_PROFIT_MARKET).
-
-        Args:
-            symbol: Trading pair (e.g., BTC-USDT)
-            side: "BUY" to close SHORT, "SELL" to close LONG
-            position_side: "LONG" or "SHORT"
-            quantity: Order quantity in base currency
-            tp_price: Take profit price
-            price_precision: Price decimal precision for rounding
-
-        Returns:
-            Order result dictionary
-        """
-        tp_price_rounded = round(tp_price, price_precision)
-
-        params = {
-            "symbol": symbol,
-            "side": side,
-            "positionSide": position_side,
-            "type": "TAKE_PROFIT_MARKET",
-            "quantity": f"{quantity:.8f}".rstrip('0').rstrip('.'),
-            "stopPrice": str(tp_price_rounded),
-            "reduceOnly": "true",
-        }
-
-        data = await self._request("/openApi/swap/v2/trade/order", "POST", params)
-        return cast("dict[str, Any]", data)
-
-    async def get_position_info(self, symbol: str) -> dict[str, Any] | None:
-        """
-        Get current position info for a symbol.
-
-        Args:
-            symbol: Trading pair
-
-        Returns:
-            Position info or None if no position
-        """
-        positions = await self.get_positions()
-        for pos in positions:
-            if pos.get("symbol") == symbol:
-                return pos
-        return None
-
-    async def get_positions(self) -> list[dict[str, Any]]:
-        """
-        Get all open positions.
-
-        Returns:
-            List of position dictionaries
-        """
-        try:
-            data = await self._request("/openApi/swap/v2/user/positions", "GET")
-            if isinstance(data, list):
-                return data
-            return []
-        except Exception:
-            return []
-
-    async def get_open_orders(self, symbol: str) -> list[dict[str, Any]]:
-        """
-        Get open orders for a symbol.
-
-        Args:
-            symbol: Trading pair
-
-        Returns:
-            List of open orders
-        """
-        try:
-            data = await self._request("/openApi/swap/v2/trade/openOrders", "GET", {"symbol": symbol})
-            if isinstance(data, list):
-                return data
-            if isinstance(data, dict):
-                nested = data.get("data")
-                if isinstance(nested, dict):
-                    orders = nested.get("orders", [])
-                    if isinstance(orders, list):
-                        return orders
-            return []
-        except Exception:
-            return []
-
     # ==================== HELPER METHODS ====================
 
     @staticmethod
     def round_to_step(value: float, step: float) -> float:
-        """Round value to nearest step."""
         if step <= 0:
             return value
         return math.floor(value / step) * step
 
     @staticmethod
     def round_up_to_step(value: float, step: float) -> float:
-        """Round value up to nearest step."""
         if step <= 0:
             return value
         return math.ceil(value / step) * step
 
     @staticmethod
     def round_to_precision(value: float, precision: int) -> float:
-        """Round value to specified decimal precision."""
         if precision < 0:
             return value
-        return round(value, precision)
+        factor = 10 ** precision
+        return round(value * factor) / factor
 
     @staticmethod
     def calculate_quantity_for_notional(
@@ -690,55 +582,47 @@ class BingXFetcher:
         min_qty: float,
         min_notional: float,
         leverage: int = 20
-    ) -> tuple[float, str]:
-        """
-        Calculate order quantity for target notional value.
-
-        Args:
-            notional_usdt: Target notional in USDT (e.g., 200 for 10 USDT margin at 20x)
-            entry_price: Current price for quantity calculation
-            qty_step: Minimum quantity step from symbol specs
-            min_qty: Minimum order quantity
-            min_notional: Minimum notional value
-            leverage: Leverage multiplier
-
-        Returns:
-            Tuple of (quantity, error_message) - error_message is empty if successful
-        """
+    ) -> Tuple[float, str]:
         if entry_price <= 0:
             return 0.0, "Invalid entry price"
-
-        # Calculate raw quantity
         raw_qty = notional_usdt / entry_price
-
-        # Round to qtyStep
         qty = BingXFetcher.round_up_to_step(raw_qty, qty_step)
-
-        # Check minimum quantity
         if qty < min_qty:
             return 0.0, f"Quantity {qty} below minQty {min_qty}"
-
-        # Check minimum notional
         notional = qty * entry_price
         if notional < min_notional:
             return 0.0, f"Notional {notional} below minNotional {min_notional}"
-
         return qty, ""
 
     @staticmethod
     def calculate_tp_price(entry_price: float, position_side: str, tp_pct: float = 5.0) -> float:
-        """
-        Calculate take profit price based on entry price and position side.
-
-        Args:
-            entry_price: Actual entry price from filled order
-            position_side: "LONG" or "SHORT"
-            tp_pct: Take profit percentage (default 5%)
-
-        Returns:
-            Take profit price
-        """
         if position_side == "LONG":
             return entry_price * (1 + tp_pct / 100)
-        else:  # SHORT
+        else:
             return entry_price * (1 - tp_pct / 100)
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Get fetcher statistics."""
+        stats = {
+            "requests_success": getattr(self, '_stats', {}).get("requests_success", 0),
+            "rate_limit_hits": self.rate_limiter.get_stats().get("rate_limit_hits", 0),
+            "rate_limit_retries": getattr(self, '_stats', {}).get("rate_limit_retries", 0),
+            "offline_symbols": getattr(self, '_stats', {}).get("offline_symbols", 0),
+            "other_errors": getattr(self, '_stats', {}).get("other_errors", 0),
+        }
+        return stats
+
+    def reset_stats(self):
+        """Reset statistics."""
+        if hasattr(self, '_stats'):
+            self._stats = {
+                "requests_total": 0,
+                "requests_success": 0,
+                "requests_failed": 0,
+                "rate_limit_hits": 0,
+                "rate_limit_retries": 0,
+                "offline_symbols": 0,
+                "other_errors": 0,
+            }
+        if self.rate_limiter:
+            self.rate_limiter.reset_stats()

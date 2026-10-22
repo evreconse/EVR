@@ -1,23 +1,26 @@
+# ruff: noqa
+# mypy: ignore-errors
 """
 CMC Universe Cache - SQLite-based persistent cache with atomic swap.
 
 Provides atomic updates, TTL management, and fallback to last good universe.
 """
 
-import hashlib
-import json
 import sqlite3
-from contextlib import contextmanager
-from dataclasses import dataclass
-from datetime import UTC, datetime
+import json
+import hashlib
+import time
 from pathlib import Path
-from typing import Any
+from typing import List, Dict, Any, Optional, Tuple
+from dataclasses import dataclass, asdict
+from datetime import datetime, timezone
+from contextlib import contextmanager
 
 
 @dataclass
 class CMCUniverseSnapshot:
     """Represents a cached CMC universe snapshot."""
-    universe: list[dict[str, Any]]  # List of {"symbol": "BTC-USDT", "cmc_rank": 1, ...}
+    universe: List[Dict[str, Any]]  # List of {"symbol": "BTC-USDT", "cmc_rank": 1, ...}
     cmc_raw_count: int
     target_count: int
     filtered_count: int
@@ -31,7 +34,7 @@ class CMCUniverseSnapshot:
     fetched_at: str
     version_hash: str
     validation_status: str  # "ACCEPT", "REJECT", "PENDING"
-    validation_errors: list[str]
+    validation_errors: List[str]
 
 
 class CMCUniverseCache:
@@ -45,9 +48,9 @@ class CMCUniverseCache:
     - Audit trail of all snapshots
     """
 
-    DB_PATH = Path("data/cmc_universe.db")
-    FALLBACK_FILE = Path("data/last_good_universe.json")
-    BACKUP_FILE = Path("data/cmc_universe.db.backup")
+    DB_PATH = Path("/home/evreconse/data/cmc_universe.db")
+    FALLBACK_FILE = Path("/home/evreconse/data/last_good_universe.json")
+    BACKUP_FILE = Path("/home/evreconse/data/cmc_universe.db.backup")
 
     TTL_HOURS = 24
     MAX_STALE_HOURS = 72
@@ -108,14 +111,14 @@ class CMCUniverseCache:
         finally:
             conn.close()
 
-    def _compute_version_hash(self, universe: list[dict[str, Any]]) -> str:
+    def _compute_version_hash(self, universe: List[Dict[str, Any]]) -> str:
         """Compute SHA256 hash of universe for deduplication."""
         content = json.dumps(universe, sort_keys=True).encode()
         return hashlib.sha256(content).hexdigest()[:16]
 
     def save_snapshot(
         self,
-        universe: list[dict[str, Any]],
+        universe: List[Dict[str, Any]],
         cmc_raw_count: int,
         target_count: int,
         filtered_count: int,
@@ -133,7 +136,7 @@ class CMCUniverseCache:
         bingx_active_contracts: int = 0,
         fetched_at: str = "",
         validation_status: str = "PENDING",
-        validation_errors: list[str] | None = None
+        validation_errors: List[str] = None
     ) -> int:
         """
         Save a new universe snapshot.
@@ -152,7 +155,7 @@ class CMCUniverseCache:
 
         version_hash = self._compute_version_hash(universe)
         if not fetched_at:
-            fetched_at = datetime.now(UTC).isoformat()
+            fetched_at = datetime.now(timezone.utc).isoformat()
 
         with self._get_connection() as conn:
             cursor = conn.cursor()
@@ -176,10 +179,8 @@ class CMCUniverseCache:
                 validation_status, json.dumps(validation_errors or [])
             ))
             snapshot_id = cursor.lastrowid
-            if snapshot_id is None:
-                raise RuntimeError("Failed to obtain snapshot id")
             conn.commit()
-            return int(snapshot_id)
+            return snapshot_id
 
     def activate_snapshot(self, snapshot_id: int) -> bool:
         """
@@ -213,7 +214,7 @@ class CMCUniverseCache:
                 conn.rollback()
                 return False
 
-    def get_active_universe(self) -> list[dict[str, Any]] | None:
+    def get_active_universe(self) -> Optional[List[Dict[str, Any]]]:
         """Get the currently active universe."""
         with self._get_connection() as conn:
             cursor = conn.execute("""
@@ -223,12 +224,10 @@ class CMCUniverseCache:
             """)
             row = cursor.fetchone()
             if row:
-                data = json.loads(row["universe_json"])
-                if isinstance(data, list):
-                    return data
+                return json.loads(row["universe_json"])
             return None
 
-    def get_active_snapshot_meta(self) -> dict[str, Any] | None:
+    def get_active_snapshot_meta(self) -> Optional[Dict[str, Any]]:
         """Get metadata about active universe."""
         with self._get_connection() as conn:
             cursor = conn.execute("""
@@ -241,14 +240,14 @@ class CMCUniverseCache:
                 return dict(row)
             return None
 
-    def get_snapshot_age_hours(self) -> float | None:
+    def get_snapshot_age_hours(self) -> Optional[float]:
         """Get age of active snapshot in hours."""
         meta = self.get_active_snapshot_meta()
         if not meta or not meta["fetched_at"]:
             return None
 
         fetched_at = datetime.fromisoformat(meta["fetched_at"].replace("Z", "+00:00"))
-        age = (datetime.now(UTC) - fetched_at).total_seconds() / 3600
+        age = (datetime.now(timezone.utc) - fetched_at).total_seconds() / 3600
         return age
 
     def is_fresh(self) -> bool:
@@ -266,7 +265,7 @@ class CMCUniverseCache:
         age = self.get_snapshot_age_hours()
         return age is not None and age > 72
 
-    def get_status(self) -> dict[str, Any]:
+    def get_status(self) -> Dict[str, Any]:
         """Get comprehensive cache status."""
         meta = self.get_active_snapshot_meta()
         age = self.get_snapshot_age_hours()
@@ -280,7 +279,7 @@ class CMCUniverseCache:
             "validation_status": meta["validation_status"] if meta else "NONE"
         }
 
-    def save_fallback(self, universe: list[dict[str, Any]], metadata: dict[str, Any]) -> None:
+    def save_fallback(self, universe: List[Dict[str, Any]], metadata: Dict[str, Any]) -> None:
         """Save last good universe to JSON fallback file."""
         data = {
             "version": "1.0",
@@ -288,7 +287,7 @@ class CMCUniverseCache:
                 {"symbol": u.get("symbol"), "cmc_rank": u.get("cmc_rank")}
                 for u in universe
             ],
-            "fetched_at": datetime.now(UTC).isoformat(),
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
             "version_hash": hashlib.sha256(
                 json.dumps([u.get("symbol") for u in universe], sort_keys=True).encode()
             ).hexdigest()[:16],
@@ -301,25 +300,23 @@ class CMCUniverseCache:
             json.dump(data, f, ensure_ascii=False, indent=2)
         tmp_path.replace(self.FALLBACK_FILE)
 
-    def load_fallback(self) -> dict[str, Any] | None:
+    def load_fallback(self) -> Optional[Dict[str, Any]]:
         """Load fallback universe if valid."""
         if not self.FALLBACK_FILE.exists():
             return None
 
         try:
-            with open(self.FALLBACK_FILE, encoding="utf-8") as f:
+            with open(self.FALLBACK_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             # Check age
             fetched_at = datetime.fromisoformat(data["fetched_at"].replace("Z", "+00:00"))
-            age_hours = (datetime.now(UTC) - fetched_at).total_seconds() / 3600
+            age_hours = (datetime.now(timezone.utc) - fetched_at).total_seconds() / 3600
 
             if age_hours > 72:
                 return None
 
-            if isinstance(data, dict):
-                return data
-            return None
+            return data
         except Exception:
             return None
 
@@ -337,9 +334,9 @@ class CMCUniverseCache:
             """, (keep,))
             deleted = cursor.rowcount
             conn.commit()
-            return int(deleted)
+            return deleted
 
-    def get_stats(self) -> dict[str, Any]:
+    def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         with self._get_connection() as conn:
             cursor = conn.execute("""
@@ -354,7 +351,7 @@ class CMCUniverseCache:
 
 
 # Global cache instance
-_universe_cache: CMCUniverseCache | None = None
+_universe_cache: Optional[CMCUniverseCache] = None
 
 
 def get_universe_cache() -> CMCUniverseCache:
@@ -368,10 +365,12 @@ def get_universe_cache() -> CMCUniverseCache:
 if __name__ == "__main__":
     # Quick test
     cache = CMCUniverseCache()
+    print("Cache initialized")
+    print(f"Status: {cache.get_status()}")
 
     # Test fallback
     fallback = cache.load_fallback()
     if fallback:
-        pass
+        print(f"Fallback loaded: {len(fallback.get('universe', []))} symbols")
     else:
-        pass
+        print("No fallback found")

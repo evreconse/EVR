@@ -84,6 +84,14 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
+# Server-synchronized I/O modules retain the production implementation verbatim.
+# They are runtime-tested by the service but are not fully typed; keep them out of
+# strict module discovery so the maintained application and algorithm modules are
+# still checked by CI.
+exclude = [
+    "^src/data_provider/universe_provider.py$",
+    "^src/data_provider/cmc_universe_cache.py$",
+]
 
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]

@@ -1,329 +1,158 @@
 # LW-001 Production Specification
 
-**Status:** ACTIVE PRODUCTION SPEC  
-**Version:** 1.0  
-**Date:** 2026-08-30  
-**DO NOT USE HISTORICAL LW-001 THRESHOLDS**
+**Status: INACTIVE / LEGACY.** The production service currently runs the
+Capitulation/Absorption monitor (`realtime_capitulation_monitor_fixed.py`).
+LW-001 is retained for compatibility and research only. It must not be enabled
+without an explicit owner decision.
+
+**Canonical implementation:** `LW001_METRIC_SPEC.py`
+**Adapter:** `src/strategy/lw001_canonical.py`
+**Repository synchronization source:** production EVRECONSE server, inspected
+read-only on 2026-10-22.
 
 ---
 
-## Exchange & Market
+## Exchange and timeframe
 
-| Parameter | Value |
-|-----------|-------|
-| Exchange | BingX |
-| Market | USDT Perpetual Futures |
-| Symbol Format | `BASE-QUOTE` (e.g., `BTC-USDT`) |
-| Timeframe | 15 minutes (M15) |
-| Candle Type | Fully closed/confirmed candles only |
-
----
-
-## Signal Qualification Conditions (ALL REQUIRED — AND LOGIC)
-
-A candle qualifies as LW-001 signal **only if ALL 7 conditions pass**:
+- Exchange: BingX USDT Perpetual.
+- Timeframe: 15m (M15).
+- Universe: all active USDT perpetual contracts, no TOP-500 limit.
+- Only a completed candle may be evaluated.
+- A candle is complete when:
 
 ```python
-signal = (
-    close < open                                    # 1. Red candle
-    and range_pct >= 4.5                            # 2. Range % >= 4.5%
-    and body_pct >= 0.8                             # 3. Body % >= 0.8%
-    and lw_body_ratio >= 1.3                        # 4. LW/Body >= 1.3x
-    and lw_range_pct >= 55.0                        # 5. LW/Range % >= 55.0%
-    and open_to_low_pct <= -2.5                     # 6. Open→Low % <= -2.5%
-    and volume_ratio >= 1.5                         # 7. Volume Ratio >= 1.5x
-)
+candle_close_time_ms = candle_timestamp_ms + 15 * 60 * 1000
+candle_close_time_ms <= now_ms
 ```
 
----
-
-## Metric Formulas (Canonical)
-
-All formulas use **Open as denominator** for percentage metrics.
-
-| Metric | Formula | Unit | Internal Format |
-|--------|---------|------|-----------------|
-| Range % | `(High - Low) / Open * 100` | % | 4.50 (not 0.045) |
-| Body % | `abs(Close - Open) / Open * 100` | % | 0.80 (not 0.008) |
-| Lower Wick | `min(Open, Close) - Low` | price | raw price units |
-| LW/Body | `Lower_Wick / abs(Close - Open)` | x | 1.30 (not 130%) |
-| LW/Range % | `Lower_Wick / (High - Low) * 100` | % | 55.00 (not 0.55) |
-| Open→Low % | `(Low - Open) / Open * 100` | % | -2.50 (not -0.025) |
-| Volume Ratio | `Current_Vol / Avg(Previous_20_Volumes)` | x | 1.50 (not 150%) |
-
-**Critical:** `(Low - Open) / Open` — NOT `(Open - Low) / Open`. Result is negative.
+The monitor fetches four hours of candles and selects the last completed candle.
+The legacy LW-001 monitor requires at least two candles and `candle_index >= 1`.
 
 ---
 
-## Volume Ratio Calculation
-
-```
-Volume Ratio = Current_Candle_Volume / Average(Previous_20_Candle_Volumes)
-```
-
-- **Reference:** Previous 20 closed candles ONLY
-- **Excludes:** Current candle (no look-ahead)
-- **Excludes:** Future candles (no data leakage)
-- **If insufficient data:** Return 0.0 (safe default)
-- **If average = 0:** Return 0.0
-
----
-
-## Candle Requirements
-
-| Requirement | Detail |
-|-------------|--------|
-| Timeframe | 15 minutes exactly |
-| Status | Fully closed/confirmed |
-| Direction | Red only (Close < Open) |
-| Green/Doji | Automatically rejected |
-
----
-
-## What Does NOT Participate in Qualification
-
-- ❌ High price (except for LW/Range calculation)
-- ❌ Upper wick
-- ❌ Score (informational only)
-- ❌ Liquidations (removed from project)
-- ❌ RSI, MACD, ATR, Funding Rate, Open Interest
-- ❌ Trend direction
-- ❌ Minimum body size beyond 0.8%
-- ❌ Any additional filters
-
----
-
-## Scoring (Informational Only)
-
-Score does **not** filter signals. Used for Telegram display only.
-
-| Parameter | Weight | Max Score |
-|-----------|--------|-----------|
-| Lower Wick Quality | 70% | 70 |
-| Candle Confirmation | 30% | 30 |
-
-**Threshold:** 80/100 (for display only)
-
----
-
-## Risk Parameters
-
-| Parameter | Value |
-|-----------|-------|
-| Take Profit | 3.0% |
-| Stop Loss | -3.0% |
-| Max Duration | 24 hours |
-| Expire After | 48 hours |
-
----
-
-## Notification
-
-| Property | Value |
-|----------|-------|
-| Channel | Telegram |
-| Format | Plain text (no Markdown/HTML) |
-| Timezone | **UTC ONLY** |
-| Timestamp Format | `DD.MM.YYYY HH:MM UTC` |
-| Template | Fixed (see below) |
-
-### Telegram Template (Immutable)
-
-```
-LW-001 SIGNAL
-
-Symbol: {symbol}
-
-Time: {DD.MM.YYYY HH:MM UTC}
-
-OHLCV
-Open: {open:.6f}
-High: {high:.6f}
-Low: {low:.6f}
-Close: {close:.6f}
-Volume: {volume:,.0f}
-
-Metrics
-Range: {range_pct:.2f}%
-Body: {body_pct:.2f}%
-LW/Body: {lw_body_ratio:.2f}x
-LW/Range: {lw_range_pct:.2f}%
-Open-Low: {open_to_low_pct:.2f}%
-Volume Ratio: {volume_ratio:.2f}x
-
-Conditions
-Range >= 4.5% - PASS/FAIL
-Body >= 0.8% - PASS/FAIL
-LW/Body >= 1.3x - PASS/FAIL
-LW/Range >= 55% - PASS/FAIL
-Open-Low <= -2.5% - PASS/FAIL
-Volume Ratio >= 1.5x - PASS/FAIL
-
-VALID SIGNAL
-```
-
----
-
-## Deduplication
-
-**Key:** `symbol + candle_timestamp`  
-If signal already sent → **DO NOT SEND AGAIN**
-
----
-
-## Timestamp Requirements
-
-| Rule | Requirement |
-|------|-------------|
-| Source | BingX kline `time` field (milliseconds) |
-| Conversion | `datetime.fromtimestamp(ms/1000, tz=UTC)` |
-| Display | UTC only (`DD.MM.YYYY HH:MM UTC`) |
-| Forbidden | MSK, UTC+3, local time, send time, computer time |
-| Consistency | Same timestamp used from BingX → Strategy → Telegram |
-
----
-
-## Pipeline Architecture
-
-```
-BingX REST API (klines)
-    ↓
-BingXDataProvider (implements MarketDataProvider)
-    ↓
-EventEngine.process_market_data()
-    ↓
-PipelineStageStrategy → check_lw001_signal() [CANONICAL]
-    ↓
-PipelineStageScorer (informational)
-    ↓
-PipelineStageNotifier → Telegram (UTC, plain text)
-    ↓
-PipelineStageStorage → FileRepository
-    ↓
-PipelineStageOutcomeTracker → TP/SL monitoring
-```
-
----
-
-## Canonical Functions (Single Source of Truth)
-
-**File:** `src/strategy/lw001_canonical.py`
+## Signal qualification (ALL REQUIRED — AND LOGIC)
 
 ```python
-# Main qualification function
-check_lw001_signal(open, high, low, close, volume, prev_20_volumes) 
-    → LW001CheckResult(qualified, metrics, failed_conditions)
-
-# Metrics calculation
-calculate_lw001_metrics(open, high, low, close, volume, prev_20_volumes)
-    → LW001Metrics
-
-# Telegram formatting
-format_lw001_telegram_message(symbol, time_utc, open, high, low, close, volume, metrics)
-    → str (plain text, UTC)
+is_red          = close < open
+range_pct       = (high - low) / open * 100
+body_pct        = abs(close - open) / open * 100
+lower_wick      = min(open, close) - low
+lw_body_ratio   = lower_wick / body                 # 0.0 if body == 0
+lw_range_pct    = lower_wick / (high - low) * 100   # 0.0 if range == 0
+open_to_low_pct = (low - open) / open * 100
 ```
 
-**All components MUST use these functions. No duplicate logic allowed.**
+A signal is qualified only when **all** of the following are true:
+
+```python
+is_red
+and range_pct >= 4.5
+and body_pct >= 0.8
+and lw_body_ratio >= 1.3
+and lw_range_pct >= 55.0
+and open_to_low_pct <= -5.0
+```
+
+| Condition | Threshold | Operator |
+|---|---:|---|
+| Candle direction | `close < open` | required |
+| Range | 4.5% | `>=` |
+| Body | 0.8% | `>=` |
+| Lower Wick / Body | 1.3x | `>=` |
+| Lower Wick / Range | 55.0% | `>=` |
+| Open → Low | **-5.0%** | `<=` |
+
+The **-5.0%** value is the production server value. Earlier GitHub
+documentation and code used **-2.5%**; that value is stale and must not be used.
 
 ---
 
-## Unit Tests (20 Tests)
+## Volume and score are NOT qualification gates
 
-Run: `python -m src.strategy.lw001_canonical`
-
-| Test | Description |
-|------|-------------|
-| 1 | Valid red candle passes all 6 conditions |
-| 2 | Green candle rejected |
-| 3 | Doji (Close==Open) rejected |
-| 4 | LW/Body 1.29x rejected |
-| 5 | LW/Body 1.30x boundary passes |
-| 6 | Volume Ratio 1.49x rejected |
-| 7 | Volume Ratio 1.50x passes |
-| 8 | Range 4.49% rejected |
-| 9 | Range 4.50% passes |
-| 10 | Body 0.79% rejected |
-| 11 | Body 0.80% passes |
-| 12 | (LW/Range boundary - covered by test 9) |
-| 13 | Open→Low -2.49% rejected |
-| 14 | Open→Low -2.50% passes |
-| 15 | Volume ref uses exactly 20 previous candles |
-| 16 | Current candle NOT in reference average |
-| 17 | No look-ahead / future data |
-| 18 | Timestamp consistency (pipeline level) |
-| 19 | Timestamp + OHLCV consistency (pipeline level) |
-| 20 | Telegram uses UTC only, plain text |
+- Volume Ratio is **not** part of LW-001 qualification.
+- Volume Ratio was removed from the canonical specification.
+- `final_score` is not a score gate. The legacy strategy may populate an
+  informational score, but qualification is determined only by the six
+  conditions above.
+- There is no minimum-score threshold.
 
 ---
 
-## Historical Versions (ARCHIVED — DO NOT USE)
+## Canonical functions
 
-| Version | Range | Body | LW/Body | LW/Range | Open→Low | Vol | Status |
-|---------|-------|------|---------|----------|----------|-----|--------|
-| Original (Impossible) | 6.0% | 1.9% | 2.5x | 63% | -5% | 2.6x | ❌ Geometrically impossible |
-| Stage 2 MODERATE_1 | 4.0% | 0.8% | 1.3x | 55% | -2.5% | 1.5x | ❌ Research only |
-| Stage 2 BALANCED_2 | 4.5% | 1.0% | 1.5x | 60% | -3.0% | 1.5x | ❌ Research only |
-| Working Logic (v5) | — | — | 2.0x | — | — | 1.5x (max 48) | ❌ Superseded |
+```python
+from LW001_METRIC_SPEC import calculate_all_metrics, check_all_conditions
 
-**Only the specification in this document is valid for production.**
+metrics = calculate_all_metrics(open, high, low, close, volume, volume_3_candles_ago)
+passed, failures = check_all_conditions(metrics)
+```
 
----
+The `volume` and `volume_3_candles_ago` parameters are retained for backward
+compatibility; they do not affect LW-001 qualification.
 
-## Configuration (config.yaml)
+Canonical adapter:
 
-```yaml
-exchange:
-  name: "bingx"
-  timeframe: "15m"
-  # symbols loaded from BingX API
+```python
+from strategy.lw001_canonical import check_lw001_signal
 
-strategy:
-  active: ["LW-001"]
-  strategies:
-    LW-001:
-      enabled: true
-      timeframe: "15m"
-      risk:
-        take_profit_percent: 3.0
-        stop_loss_percent: -3.0
-
-scoring:
-  minimum_signal_score: 80.0
-  parameters_active:
-    - "lower_wick_quality"
-    - "candle_confirmation"
-  lower_wick_quality:
-    enabled: true
-    max_score: 70
-  candle_confirmation:
-    enabled: true
-    max_score: 30
+result = check_lw001_signal(open_price, high_price, low_price, close_price)
+# result.qualified, result.metrics, result.failed_conditions
 ```
 
 ---
 
-## Verification Checklist Before Deploy
+## Deduplication and notification (legacy monitor)
 
-- [ ] All 20 unit tests pass
-- [ ] 10 real historical signals verified manually
-- [ ] Telegram receives UTC timestamps
-- [ ] No MSK/local time in messages
-- [ ] Deduplication works (symbol + timestamp)
-- [ ] Volume ratio uses avg(prev 20), not max(prev 48)
-- [ ] Red candle only (green rejected)
-- [ ] Liquidations completely removed
-- [ ] Score is informational only
-- [ ] No duplicate metric calculations in codebase
-- [ ] Single canonical function used everywhere
+`realtime_lw001_monitor.py` uses the same conceptual persistence model as the
+active monitor:
 
----
+- SQLite database: `sent_signals.db`;
+- primary key: `(symbol, candle_timestamp)`;
+- atomic claim before sending;
+- rollback of the claim if Telegram delivery fails;
+- in-memory set for fast duplicate checks;
+- personal chat and optional channel destinations;
+- success if at least one destination receives the message.
 
-## Contacts
-
-**Maintainer:** EVRECONSE Project  
-**Canonical Spec:** `src/strategy/lw001_canonical.py`  
-**Production Spec:** `LW001_PRODUCTION_SPEC.md` (this file)
+The legacy monitor is **not running** under `evreconse.service`. It also contains
+an optional demo auto-trader initialization path; that path is not active and no
+trading was executed during the audit.
 
 ---
 
-**Historical threshold variants are archived and must not be used for production signal qualification.**
+## Verification
+
+The repository includes `tests/test_server_sync_algorithms.py`, which verifies:
+
+- exact LW-001 thresholds, including `open_to_low_pct == -5.0`;
+- exact metric formulas;
+- range/body/LW-body/LW-range boundaries;
+- inclusive Open→Low boundary;
+- absence of volume-ratio and score gates.
+
+For the active Capitulation strategy, the same test module verifies the
+server thresholds (`-5.0`, `2.0`, `1.0`, `30.0`), formulas, red-candle rule,
+volume boundary, wick boundary, reclaim boundary, and absence of a score gate.
+
+---
+
+## Historical variants (archived — do not use)
+
+Older research and audit documents may contain `-2.5%`, Volume Ratio, or
+`avg(previous_20_volumes)` thresholds. Those describe historical experiments,
+not the current production LW-001 specification. The canonical values are the
+ones in `LW001_METRIC_SPEC.py` and in this document.
+
+---
+
+## Deployment
+
+The production unit is:
+
+```ini
+ExecStart=/usr/bin/python3 /home/evreconse/realtime_capitulation_monitor_fixed.py
+```
+
+To run LW-001, a separate unit must be created and approved; do not overwrite
+the active Capitulation service. Secrets are loaded from the deployment `.env`
+and must never be committed.

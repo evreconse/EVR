@@ -217,7 +217,7 @@ class StrategyConditionConfig:
     - Body >= 0.8%
     - LW/Body >= 1.3x
     - LW/Range >= 55.0%
-    - Open->Low <= -2.5%
+    - Open->Low <= -5.0%
     - Red candle only (Close < Open)
 
     No configurable thresholds needed.
