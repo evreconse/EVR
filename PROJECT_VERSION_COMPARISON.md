@@ -4,6 +4,7 @@
 **Репозиторий:** `https://github.com/evreconse/EVR`
 **Ветка:** `main`
 **GitHub HEAD на начало этапа:** `907354b2473e557c52e40372ba189df1a48170ae`
+**Коммит синхронизации:** `6b2f2b8570d3afb0e3f182465a400c4c6f8022e7`
 **Production entry point:** `/home/evreconse/realtime_capitulation_monitor_fixed.py`
 **Режим доступа к production:** строго read-only
 **Итоговый статус этапа 2:** **B. АЛГОРИТМИЧЕСКАЯ ЭКВИВАЛЕНТНОСТЬ ПОДТВЕРЖДЕНА, НО ОСТАЛИСЬ ФАЙЛОВЫЕ РАЗЛИЧИЯ**

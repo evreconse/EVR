@@ -4,6 +4,7 @@
 **Репозиторий:** `https://github.com/evreconse/EVR`
 **Ветка:** `main`
 **HEAD на начало этапа:** `907354b2473e557c52e40372ba189df1a48170ae`
+**Коммит синхронизации:** `6b2f2b8570d3afb0e3f182465a400c4c6f8022e7`
 **Production entry point:** `/home/evreconse/realtime_capitulation_monitor_fixed.py`
 **Доступ к production:** строго read-only
 **Итоговый статус:** **B. АЛГОРИТМИЧЕСКАЯ ЭКВИВАЛЕНТНОСТЬ ПОДТВЕРЖДЕНА, НО ОСТАЛИСЬ ФАЙЛОВЫЕ РАЗЛИЧИЯ**
@@ -196,8 +197,21 @@ history, без удаления чужих изменений.
    `pytest -q`;
 5. при необходимости — metadata-follow-up commit с точным SHA публикации.
 
-Точный commit SHA и финальный remote HEAD указаны в финальном ответе и в
-`git log`; они не подменяются предположениями.
+Фактически выполнено:
+
+```text
+code commit:   6b2f2b8570d3afb0e3f182465a400c4c6f8022e7
+push:          907354b..6b2f2b8  main -> main
+fresh clone:   6b2f2b8570d3afb0e3f182465a400c4c6f8022e7
+worktree:      clean
+pytest:        152 passed
+ruff:          All checks passed
+mypy:          Success: no issues found in 118 source files
+```
+
+Metadata-follow-up commit (если создан) содержит только документацию и
+обновляет точный финальный HEAD; code commit остаётся `6b2f2b8`. Финальный
+remote HEAD указан в ответе и подтверждается `git ls-remote`.
 
 ---
 
