@@ -28,6 +28,18 @@
 
 **Среда локальной проверки:** Python 3.11.9, macOS, отдельный clone
 
+> **Stage 2 addendum (2026-10-23).** Выполнена повторная синхронизация в новом
+> clone GitHub (`907354b...`): 11 файлов signal decision path и top-level
+> `config` теперь побайтово совпадают с production, опубликованы точный
+> `evreconse.service` и `requirements-production-freeze.txt`. 25
+> import-time-only модулей, `src/config` layout и dev requirements остаются
+> файлово отличными. Полный прогон — **152 passed**; `ruff check src tests
+> config` — passed; `mypy src/ tests/ --explicit-package-bases` — passed
+> (118 files). Работающий процесс не перезапускался. Актуальные детали:
+> `PROJECT_VERSION_COMPARISON.md`, `GITHUB_SERVER_SYNC_REPORT.md`,
+> `STRATEGY_CAPITULATION_ABSORPTION.md`. Исторические даты и числа ниже
+> относятся к предыдущему этапу.
+
 ---
 
 ## 1. Главный вывод
@@ -390,7 +402,7 @@ WantedBy=multi-user.target
 ```
 
 Секреты читаются из `/home/evreconse/.env`; в unit-файле их нет. Для GitHub
-опубликован безопасный шаблон без значений.
+опубликован точный production unit без значений и секретов.
 
 Требования к runtime:
 
@@ -472,8 +484,8 @@ float-equality assertion. Это ограничение покрытия, а н�
 2. **Пути**: GitHub использует repo layout; сервер — `/home/evreconse`.
 3. **Зависимости**: GitHub pyproject ranges, серверный freeze отличается.
 4. **SQLite**: GitHub не содержит production БД и накопленных сигналов.
-5. **Service unit**: опубликован безопасный шаблон, не копия серверного
-   unit с локальными настройками.
+5. **Service unit**: опубликован точный production unit без секретов, с
+   локальными настройками.
 6. **Legacy LW-001** остаётся в коде, но не активен; его monitor не запускается.
 7. **stats-only fix** в активном monitor не был загружен процессом, так как
    сервер не перезапускался.

@@ -1,5 +1,3 @@
-# ruff: noqa
-# mypy: ignore-errors
 """
 BingX API Rate Limiter
 
@@ -19,11 +17,11 @@ logger = logging.getLogger(__name__)
 class BingXRateLimiter:
     """
     Rate limiter for BingX API.
-
+    
     Official limit: 500 requests per 10 seconds per IP for market data endpoints.
     We use a conservative limit of 450/10s to leave headroom.
     """
-
+    
     def __init__(
         self,
         max_requests: int = 450,
@@ -32,7 +30,7 @@ class BingXRateLimiter:
     ):
         """
         Initialize rate limiter.
-
+        
         Args:
             max_requests: Maximum requests allowed in window (default 450 for 500 limit with margin)
             window_seconds: Time window in seconds (default 10s per BingX docs)
@@ -51,32 +49,32 @@ class BingXRateLimiter:
         self._total_requests = 0
         self._total_wait_time = 0.0
         self._rate_limit_hits = 0
-
+    
     async def acquire(self) -> float:
         """
         Acquire permission to make a request.
-
+        
         Returns:
             Time waited in seconds (0 if no wait needed)
         """
         async with self._lock:
             now = time.monotonic()
             cutoff = now - self.window_seconds
-
+            
             # Remove expired requests
             while self._requests and self._requests[0] < cutoff:
                 self._requests.popleft()
-
+            
             if len(self._requests) < self.max_requests:
                 # Room available, record request and proceed
                 self._requests.append(now)
                 self._total_requests += 1
                 return 0.0
-
+            
             # Need to wait until oldest request expires
             oldest = self._requests[0]
             wait_time = (oldest + self.window_seconds) - now
-
+            
             if wait_time > 0:
                 self._rate_limit_hits += 1
                 self._total_wait_time += wait_time
@@ -84,19 +82,19 @@ class BingXRateLimiter:
                 pass
             else:
                 wait_time = 0
-
+            
         # Wait outside lock to avoid blocking other coroutines
         if wait_time > 0:
             await asyncio.sleep(wait_time)
-
+            
         # Re-acquire lock to record the request
         async with self._lock:
             now = time.monotonic()
             self._requests.append(now)
             self._total_requests += 1
-
+            
         return wait_time
-
+    
     def get_stats(self) -> dict:
         """Get rate limiter statistics."""
         return {
@@ -107,7 +105,7 @@ class BingXRateLimiter:
             "max_requests_per_window": self.max_requests,
             "window_seconds": self.window_seconds,
         }
-
+    
     def reset_stats(self):
         """Reset statistics counters."""
         self._total_requests = 0
@@ -167,18 +165,18 @@ def classify_bingx_error(error: Exception) -> BingXAPIError:
     """Classify a generic error into a specific BingX error type."""
     if isinstance(error, BingXAPIError):
         return error
-
+    
     msg = str(error)
-
+    
     if is_rate_limit_error(error):
         return BingXRateLimitError(msg)
-
+    
     if is_offline_symbol_error(error):
         return BingXOfflineSymbolError(msg)
-
+    
     # Network/timeout errors are retryable
     if isinstance(error, (asyncio.TimeoutError, ConnectionError, OSError)):
         return BingXAPIError(msg, retryable=True)
-
+    
     # Other errors are not retryable by default
     return BingXAPIError(msg, retryable=False)

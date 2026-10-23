@@ -1,6 +1,7 @@
 [Unit]
 Description=EVRECONSE Capitulation/Absorption Monitor
 After=network.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -9,12 +10,10 @@ WorkingDirectory=/home/evreconse
 ExecStart=/usr/bin/python3 /home/evreconse/realtime_capitulation_monitor_fixed.py
 Restart=always
 RestartSec=15
+StartLimitBurst=0
 StandardOutput=journal
 StandardError=journal
 Environment=PYTHONUNBUFFERED=1
-
-# Runtime credentials are loaded from /home/evreconse/.env by python-dotenv.
-# Do not store API keys, Telegram tokens, or chat IDs in this unit file.
 
 [Install]
 WantedBy=multi-user.target

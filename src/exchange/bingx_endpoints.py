@@ -1,5 +1,3 @@
-# ruff: noqa
-# mypy: ignore-errors
 """
 BingX API Endpoints for Auto-Trading
 =====================================
@@ -35,17 +33,17 @@ BINGX_ENDPOINTS = {
     "GET_BALANCE": "/openApi/swap/v2/user/balance",
     "GET_POSITIONS": "/openApi/swap/v2/user/positions",
     "GET_OPEN_ORDERS": "/openApi/swap/v2/trade/openOrders",
-
+    
     # Trading
     "PLACE_ORDER": "/openApi/swap/v2/trade/order",
     "CANCEL_ORDER": "/openApi/swap/v2/trade/cancelOrder",
     "CANCEL_ALL_ORDERS": "/openApi/swap/v2/trade/cancelAllOrders",
-
+    
     # Account settings
     "SET_LEVERAGE": "/openApi/swap/v2/trade/leverage",
     "SET_MARGIN_TYPE": "/openApi/swap/v2/trade/marginType",
     "SET_POSITION_MODE": "/openApi/swap/v2/trade/positionSide",
-
+    
     # Market data
     "GET_CONTRACTS": "/openApi/swap/v2/quote/contracts",
     "GET_KLINES": "/openApi/swap/v3/quote/klines",

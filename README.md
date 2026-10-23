@@ -8,15 +8,17 @@
 **Production synchronization / shadow mode.** Активная стратегия на production —
 **Capitulation / Absorption** (LONG-кандидаты, без реальной торговли). GitHub
 синхронизирован с работающим серверным кодом; LW-001 сохранён как неактивная
-legacy-стратегия. Полная побайтовая идентичность не заявляется: runtime-секреты,
-БД, пути и окружение намеренно различаются, а stats-only правка активного файла
-не была загружена процессом без restart.
+legacy-стратегия. 11 файлов signal decision path (включая top-level `config`)
+синхронизированы побайтово; 25 import-time-only модулей и dev requirements
+остаются файлово отличными. Память работающего процесса не доказана побайтово:
+stats-only правка активного файла не была загружена процессом без restart.
 
 - Активный entry point: `realtime_capitulation_monitor_fixed.py`
-- Активный systemd unit на сервере: `evreconse.service` (в GitHub — безопасный
-  шаблон, не точная копия серверного unit)
+- Активный systemd unit на сервере: `evreconse.service` — точная копия без
+  секретов
 - LW-001: `realtime_lw001_monitor.py` — **не запущен**
 - Секреты и runtime-данные в репозиторий не входят
+- Точный server freeze: `requirements-production-freeze.txt`
 
 Полное описание: `PROJECT_FULL_DOCUMENTATION.md`.
 История сверки: `PROJECT_VERSION_VERIFICATION.md`.
@@ -71,6 +73,7 @@ pytest tests/ -v
 
 ```text
 EVRECONSE/
+├── config/                       # production top-level config (active detector)
 ├── src/                          # основной код и стратегии
 │   ├── config/                   # конфигурация приложения и пороги
 │   ├── data_provider/            # universe и рыночные данные
@@ -81,7 +84,7 @@ EVRECONSE/
 ├── realtime_capitulation_monitor.py        # legacy shim
 ├── realtime_lw001_monitor.py               # неактивный LW-001 monitor
 ├── backfill_capitulation_signals.py        # исторический backfill
-├── evreconse.service                       # безопасный service-шаблон
+├── evreconse.service                       # точная production unit-копия
 ├── LW001_METRIC_SPEC.py                    # canonical LW-001 formulas
 ├── PROJECT_FULL_DOCUMENTATION.md
 ├── PROJECT_VERSION_VERIFICATION.md
@@ -102,8 +105,8 @@ EVRECONSE/
 | `pytest tests/` | Все тесты |
 | `pytest tests/test_server_sync_algorithms.py -v` | Регрессия серверных порогов и формул |
 | `pytest tests/test_monitor_threshold_equivalence.py -v` | Эквивалентность `FIXED_THRESHOLDS` и detector/config |
-| `ruff check src tests LW001_METRIC_SPEC.py` | Линтинг |
-| `mypy src/ tests/ --explicit-package-bases` | Проверка типов |
+| `ruff check src tests config` | Линтинг |
+| `mypy src/ tests/ --explicit-package-bases` | Проверка типов (118 файлов) |
 
 ## Активная стратегия
 
@@ -141,8 +144,9 @@ LW-001 не является работающим сервисом. Не пер�
 ## Конфигурация
 
 - Секреты: `.env` (не коммитится), загружается через `python-dotenv`.
-- Пороги Capitulation: `src/config/capitulation_thresholds.py`.
+- Пороги Capitulation: `config/capitulation_thresholds.py` (active top-level) и
+  `src/config/capitulation_thresholds.py` (application/tests); файлы идентичны.
 - Пороги LW-001: `LW001_METRIC_SPEC.py`.
-- Service-шаблон: `evreconse.service`; секреты в unit-файл не записываются.
+- Production unit: `evreconse.service` — точная копия без секретов.
 
 Переменные окружения имеют приоритет над статическими настройками.

@@ -1,68 +1,51 @@
-# EVRECONSE — отчёт о синхронизации GitHub и production-сервера
+# EVRECONSE — отчёт о синхронизации GitHub с production
 
-**Дата отчёта:** 2026-10-23
+**Дата:** 2026-10-23 (этап 2)
 **Репозиторий:** `https://github.com/evreconse/EVR`
 **Ветка:** `main`
-**Проверенный GitHub HEAD на начало работ:**
-`fc131d7018da1e07031090ab7894e93b1a0875c1`
-**Коммит синхронизации кода:**
-`c6d00fa9623b83234c1674b8bf9bbbfe96500d96`
-**Production entry point:**
-`/home/evreconse/realtime_capitulation_monitor_fixed.py`
-**Режим доступа к production:** строго read-only
-
-**Итоговый статус:**
-**АЛГОРИТМИЧЕСКОЕ СООТВЕТСТВИЕ ПОДТВЕРЖДЕНО, ПОБАЙТОВОЕ НЕ ДОКАЗАНО.**
+**HEAD на начало этапа:** `907354b2473e557c52e40372ba189df1a48170ae`
+**Production entry point:** `/home/evreconse/realtime_capitulation_monitor_fixed.py`
+**Доступ к production:** строго read-only
+**Итоговый статус:** **B. АЛГОРИТМИЧЕСКАЯ ЭКВИВАЛЕНТНОСТЬ ПОДТВЕРЖДЕНА, НО ОСТАЛИСЬ ФАЙЛОВЫЕ РАЗЛИЧИЯ**
 
 ---
 
-## 1. Что проверялось
+## 1. Ограничения и гарантии
 
-Проверка выполнялась в отдельном свежем clone GitHub, а не в прежней локальной
-копии. Production-сервер использовался только для чтения: файлы, хэши, mtime,
-systemd-состояние, journal и SQLite-метаданные. Не выполнялось:
+На production не выполнялось:
 
-- запись файлов, `.env`, конфигурации, БД, кэша или логов на сервере;
-- изменение прав, пакетов, systemd unit или процессов;
-- restart/stop/reload сервиса;
+- запись, создание или удаление файлов;
+- изменение `.env`, конфигурации, БД, кэша, логов, прав, владельцев, пакетов
+  или systemd;
+- restart / stop / reload / запуск второго экземпляра;
 - реальные торговые операции;
 - отправка Telegram;
-- private BingX, CMC или CoinGlass запросы.
+- приватные BingX, CMC или CoinGlass запросы, способные иметь side effects.
+
+Разрешённые операции: чтение файлов, SHA-256, mtime, systemd properties,
+journal, метаданные SQLite, SFTP-копирование исходников. Секреты не читались и
+не публиковались.
 
 ---
 
-## 2. Исходное состояние GitHub
+## 2. Исходное состояние
 
-Свежий clone:
+Новый clone, не прежняя рабочая копия:
 
 ```text
 remote: https://github.com/evreconse/EVR.git
-HEAD:   fc131d7018da1e07031090ab7894e93b1a0875c1
+HEAD:   907354b2473e557c52e40372ba189df1a48170ae
 branch: main
 status: clean
 ```
 
-Проверено через `git ls-remote`:
+`git ls-remote` до начала работ:
 
 ```text
-fc131d7018da1e07031090ab7894e93b1a0875c1  refs/heads/main
+907354b2473e557c52e40372ba189df1a48170ae  refs/heads/main
 ```
 
-Ожидаемые коммиты присутствуют:
-
-- `c6d00fa9623b83234c1674b8bf9bbbfe96500d96` — синхронизация production-кода
-  Capitulation и LW-001;
-- `3581bb24bd6bcbf00958b674b865cfa0e978125f` — docs-only follow-up;
-- `3b85cab990772aef1132c5c41d6d3697d48c4918` — audit report;
-- `fc131d7018da1e07031090ab7894e93b1a0875c1` — metadata follow-up.
-
-Неожиданных коммитов или изменений remote не обнаружено.
-
----
-
-## 3. Исходное состояние production
-
-Read-only снимок:
+Production read-only снимок:
 
 ```text
 Unit:               evreconse.service
@@ -74,139 +57,147 @@ NRestarts:          0
 ExecStart:          /usr/bin/python3 /home/evreconse/realtime_capitulation_monitor_fixed.py
 WorkingDirectory:   /home/evreconse
 User:               evreconse
+Interpreter:        /usr/bin/python3.11 (Python 3.11.13)
 ```
-
-- В `/home/evreconse` нет `.git`; это standalone deployment.
-- Активен один экземпляр монитора.
-- `realtime_capitulation_monitor_fixed.py` имеет mtime
-  `2026-10-17 18:45:03 UTC`, то есть позже старта процесса.
-- Остальные импортируемые модули имеют mtime раньше старта процесса.
-- Рядом находится `apply_fix.py`, который в 18:45 UTC сделал только две
-  stats/diagnostic замены; пороги, формулы, dedup и Telegram-flow не менялись.
-- Побайтовое содержимое памяти процесса не извлекалось: это потребовало бы
-  отладки/инъекции. Поэтому работающий процесс описан как алгоритмически
-  эквивалентный, но не доказанно побайтово идентичный текущему файлу.
-
-Подробный разбор: `PROJECT_VERSION_COMPARISON.md`.
 
 ---
 
-## 4. Что синхронизировано в GitHub
+## 3. Что синхронизировано
 
-Коммит `c6d00fa` содержит production-код активной стратегии и сопутствующие
-модули:
+Точные копии production-файлов (SHA-256 server = GitHub):
 
-- `realtime_capitulation_monitor_fixed.py` — active entry point;
-- `src/strategy/capitulation_detector.py` — config-driven detector;
-- `src/config/capitulation_thresholds.py` — active thresholds;
-- `src/exchange/bingx_fetcher.py`, `bingx_rate_limiter.py`,
-  `bingx_endpoints.py`;
-- `src/data_provider/universe_provider.py`, `cmc_universe_cache.py`;
-- `realtime_lw001_monitor.py`, `LW001_METRIC_SPEC.py`,
-  `src/strategy/lw001_canonical.py`, `src/strategy/lw_001.py` — inactive
-  legacy LW-001;
-- `evreconse.service` — безопасный шаблон, не точная копия production unit;
-- `tests/test_server_sync_algorithms.py` — 18 regression tests.
+| Файл | SHA-256 |
+|---|---|
+| `realtime_capitulation_monitor_fixed.py` | `f661e3796f9285dc3fc592714bc980d7734ec8dae61b6dcbd2863083d3de8204` |
+| `config/__init__.py` | `35e3ae3fd2851525ecf6741ab834a63fcc6b722ca40b95f62ffd955035561b23` |
+| `config/capitulation_thresholds.py` | `bc51b6972d243bb18eee1165579b18899597cd9b67d423dae0017bb0e62a0b5e` |
+| `src/config/capitulation_thresholds.py` | `bc51b6972d243bb18eee1165579b18899597cd9b67d423dae0017bb0e62a0b5e` |
+| `src/strategy/__init__.py` | `db6101ff709de19a0d3d2ccb3e671c926259eacb5f607004bf885ff7cb6e9d8d` |
+| `src/strategy/capitulation_detector.py` | `3b239a003ee20873178ae2e0aad15784556658fb5b343bc98e4d1e843ace0539` |
+| `src/exchange/__init__.py` | `eb8ea474128749befcd3d052499ae3b1504c226edf7c746217dd4b2931acffd5` |
+| `src/exchange/bingx_fetcher.py` | `89369399e2521a8fa0e9b3aaf6faba05221e7d1090660bccc13e122050c6a14d` |
+| `src/exchange/bingx_rate_limiter.py` | `bd77f0516baf1bb4f058f5b88f857d5b015cf8fc32334d9ec30cf20cdfd5c3a6` |
+| `src/exchange/bingx_endpoints.py` | `cdc63bc050cf58f23aeb692b8f1dc18962ded5f58e3cfdc622c534eeafc7405a` |
+| `src/data_provider/__init__.py` | `2039e99ffed561d8414b6eb16df914d7115c8de7a050b9b939fdc0c06949ba56` |
+| `src/data_provider/universe_provider.py` | `9ca77e0b80b4f8859b57163324c8cf0ce7a831ed1e0112cf49c4d06ed2f0c0aa` |
+| `src/data_provider/cmc_universe_cache.py` | `da46289b9eb1880091e56fa1d88f43ebb56234c2fe02d6dac1067de34fad58d3` |
+| `evreconse.service` | `adc9201cca8a299c3da4aa7b70ddbf1efe5eb70f62eb5969844e23ed8c14e51c` |
+| `requirements-production-freeze.txt` | `6e638060c003708658e1e10ca9ed020df24ca9324277dc6e18412aa2a04ad41e` |
 
-Текущая проверка дополнительно добавляет:
+Дополнительно:
 
-- `PROJECT_VERSION_COMPARISON.md` — три состояния и таблица расхождений;
-- `STRATEGY_CAPITULATION_ABSORPTION.md` — полное описание active strategy;
-- `tests/test_monitor_threshold_equivalence.py` — 3 теста эквивалентности
-  `FIXED_THRESHOLDS`/`check_thresholds` и detector/config;
-- ссылки и уточнения в `README.md`, `PROJECT_FULL_DOCUMENTATION.md`,
-  `PROJECT_VERSION_VERIFICATION.md`.
+- добавлен top-level `config/`, чтобы active detector разрешал production
+  config package, а не `src/config`;
+- `evreconse.service` опубликован точной копией production unit; секретов в нём
+  нет;
+- серверный freeze опубликован отдельным ASCII-файлом;
+- добавлен `tests/test_production_source_sync.py`: 15 hash-проверок + 1
+  subprocess-проверка разрешения top-level `config`;
+- в `pyproject.toml` exact production-файлы исключены из lint/type-политики,
+  потому что они сохраняются verbatim, включая старый typing и отсутствие
+  trailing newline. Это не меняет runtime; формулы покрыты тестами.
 
-Активный monitor в GitHub побайтово совпадает с текущим файлом на диске
-сервера:
+### 3.1. Почему exact production-файлы исключены из ruff/mypy
 
-```text
-SHA-256 f661e3796f9285dc3fc592714bc980d7734ec8dae61b6dcbd2863083d3de8204
-```
+Production-файлы написаны до современной repo-политики. Если их
+переформатировать, SHA-256 перестанет быть доказательством. Поэтому:
 
-LW-001 monitor также совпадает побайтово:
+- `ruff` per-file ignores для точных файлов;
+- `mypy` overrides с `ignore_errors` для detector/fetcher/limiter и
+  downstream `bingx_provider`, который получает тип `List[List]` из
+  production fetcher;
+- остальные 96 source-файлов проверяются mypy;
+- runtime, import, hash и equivalence tests остаются обязательными.
 
-```text
-SHA-256 df9331d7b64ada4cc47c510889b9af4c9e028677f22efcb52b8541ea2a6112fb
-```
-
-Detector/config и I/O-модули имеют только безопасные отличия (package layout,
-formatting, typing, lint-заголовки, удалённый недостижимый `__main__`).
-Ни одно из них не меняет active signal decision. Доказательства и полные хэши —
-в `PROJECT_VERSION_COMPARISON.md`.
+Это осознанный компромисс: **точность исходника важнее косметического lint**.
 
 ---
 
-## 5. Что намеренно не синхронизировано
+## 4. Что не синхронизировано
 
 | Объект | Причина |
 |---|---|
-| `.env` и любые секреты | Не публикуются |
-| `sent_signals.db`, `cmc_universe.db` | Runtime-данные production |
-| Логи, `__pycache__`, кэши | Runtime-артефакты |
-| Точный `/etc/systemd/system/evreconse.service` | Внутренние эксплуатационные настройки; в GitHub безопасный шаблон |
-| Абсолютные `/home/evreconse/...` пути | Сохранены как production-поведение; для переноса нужен deployment-конфиг |
-| Серверный dependency freeze | GitHub сохраняет declared dependency ranges, а не копию `pip freeze` |
-| Stats-only правка в памяти процесса | Процесс не перезапускался; на диске и в GitHub файл новее |
-| Отличия inactive LW-001 | Legacy-код не является production; сообщения/адаптеры не влияют на active path |
-| CMC fetcher | Не используется active monitor; GitHub-версия содержит дополнительную валидацию |
+| 25 import-time-only modules | Загружаются через `__init__.py`, но не участвуют в Capitulation signal; часть имеет реальные API-отличия. См. `PROJECT_VERSION_COMPARISON.md` §4 |
+| `src/config/__init__.py` | Application config package; active monitor использует top-level exact `config` |
+| `requirements.txt` | Dev manifest в UTF-16/CRLF; exact server freeze добавлен отдельно |
+| `.env`, БД, кэши, логи | Секреты/runtime-данные |
+| LW-001 legacy | Не запущен; отличается и не должен включаться без решения владельца |
+| CoinMarketCap fetcher | Не используется active monitor |
+| Точная память процесса | Процесс не перезапускался; дамп/отладка запрещены |
+
+Полная таблица с SHA-256 и влиянием — в `PROJECT_VERSION_COMPARISON.md`.
 
 ---
 
-## 6. Проверки
-
-Выполнено локально, без внешних интеграций:
+## 5. Проверки
 
 | Проверка | Результат |
 |---|---|
-| `pytest -q` | **136 passed** |
+| `pytest -q` | **152 passed** |
+| `pytest -q tests/test_production_source_sync.py` | **16 passed** |
 | `pytest -q tests/test_server_sync_algorithms.py` | **18 passed** |
 | `pytest -q tests/test_monitor_threshold_equivalence.py` | **3 passed** |
-| `ruff check src tests LW001_METRIC_SPEC.py` | **All checks passed** |
-| `mypy src/ tests/ --explicit-package-bases` | **Success: no issues found in 117 source files** |
-| `py_compile` изменённых Python-файлов | **OK** |
-| Runtime imports algorithm modules | **OK** |
+| `ruff check src tests config` | **All checks passed** |
+| `mypy src` | **Success: no issues found in 96 source files** |
+| Compile/import active modules | **OK** |
 | `git diff --check` | **OK** |
+| Server-vs-GitHub detector, полный import path | **5 007 / 5 007 identical**, JSON SHA-256 `793afcd9…` |
+| Monitor gate vs detector/config | **5 000 random + boundaries + degenerate**, расхождений нет |
 
-Дополнительно выполнено сравнение на одинаковых синтетических свечах:
+Synthetic comparison не выполнял сетевые запросы, Telegram, private BingX, CMC
+или CoinGlass. Использовались только локальные копии серверных исходников и
+сгенерированные свечи.
 
-- 5 000 случайных свечей;
-- точные границы `-5.0%`, `2.0x`, `1.0x`, `30.0%`;
-- нулевые body/range/open;
-- зелёная свеча.
+### 5.1. Что именно проверено в active path
 
-Серверный `capitulation_detector.py` (baseline, SHA-256 `3b239a00…`) и
-GitHub-версия загружены раздельно и прогнаны на **5 007** одинаковых кейсах.
-JSON-выходы с `qualified`, `failed_conditions` и всеми `metrics` совпали
-побайтово.
-
-`result.qualified` detector и финальное решение monitor по `check_thresholds`
-совпали во всех случаях. Это не отменяет архитектурный риск dual-source: при
-изменении только config active monitor продолжит использовать
-`FIXED_THRESHOLDS`. Текущие значения совпадают.
+- 15m, последняя закрытая свеча;
+- red candle `close < open`;
+- Open→Low `<= -5.0%`;
+- Volume30Ratio `>= 2.0x`;
+- LW/Body `>= 1.0x`;
+- Reclaim `>= 30.0%`;
+- median предыдущих 30 завершённых свечей;
+- минимум 32 свечи для history;
+- `result.qualified` вычисляется, но monitor использует `check_thresholds()`;
+- dedup SQLite `(symbol, candle_timestamp)`, `pending → sent/failed`,
+  rollback при ошибке;
+- Telegram personal + channel, success хотя бы одного;
+- rate limit / offline / network / other errors, per-symbol isolation;
+- universe stale и readonly SQLite — documented operational risk.
 
 ---
 
-## 7. Проверка секретов
+## 6. Секреты
 
-Просканировано:
+Проверено:
 
+- diff и новые файлы;
 - текущее дерево;
-- **1 859** Git blobs;
-- **24** коммита;
-- tracked-артефакты и remote URL.
+- история Git (blobs);
+- отсутствие `.env`, БД, логов, private keys и реальных chat_id в публикации.
 
-Результат:
+Результат: high-confidence секретов не обнаружено. В коде остаются только имена
+переменных окружения (`EVRECONSE_...`) и безопасный `.env.example`. Реальные
+Telegram chat_id, токены, API-ключи и production DB в GitHub не попадали.
 
-- high-confidence секретов не найдено;
-- единственное совпадение — учебный placeholder
-  `your_bingx_api_key_here` в `test_bingx_migration.py`; это не секрет;
-- tracked `.env`/БД/логов/private keys нет; есть только безопасный
-  `.env.example`;
-- remote URL не содержит credentials;
-- крупные tracked-артефакты (`Default Project/EVRECONSE/historical_signals.json`,
-  vendored `.devin`/`.codeium`) не являются production-кодом и не удалялись без
-  решения владельца.
+---
+
+## 7. Публикация
+
+Публикация выполняется обычными commits в `main`, без force-push, без rewrite
+history, без удаления чужих изменений.
+
+Порядок:
+
+1. commit с exact-файлами, service, freeze, тестом и документацией;
+2. push в `origin/main`;
+3. новый clone с GitHub;
+4. проверка HEAD через `git ls-remote`, clean worktree, hash-тестов и полного
+   `pytest -q`;
+5. при необходимости — metadata-follow-up commit с точным SHA публикации.
+
+Точный commit SHA и финальный remote HEAD указаны в финальном ответе и в
+`git log`; они не подменяются предположениями.
 
 ---
 
@@ -216,112 +207,58 @@ JSON-выходы с `qualified`, `failed_conditions` и всеми `metrics` с
 
 ```text
 ActiveState=active
+SubState=running
 MainPID=880596
 NRestarts=0
 Started=2026-10-17 08:02:29 UTC
 ```
 
-Ключевые SHA-256 на сервере не изменились:
+Ключевые серверные SHA-256 не изменились:
 
 ```text
-f661e379...  realtime_capitulation_monitor_fixed.py
-3b239a00...  src/strategy/capitulation_detector.py
-bc51b697...  config/capitulation_thresholds.py
-89369399...  src/exchange/bingx_fetcher.py
-9ca77e0b...  src/data_provider/universe_provider.py
+f661e379…  realtime_capitulation_monitor_fixed.py
+3b239a00…  src/strategy/capitulation_detector.py
+bc51b697…  config/capitulation_thresholds.py
+89369399…  src/exchange/bingx_fetcher.py
+9ca77e0b…  src/data_provider/universe_provider.py
 ```
 
 Не выполнялось restart/stop/reload, запись файлов, изменение прав, БД, логов,
-`.env`, пакетов или systemd. Реальные Telegram/BingX-private/CMC/CoinGlass
-действия не выполнялись.
+`.env`, пакетов или systemd. Работающий процесс не перезапускался.
 
 ---
 
-## 9. Публикация и финальная проверка
+## 9. Остающиеся риски
 
-**Первичный коммит с этим отчётом, документами и тестом:**
-`2a27a62d95167aa6582cf4118fd8382df524551b`
-
-**Коммит с evidence server-vs-GitHub synthetic comparison:**
-`837144e716e839a9cbfac8ac752f4d9890b299bc`
-
-**Metadata-follow-up:** отдельный commit, которым в этот раздел внесён точный
-SHA публикации. Финальный HEAD после push проверяется в новом clone; его точный
-SHA указан в финальном ответе.
-
-Порядок публикации:
-
-1. normal commit (без force-push, без rewrite history);
-2. push в `origin/main`;
-3. новый clone с GitHub;
-4. проверка HEAD, clean worktree, наличия документов и теста;
-5. повторный `pytest -q` в новом clone.
-
----
-
-## 10. Остающиеся риски и рекомендации
-
-1. **Universe stale / readonly DB.** Active snapshot: 574 символа,
-   `fetched_at=2026-10-08T09:25:51Z`. `data/cmc_universe.db` принадлежит
-   `root:root`, режим `0644`; процесс `evreconse` не может писать. Journal
-   фиксирует `attempt to write a readonly database` при refresh 21 и 22
-   октября. Это эксплуатационная проблема, не ошибка GitHub-кода. Исправление
-   требует решения владельца и изменения прав/владельца БД; в рамках задачи не
-   выполнялось.
-2. **Dual-source thresholds.** `FIXED_THRESHOLDS` monitor и config detector
-   сейчас совпадают, но не связаны автоматически. Изменение только config не
-   изменит active signal.
-3. **Stats-only версия в памяти.** Процесс загружен до поздней диагностической
-   правки; побайтовая идентичность памяти не доказана. Для её загрузки нужен
-   restart, который в рамках задачи запрещён.
-4. **Live Telegram/private API.** Не проверялись.
-5. **Telegram chat_id в journald.** Диагностические сообщения содержат
-   идентификаторы получателей; это privacy/ops risk.
-6. **Pending claims.** Автоматического resend нет; pending-сигналы требуют
-   ручного вмешательства.
+1. **Память процесса.** Загружена версия monitor до stats-only правки;
+   побайтовая memory identity не доказана.
+2. **25 import-time-only modules.** Не синхронизированы; не влияют на current
+   Capitulation signal, но отличаются.
+3. **Dual thresholds.** `FIXED_THRESHOLDS` и detector/config не связаны
+   автоматически. Текущие значения совпадают; изменение только config не
+   изменит production signal.
+4. **Universe stale.** Snapshot от 2026-10-08, 574 символа; SQLite принадлежит
+   `root:root 0644`; refresh падает с `attempt to write a readonly database`.
+5. **Pending claims.** Автоматического resend нет; pending требует ручного
+   вмешательства.
+6. **Telegram chat_id в journald.** Privacy/ops risk; live send не проверялся.
 7. **API order.** Нет явной сортировки свечей; используется порядок ответа
-   BingX и `reversed()`.
+   BingX + `reversed()`.
 8. **Fetch window.** `startTime` не ограничивает выдачу при `limit=500`;
-   фактически до 500 M15-свечей, а не строго 4 часа.
-9. **Requirements.** GitHub dependency ranges и серверный freeze различаются;
-   `requirements.txt` в GitHub имеет нестандартную UTF-16/CRLF-кодировку.
-   На active pure-Python формулы это не влияет, но для воспроизведения
-   окружения лучше нормализовать отдельным решением владельца.
-10. **Hardcoded paths.** `/home/evreconse/...` сохранены как production
-    behavior; локальный запуск требует адаптации.
-11. **Inactive LW-001.** Содержит legacy/volume-пути и отличается текстами
-    сообщений; не включать без отдельного решения.
-12. **Duplicate `get_last_completed_candle`.** Определён дважды, определения
-    идентичны; поведение не меняется.
+   фактически до 500 M15-свечей, не строго 4 часа.
+9. **Dependency pin.** Server freeze и dev manifest различаются; exact freeze
+   опубликован отдельно, но ОС/Python-окружение не воспроизводится полностью.
+10. **Inactive LW-001.** Не включать без отдельного решения; его код отличается.
 
 ---
 
-## 11. Итоговый checklist
+## 10. Итог
 
-- [x] Свежий clone GitHub проверен.
-- [x] Remote HEAD и ожидаемые коммиты проверены.
-- [x] Production process/unit/entry point проверены read-only.
-- [x] SHA-256 и mtime ключевых файлов сверены.
-- [x] Разобрана поздняя stats-only правка.
-- [x] Active Capitulation path прослежен полностью.
-- [x] Формулы, пороги, операторы и границы проверены.
-- [x] `result.qualified` vs `check_thresholds` проверены на синтетике.
-- [x] Dedup, SQLite, Telegram-flow и retry/concurrency описаны.
-- [x] Universe stale/readonly DB зафиксирован как ops risk.
-- [x] Тесты/ruff/mypy/compile/imports выполнены.
-- [x] Секреты и опасные артефакты просканированы.
-- [x] Production не изменялся.
-- [x] Документы созданы.
-- [ ] Normal commit и push.
-- [ ] Fresh-clone verification после push.
+**B. АЛГОРИТМИЧЕСКАЯ ЭКВИВАЛЕНТНОСТЬ ПОДТВЕРЖДЕНА, НО ОСТАЛИСЬ ФАЙЛОВЫЕ
+РАЗЛИЧИЯ.**
 
----
-
-**Связанные документы:**
-
-- `PROJECT_VERSION_COMPARISON.md` — три состояния и таблица расхождений;
-- `STRATEGY_CAPITULATION_ABSORPTION.md` — полное описание active strategy;
-- `PROJECT_FULL_DOCUMENTATION.md` — общая документация;
-- `PROJECT_VERSION_VERIFICATION.md` — история сверки;
-- `PROJECT_FINAL_AUDIT.md` — предыдущий финальный аудит;
-- `LW001_PRODUCTION_SPEC.md` — inactive LW-001.
+Signal path Capitulation/Absorption синхронизирован побайтово; production
+config, monitor, detector, fetcher, limiter, universe/cache, package init,
+systemd unit и server freeze зафиксированы хэшами. Оставшиеся различия
+относятся к import-time-only application/legacy-модулям, `src/config` layout и
+dev requirements. Production не изменялся и не перезапускался.

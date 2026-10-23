@@ -17,6 +17,18 @@
 только для чтения. Реальные торговые, Telegram, private BingX, CMC и
 CoinGlass действия не выполнялись.
 
+> **Stage 2 addendum (2026-10-23).** Выполнена повторная синхронизация в новом
+> clone GitHub (`907354b...`): 11 файлов signal decision path и top-level
+> `config` теперь побайтово совпадают с production, опубликованы точный
+> `evreconse.service` и `requirements-production-freeze.txt`. 25
+> import-time-only модулей, `src/config` layout и dev requirements остаются
+> файлово отличными. Полный прогон — **152 passed**; `ruff check src tests
+> config` — passed; `mypy src/ tests/ --explicit-package-bases` — passed
+> (118 files). Работающий процесс не перезапускался. Актуальные детали:
+> `PROJECT_VERSION_COMPARISON.md`, `GITHUB_SERVER_SYNC_REPORT.md`,
+> `STRATEGY_CAPITULATION_ABSORPTION.md`. Исторические даты и числа ниже
+> относятся к предыдущему этапу.
+
 > **Post-audit addendum (2026-10-23).** После этого аудита дополнительно
 > выполнены read-only проверка journald и прав SQLite, а также тест
 > эквивалентности `FIXED_THRESHOLDS`/`check_thresholds`. Установлена причина

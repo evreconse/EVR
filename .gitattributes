@@ -1,0 +1,17 @@
+# Production-verbatim files are stored and checked out byte-for-byte.
+# Their trailing whitespace and missing final newlines are intentional and are
+# part of the SHA-256 synchronization evidence.
+config/* -text -whitespace
+realtime_capitulation_monitor_fixed.py -text -whitespace
+src/config/capitulation_thresholds.py -text -whitespace
+src/data_provider/__init__.py -text -whitespace
+src/data_provider/cmc_universe_cache.py -text -whitespace
+src/data_provider/universe_provider.py -text -whitespace
+src/exchange/__init__.py -text -whitespace
+src/exchange/bingx_endpoints.py -text -whitespace
+src/exchange/bingx_fetcher.py -text -whitespace
+src/exchange/bingx_rate_limiter.py -text -whitespace
+src/strategy/__init__.py -text -whitespace
+src/strategy/capitulation_detector.py -text -whitespace
+evreconse.service -text -whitespace
+requirements-production-freeze.txt -text -whitespace

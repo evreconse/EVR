@@ -76,6 +76,21 @@ ignore = ["E501", "B008"]
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "T201"]
 "*.py" = ["D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107"]
+# Production-verbatim source files synchronized from the server (2026-10-23).
+# They predate the repository lint policy and must not be reformatted: their
+# SHA-256 is the synchronization evidence.  Runtime and equivalence tests cover
+# them.  Do not add new files to this list.
+"config/*" = ["ALL"]
+"src/config/capitulation_thresholds.py" = ["ALL"]
+"src/data_provider/__init__.py" = ["ALL"]
+"src/data_provider/cmc_universe_cache.py" = ["ALL"]
+"src/data_provider/universe_provider.py" = ["ALL"]
+"src/exchange/__init__.py" = ["ALL"]
+"src/exchange/bingx_endpoints.py" = ["ALL"]
+"src/exchange/bingx_fetcher.py" = ["ALL"]
+"src/exchange/bingx_rate_limiter.py" = ["ALL"]
+"src/strategy/__init__.py" = ["ALL"]
+"src/strategy/capitulation_detector.py" = ["ALL"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -92,6 +107,18 @@ exclude = [
     "^src/data_provider/universe_provider.py$",
     "^src/data_provider/cmc_universe_cache.py$",
 ]
+
+# The following production-verbatim modules are excluded from strict typing
+# because the server versions predate the repository's typing policy.  This
+# does not affect runtime behavior; their formulas are covered by tests.
+[[tool.mypy.overrides]]
+module = [
+    "data_provider.bingx_provider",
+    "exchange.bingx_fetcher",
+    "exchange.bingx_rate_limiter",
+    "strategy.capitulation_detector",
+]
+ignore_errors = true
 
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]

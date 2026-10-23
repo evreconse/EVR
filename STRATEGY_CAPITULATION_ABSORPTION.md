@@ -1,17 +1,32 @@
 # EVRECONSE — стратегия Capitulation / Absorption
 
 **Статус:** ACTIVE / SHADOW MODE
-**Дата описания:** 2026-10-22 (завершено 2026-10-23)
+**Дата описания:** 2026-10-22; этап 2 — 2026-10-23
 **Production entry point:**
 `/home/evreconse/realtime_capitulation_monitor_fixed.py`
-**Проверенный GitHub HEAD на начало описания:**
-`fc131d7018da1e07031090ab7894e93b1a0875c1`
-**Коммит синхронизации кода:**
-`c6d00fa9623b83234c1674b8bf9bbbfe96500d96`
+**GitHub HEAD на начало этапа 2:**
+`907354b2473e557c52e40372ba189df1a48170ae`
+**Проверенный production baseline:** файлы на диске сервера, SHA-256 ниже
 
 Документ описывает **фактический active path**. LW-001 присутствует в
 репозитории, но не является работающей стратегией; его описание вынесено в
 `LW001_PRODUCTION_SPEC.md`.
+
+### 0.1. Статус исходников после этапа 2
+
+- **Signal decision path синхронизирован побайтово:** monitor, detector,
+  thresholds, fetcher, rate limiter, universe provider, cache и package
+  `__init__` (11 файлов; см. `PROJECT_VERSION_COMPARISON.md` §3).
+- **Top-level `config`** добавлен точной production-копией; active detector
+  разрешает его, а не `src/config`.
+- **25 import-time-only модулей** (`data_provider`, `models`, `core`,
+  `strategy` legacy/LW-001) загружаются через `__init__.py`, но не участвуют в
+  Capitulation-расчёте; они остаются файлово отличными.
+- **Память работающего процесса** не доказана побайтово: процесс запущен
+  `2026-10-17`, а monitor на диске изменён stats-only правкой позже. Restart и
+  отладка запрещены.
+- Итоговый статус: **B. Алгоритмическая эквивалентность подтверждена, но
+  остались файловые различия.**
 
 ---
 
@@ -57,7 +72,15 @@ systemd: evreconse.service
   ExecStart=/usr/bin/python3 /home/evreconse/realtime_capitulation_monitor_fixed.py
   WorkingDirectory=/home/evreconse
   User=evreconse
+  Restart=always
+  RestartSec=15
+  StartLimitIntervalSec=0
+  StartLimitBurst=0
+  Environment=PYTHONUNBUFFERED=1
 ```
+
+GitHub `evreconse.service` теперь побайтово совпадает с production unit
+(SHA-256 `adc9201c…`); секретов в unit нет.
 
 `main()`:
 
@@ -334,6 +357,13 @@ AND reclaim_pct >= 30.0
 AND volume_30_ratio >= 2.0
 ```
 
+В fresh production-процессе `capitulation_detector.py` вставляет корень проекта
+в `sys.path` перед импортом thresholds, поэтому `from config...` разрешается в
+top-level `/home/evreconse/config`, а не в `src/config`. GitHub теперь содержит
+точную top-level копию; `src/config` остаётся application-пакетом для
+`src/main.py` и тестов. Это проверяется subprocess-тестом в
+`tests/test_production_source_sync.py`.
+
 `result.qualified` и `result.failed_conditions` вычисляются, но не влияют на
 отправку. Сейчас значения detector/config и `FIXED_THRESHOLDS` совпадают,
 поэтому расхождения нет. Если изменить только config, active monitor продолжит
@@ -393,10 +423,15 @@ Volume30Ratio и статусы PASS/FAIL.
 ## 12. Ошибки, retry и concurrency
 
 - `MAX_CONCURRENT_REQUESTS = 10` (semaphore).
-- Общий `BingXFetcher` с rate limiter: 450 запросов / 10 секунд.
-- Rate limit: retry с exponential backoff и jitter; `max_retries=5` на уровне
-  `_make_request` и внутренний цикл `_request_with_rate_limit`.
-- Network/timeout: retry до 5 попыток, backoff до 10 секунд.
+- Общий `BingXFetcher` с rate limiter: заявлено `max_requests=450`, но
+  `safety_margin=0.9` применяется к дефолту, поэтому фактический предел —
+  **405 запросов / 10 секунд** (не 450).
+- Rate limit: `_make_request` делает до 5 попыток с exponential backoff и
+  jitter; `_request_with_rate_limit` — внутренний цикл, но rate-limit ошибку
+  сразу пробрасывает наружу, поэтому фактическая пауза задаётся внешним
+  `_make_request`.
+- Network/timeout: retry до 5 попыток, backoff до 10 секунд; rate-limit
+  backoff — до 30 секунд.
 - Offline symbol: без retry, классифицируется как `offline`.
 - Ошибка одного символа не останавливает цикл.
 - `asyncio.gather(..., return_exceptions=True)` изолирует исключения задач.
@@ -405,6 +440,14 @@ Volume30Ratio и статусы PASS/FAIL.
 
 Ошибки классифицируются в `check_latest_candle_with_stats` как rate limit,
 offline, network, API/exception; статистика пишется в journald.
+
+**Diagnostic mismatch (не влияет на сигнал):** `verify_signal_comprehensive()`
+возвращает человекочитаемые причины `"Candle is not red (Close >= Open)"`,
+`"Insufficient history for Volume30"`, `"Invalid timestamp"`, а статистика
+сравнивает их с кодами `"NOT_RED"`, `"INSUFFICIENT_HISTORY"`,
+`"INVALID_TIMESTAMP"`. Поэтому red-candle может попасть в
+`_exception_errors` вместо `_not_red`. Это ошибка только счётчиков; решение о
+сигнале не меняется.
 
 ---
 
@@ -458,10 +501,14 @@ offline, network, API/exception; статистика пишется в journald
   - 5 000 случайных свечей дают одинаковое решение detector и monitor;
   - границы и вырожденные свечи дают одинаковое решение.
 - Дополнительно серверный detector (baseline, SHA-256 `3b239a00…`) и
-  GitHub detector загружены раздельно и прогнаны на 5 007 одинаковых кейсах;
-  `qualified`, `failed_conditions` и `metrics` совпали побайтово.
+  GitHub detector загружены раздельно **полным import path** (top-level
+  `config`) и прогнаны на 5 007 одинаковых кейсах; `qualified`,
+  `failed_conditions` и `metrics` совпали побайтово. JSON SHA-256:
+  `793afcd9c37bf9f38347e45bdc4a2d1bb00b46939c09f8e90c8f25762e2a4069`.
+- `tests/test_production_source_sync.py` — 15 hash-проверок production-файлов
+  и 1 subprocess-проверка разрешения top-level `config`.
 
-Полный прогон после добавления: **136 passed**. Тесты не вызывают внешние
+Полный прогон после добавления: **152 passed**. Тесты не вызывают внешние
 сервисы и не используют production-БД.
 
 ---
@@ -469,6 +516,12 @@ offline, network, API/exception; статистика пишется в journald
 ## 15. Итог
 
 Активная стратегия — Capitulation / Absorption, 15m, LONG shadow mode.
-Формулы, пороги, операторы, фильтры, порядок решения, dedup и Telegram-flow
-совпадают с опубликованным GitHub-кодом. Побайтовая идентичность работающего
-процесса не доказана; stats-only правка и безопасные адаптации описаны выше.
+Signal decision path, пороги, операторы, фильтры, порядок решения, dedup и
+Telegram-flow синхронизированы с production побайтово (11 файлов, включая
+top-level `config`). 25 import-time-only модулей, `src/config` layout и dev requirements
+остаются файлово отличными; на текущий Capitulation-сигнал они не влияют.
+Побайтовая идентичность памяти работающего процесса не доказана; stats-only
+правка и безопасные адаптации описаны выше.
+
+Итоговый статус: **B. Алгоритмическая эквивалентность подтверждена, но
+остались файловые различия.**

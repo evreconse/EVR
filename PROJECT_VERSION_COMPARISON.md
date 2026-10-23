@@ -1,420 +1,360 @@
 # EVRECONSE — сравнение production и GitHub по версиям
 
-**Дата проверки:** 2026-10-22 (завершено 2026-10-23)
+**Дата этапа 2:** 2026-10-23
 **Репозиторий:** `https://github.com/evreconse/EVR`
 **Ветка:** `main`
-**Проверенный GitHub HEAD на начало проверки:**
-`fc131d7018da1e07031090ab7894e93b1a0875c1`
-**Коммит синхронизации кода:**
-`c6d00fa9623b83234c1674b8bf9bbbfe96500d96`
-**Production entry point:**
-`/home/evreconse/realtime_capitulation_monitor_fixed.py`
-**Режим доступа к серверу:** строго read-only
+**GitHub HEAD на начало этапа:** `907354b2473e557c52e40372ba189df1a48170ae`
+**Production entry point:** `/home/evreconse/realtime_capitulation_monitor_fixed.py`
+**Режим доступа к production:** строго read-only
+**Итоговый статус этапа 2:** **B. АЛГОРИТМИЧЕСКАЯ ЭКВИВАЛЕНТНОСТЬ ПОДТВЕРЖДЕНА, НО ОСТАЛИСЬ ФАЙЛОВЫЕ РАЗЛИЧИЯ**
 
-Документ различает три состояния, которые нельзя смешивать:
-
-1. **Работающий процесс** — код, загруженный в память процесса `880596` при
-   старте `2026-10-17 08:02:29 UTC`.
-2. **Файлы на диске сервера** — текущее содержимое `/home/evreconse`.
-3. **GitHub** — опубликованный commit `fc131d7` (на момент начала проверки).
-
-Точное содержимое памяти работающего Python-процесса read-only средствами не
-извлекалось: для этого потребовалась бы отладка/инъекция в процесс. Поэтому для
-работающего процесса ниже указано, что доказано, а что является обоснованной
-реконструкцией. Сервер не перезапускался.
+Документ описывает результаты повторной сверки в новом clone GitHub. Прежние
+локальные копии не использовались как источник истины: серверные файлы были
+заново прочитаны по SFTP, хэши пересчитаны, import graph построен по AST.
 
 ---
 
-## 1. Краткий вывод
+## 1. Три состояния, которые нельзя смешивать
 
-Активный алгоритм **Capitulation / Absorption** совпадает по всем существенным
-формулам, порогам, фильтрам, порядку проверок, dedup и отправке уведомлений.
-Это подтверждено:
+| Состояние | Что проверено | Что доказано |
+|---|---|---|
+| **Файлы на диске production** | SHA-256, размеры, mtime; SFTP-копии сверены с серверными хэшами | Содержимое файлов на диске сервера |
+| **Код в памяти процесса** | `MainPID`, время старта, mtime файлов, `apply_fix.py` | Побайтовая память **не доказана**: процесс не перезапускался и не отлаживался |
+| **GitHub `main`** | Новый clone, `git ls-remote`, commit после публикации | Опубликованное содержимое GitHub |
 
-- чтением серверных файлов и сравнением с GitHub;
-- совпадением SHA-256 активного monitor и LW-001 monitor;
-- разбором `apply_fix.py`, которым была сделана поздняя stats-only правка;
-- regression-тестами на пороги, границы и эквивалентность двух источников
-  порогов;
-- mock-тестами fetcher/universe/dedup в опубликованном коде.
-
-При этом **побайтовая идентичность не заявляется**:
-
-- работающий процесс загрузил версию monitor до stats-only правки;
-- detector/config и часть I/O-модулей имеют безопасные отличия в форматировании,
-  typing и package layout;
-- runtime-секреты, БД, `.env`, логи и production unit намеренно не публикуются;
-- зависимости GitHub и серверный freeze различаются.
-
-Итоговый статус: **алгоритмическое соответствие подтверждено, побайтовое — нет**.
-
----
-
-## 2. Главная таблица
-
-Сокращённые SHA-256 приведены для читаемости; полные значения — в §8.
-
-| Компонент | Работающий процесс | Файл на диске сервера | GitHub | Влияет на сигнал | Статус |
-|---|---|---|---|---|---|
-| `realtime_capitulation_monitor_fixed.py` | версия до 18:45 UTC; stats-only отличие | `f661e379…` | `f661e379…` | нет (только reason/счётчики) | диск и GitHub совпадают побайтово |
-| `FIXED_THRESHOLDS` + `check_thresholds()` | те же 4 порога | те же 4 порога | те же 4 порога | **да, финальный gate** | значения совпадают; dual-source |
-| `src/strategy/capitulation_detector.py` | та же логика | `3b239a00…` | `8e2ff8f6…` | нет | алгоритмически совпадает |
-| `config/capitulation_thresholds.py` → `src/config/...` | те же значения | `bc51b697…` | `4a7789ee…` | нет | значения/операторы совпадают |
-| `src/exchange/bingx_fetcher.py` | та же логика | `89369399…` | `19caf773…` | нет | typing/lint-адаптация |
-| `src/exchange/bingx_rate_limiter.py` | та же логика | `bd77f051…` | `4f08b318…` | нет | lint-адаптация |
-| `src/exchange/bingx_endpoints.py` | та же логика | `cdc63bc0…` | `78e28acc…` | нет | lint-адаптация |
-| `src/data_provider/universe_provider.py` | та же логика | `9ca77e0b…` | `2744e235…` | нет | lint-адаптация |
-| `src/data_provider/cmc_universe_cache.py` | та же логика | `da46289b…` | `56c3eb03…` | нет | lint + удалён недостижимый `__main__` |
-| SQLite dedup (`claim_signal`) | та же логика | inline в monitor | inline в monitor | да (повторная отправка) | побайтово в составе monitor |
-| Telegram send | та же логика | inline в monitor | inline в monitor | только доставка | побайтово в составе monitor |
-| `evreconse.service` | production unit | `/etc/systemd/system/...` | безопасный шаблон | нет | намеренно не точная копия |
-| `realtime_lw001_monitor.py` | не запущен | `df9331d7…` | `df9331d7…` | нет (inactive) | побайтово совпадает |
-| `LW001_METRIC_SPEC.py` | не запущен | `3926898d…` | `bd5ecc63…` | нет (inactive) | typing/formatting |
-| `src/strategy/lw001_canonical.py` | не запущен | `79349666…` | `8af63751…` | нет (inactive) | исправлен текст сообщения |
-| `src/strategy/lw_001.py` | не запущен | `fe9a1e6e…` | `411c5f1b…` | нет (inactive) | legacy-адаптация |
-| `src/exchange/coinmarketcap_fetcher.py` | не используется active path | `d77213dc…` | `298d2dd2…` | нет | функциональная адаптация |
-| `requirements.txt` / `pyproject.toml` | серверный freeze | `6e638060…` | `3631ae89…` | нет для pure-Python формул | версии/кодировка различаются |
-
----
-
-## 3. Работающий процесс против файла на диске
-
-### 3.1. Установленные факты
+Процесс:
 
 ```text
-systemd unit:       evreconse.service
-ExecStart:          /usr/bin/python3 /home/evreconse/realtime_capitulation_monitor_fixed.py
-WorkingDirectory:   /home/evreconse
-User:               evreconse
+Unit:               evreconse.service
+ActiveState:        active
+SubState:           running
 MainPID:            880596
 Started:            2026-10-17 08:02:29 UTC
 NRestarts:          0
-ActiveState:        active
-SubState:           running
+ExecStart:          /usr/bin/python3 /home/evreconse/realtime_capitulation_monitor_fixed.py
+WorkingDirectory:   /home/evreconse
+User:               evreconse
+Interpreter:        /usr/bin/python3.11 (Python 3.11.13)
 ```
 
-- В `/home/evreconse` нет `.git`; это standalone deployment, не checkout.
-- Активен один процесс; других экземпляров монитора не обнаружено.
-- `realtime_capitulation_monitor_fixed.py` имеет mtime
-  `2026-10-17 18:45:03 UTC`, то есть **позже** старта процесса.
-- `src/strategy/capitulation_detector.py`, `config/capitulation_thresholds.py`,
-  `src/exchange/bingx_fetcher.py`, `src/exchange/bingx_rate_limiter.py`,
-  `src/exchange/bingx_endpoints.py`, `src/data_provider/universe_provider.py`,
-  `src/data_provider/cmc_universe_cache.py` имеют mtime **раньше** старта
-  процесса.
-
-### 3.2. Что именно изменяла поздняя правка
-
-Рядом с monitor лежит `apply_fix.py` (mtime `2026-10-17 18:45:02 UTC`). Он
-читает `realtime_capitulation_monitor_fixed.py`, выполняет две точные замены и
-записывает файл обратно:
-
-1. В `verify_signal_comprehensive()` generic-строка
-   `"Metrics do not pass thresholds"` заменяется на конкретные
-   `DROP_FAIL` / `VOLUME_FAIL` / `WICK_BODY_FAIL` / `RECLAIM_FAIL`.
-2. В `check_latest_candle_with_stats()` меняется только распределение
-   счётчиков `stats._filtered_*` / `stats._not_red` / `stats._exception_errors`
-   по этим строкам.
-
-`apply_fix.py` не содержит замен порогов, формул, `check_thresholds`,
-`check_red_candle`, `claim_signal`, `send_signal_to_telegram`, `SENT_SIGNALS` или
-`FIXED_THRESHOLDS`. Следовательно:
-
-- **сигнальное решение** работающего процесса и текущего файла одинаково;
-- различаются только диагностический текст причины отказа и распределение
-  статистических счётчиков;
-- побайтово работающий процесс и текущий файл **не identical**;
-- процесс не перезапускался, поэтому GitHub (совпадающий с текущим файлом)
-  представляет диск, а не доказанную память процесса.
-
-### 3.3. Чего доказать нельзя
-
-Нельзя без вмешательства в процесс доказать, что в памяти находится ровно
-реконструкция «текущий файл минус две замены `apply_fix.py`». Не сохранился
-hash файла на момент `08:02:29 UTC`. Есть только:
-
-- mtime файла и `apply_fix.py`;
-- содержимое `apply_fix.py` с точными заменами;
-- отсутствие других изменений monitor после старта (по mtime и журналу);
-- идентичность всех алгоритмических ветвей, проверенная статически и тестами.
-
-Этого достаточно для вывода об алгоритмической эквивалентности, но не для
-утверждения о побайтовой идентичности памяти.
+`realtime_capitulation_monitor_fixed.py` имеет mtime `2026-10-17 18:45:03 UTC`,
+то есть позже старта. Рядом лежит `apply_fix.py` (mtime `18:45:02 UTC`), который
+делает только две stats/diagnostic замены: текст причины отказа и распределение
+счётчиков `FILTERED_*`. Пороги, формулы, red-candle, history, dedup и Telegram
+flow не менялись. Поэтому работающий процесс **алгоритмически** соответствует
+текущему файлу, но его память не является доказанно побайтовой копией.
 
 ---
 
-## 4. Активный путь: что именно применяется
+## 2. Как определялся active path
 
-### 4.1. Два источника порогов
+Был построен статический import graph от
+`realtime_capitulation_monitor_fixed.py` с учётом:
 
-В опубликованном и серверном коде есть два слоя:
+- imports внутри функций;
+- package `__init__.py`;
+- относительных imports;
+- `src.*` и top-level `config`.
 
-1. `src/strategy/capitulation_detector.py` читает
-   `CAPITULATION_THRESHOLDS` из `src/config/capitulation_thresholds.py`
-   (на сервере — `config/capitulation_thresholds.py`) и формирует
-   `result.qualified`.
-2. `realtime_capitulation_monitor_fixed.py` **не использует**
-   `result.qualified`. Он вызывает `check_thresholds(metrics)` с собственным
-   `FIXED_THRESHOLDS`.
+Graph содержит **36 локальных модулей**. Они делятся на две группы:
 
-Фактический финальный gate:
+1. **Decision / import path (11 файлов)** — реально участвуют в решении или
+   обязательны для его импорта: monitor, detector, thresholds, fetcher, rate
+   limiter, universe provider, cache и package `__init__` модули.
+2. **Import-time only (25 файлов)** — загружаются через `__init__.py`
+   (`src.data_provider`, `src.strategy`, `src.core`, `src.models`), но их
+   функции не вызываются в Capitulation decision path. Это, в частности,
+   legacy LW-001, WebSocket/REST-клиенты и модели приложения.
+
+Дополнительно проверен `src/exchange/bingx_endpoints.py`: он не импортируется
+active monitor, но относится к exchange-модулю и указан в задании.
+
+### 2.1. Разрешение `config` в active process
+
+На production detector делает:
 
 ```python
-FIXED_THRESHOLDS = {
-    "drop_pct": -5.0,        # open_to_low_pct <= -5.0
-    "wick_body_ratio": 1.0,  # lw_body_ratio >= 1.0
-    "reclaim_pct": 30.0,     # reclaim_pct >= 30.0
-    "volume_30_ratio": 2.0,  # volume_30_ratio >= 2.0
-}
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+from config.capitulation_thresholds import CAPITULATION_THRESHOLDS
 ```
 
-Плюс отдельная проверка `close < open` в monitor. Все условия — AND.
-Score-гейта нет.
-
-### 4.2. Совпадают ли два источника
-
-Да, на проверенной версии:
-
-| Условие | Detector/config | Monitor `check_thresholds` |
-|---|---:|---:|
-| Red candle | `close < open` | отдельная `check_red_candle` |
-| Open → Low | `<= -5.0` | `<= -5.0` |
-| Volume30Ratio | `>= 2.0` | `>= 2.0` |
-| LW / Body | `>= 1.0` | `>= 1.0` |
-| Reclaim | `>= 30.0` | `>= 30.0` |
-
-Для проверки добавлен `tests/test_monitor_threshold_equivalence.py`, который
-извлекает **реальные** `FIXED_THRESHOLDS` и `check_thresholds` из опубликованного
-monitor (без импорта с побочными эффектами) и сравнивает их с полной
-квалификацией detector на:
-
-- 5 000 случайных свечах;
-- точных границах;
-- свечах с нулевым body/range/open;
-- зелёной свече.
-
-Результат: расхождений нет.
-
-Дополнительно серверный `capitulation_detector.py` (baseline, SHA-256
-`3b239a00…`) и GitHub-версия были загружены раздельно и прогнаны на **5 007**
-одинаковых кейсах. JSON-выходы с `qualified`, `failed_conditions` и всеми
-`metrics` совпали побайтово. Это подтверждает алгоритмическую идентичность
-detector, а не только совпадение порогов.
-
-### 4.3. Остающийся риск
-
-Это **dual source of truth**. Если изменить только
-`src/config/capitulation_thresholds.py`, detector начнёт считать иначе, но
-финальное решение active monitor не изменится, потому что он использует
-`FIXED_THRESHOLDS`. Это архитектурный долг, а не расхождение текущих значений.
-Он не исправлялся, чтобы не менять production-поведение.
+Поэтому в fresh процессе побеждает **top-level** `/home/evreconse/config`, а не
+`src/config`. В GitHub теперь добавлен точный top-level `config/`; тест
+`tests/test_production_source_sync.py` в отдельном интерпретаторе проверяет, что
+active detector разрешает именно его. `src/config` остаётся полноценным
+application-пакетом для `src/main.py`, bootstrap и тестов; в active monitor он
+не участвует.
 
 ---
 
-## 5. Формулы, данные и порядок решения
+## 3. Файлы active path, синхронизированные побайтово
 
-### 5.1. Данные
+Полные SHA-256; `server = GitHub` для каждой строки.
 
-- Источник: публичные BingX USDT perpetual klines через `BingXFetcher`.
-- Timeframe: `15m`.
-- Запрос: `limit=500`, `endTime=now`; `startTime` вычисляется как `now - 4h`,
-  но при `limit=500` не применяется как фильтр. `get_klines()` использует
-  только `endTime`, разворачивает ответ и возвращает до 500 последних свечей.
-- Сортировка: явная сортировка по timestamp отсутствует; код полагается на
-  порядок ответа BingX и `reversed()`. Это ограничение, а не гарантия.
-- Закрытая свеча: `timestamp + 15 * 60 * 1000 <= now_ms`; поиск идёт с конца
-  массива.
-- Минимум: `len(candles) >= 2`; для median30 требуется `candle_index >= 31`,
-  то есть **32 свечи** включая оцениваемую.
-- Предыдущие 30 объёмов: индексы `candle_index - 30 … candle_index - 1`.
+| Файл | SHA-256 | Роль |
+|---|---|---|
+| `realtime_capitulation_monitor_fixed.py` | `f661e3796f9285dc3fc592714bc980d7734ec8dae61b6dcbd2863083d3de8204` | entry point, final gate, dedup, Telegram |
+| `config/__init__.py` | `35e3ae3fd2851525ecf6741ab834a63fcc6b722ca40b95f62ffd955035561b23` | production config package init |
+| `config/capitulation_thresholds.py` | `bc51b6972d243bb18eee1165579b18899597cd9b67d423dae0017bb0e62a0b5e` | thresholds |
+| `src/config/capitulation_thresholds.py` | `bc51b6972d243bb18eee1165579b18899597cd9b67d423dae0017bb0e62a0b5e` | тот же thresholds для app/tests |
+| `src/strategy/__init__.py` | `db6101ff709de19a0d3d2ccb3e671c926259eacb5f607004bf885ff7cb6e9d8d` | strategy package init |
+| `src/strategy/capitulation_detector.py` | `3b239a003ee20873178ae2e0aad15784556658fb5b343bc98e4d1e843ace0539` | формулы и `result.qualified` |
+| `src/exchange/__init__.py` | `eb8ea474128749befcd3d052499ae3b1504c226edf7c746217dd4b2931acffd5` | exchange package init |
+| `src/exchange/bingx_fetcher.py` | `89369399e2521a8fa0e9b3aaf6faba05221e7d1090660bccc13e122050c6a14d` | klines/contracts |
+| `src/exchange/bingx_rate_limiter.py` | `bd77f0516baf1bb4f058f5b88f857d5b015cf8fc32334d9ec30cf20cdfd5c3a6` | rate limiter |
+| `src/exchange/bingx_endpoints.py` | `cdc63bc050cf58f23aeb692b8f1dc18962ded5f58e3cfdc622c534eeafc7405a` | endpoints (не импортируется monitor) |
+| `src/data_provider/__init__.py` | `2039e99ffed561d8414b6eb16df914d7115c8de7a050b9b939fdc0c06949ba56` | data provider package init |
+| `src/data_provider/universe_provider.py` | `9ca77e0b80b4f8859b57163324c8cf0ce7a831ed1e0112cf49c4d06ed2f0c0aa` | universe |
+| `src/data_provider/cmc_universe_cache.py` | `da46289b9eb1880091e56fa1d88f43ebb56234c2fe02d6dac1067de34fad58d3` | SQLite cache |
+| `evreconse.service` | `adc9201cca8a299c3da4aa7b70ddbf1efe5eb70f62eb5969844e23ed8c14e51c` | production unit, без секретов |
+| `requirements-production-freeze.txt` | `6e638060c003708658e1e10ca9ed020df24ca9324277dc6e18412aa2a04ad41e` | точный server freeze |
 
-### 5.2. Формулы
+`evreconse.service` опубликован точной копией production unit: в нём нет
+секретов, только `PYTHONUNBUFFERED=1` и стандартные пути. `.env` не читался и
+не публиковался.
 
-```python
-range        = high - low
-range_pct    = range / open * 100
-open_to_low  = (low - open) / open * 100
-body         = abs(close - open)
-body_pct     = body / open * 100
-lower_wick   = min(open, close) - low
-lw_body      = lower_wick / body                    # 0.0 при body == 0
-lw_range_pct = lower_wick / range * 100             # 0.0 при range <= 0
-reclaim_pct  = (close - low) / range * 100          # 0.0 при range <= 0
-median30     = median(previous 30 completed M15 volumes)
-volume_ratio = volume / median30                    # 0.0 при median30 <= 0
-is_red       = close < open
-```
-
-При `open == 0` процентные метрики detector возвращают `0.0`, исключение не
-бросается. При нулевом body/range соответствующие ratios равны `0.0`. Это
-означает, что такие свечи не проходят пороги, а не вызывают падение цикла.
-
-### 5.3. Порядок проверок active monitor
-
-```text
-fetch candles
-  → len(candles) < 2?                 → insufficient_candles
-  → get_last_completed_candle()
-  → timestamp <= 0?                   → invalid_timestamp
-  → (symbol, timestamp) in memory?    → already_processed
-  → candle_index < 31?                → insufficient_history
-  → prev_30_volumes
-  → verify_signal_comprehensive()
-       → timestamp <= 0?              → Invalid timestamp
-       → close < open?                → not red
-       → len(prev_30) < 30?           → insufficient history
-       → detector metrics
-       → check_thresholds(metrics)    → 4 conditions
-  → signal
-  → claim_signal() SQLite
-  → send_signal_to_telegram()
-  → status sent / failed + rollback
-```
-
-`result.qualified` и `result.failed_conditions` в этом пути не используются для
-финального решения. Они вычисляются detector, но monitor принимает решение по
-`check_thresholds`.
+`requirements-production-freeze.txt` — точная ASCII-копия серверного
+`requirements.txt`; GitHub `requirements.txt` сохранён как development manifest,
+потому что он в UTF-16/CRLF и содержит другие pin-ы (см. §7).
 
 ---
 
-## 6. Dedup, SQLite и Telegram
+## 4. Оставшиеся различия внутри import graph (25 файлов)
 
-### 6.1. Dedup
+Все эти файлы загружаются при старте, но **не участвуют в расчёте
+Capitulation-сигнала**. Они не синхронизированы, потому что их точная замена
+затронула бы application/legacy-поведение, тесты и структуру пакетов, а не
+active signal path. Это осознанное ограничение, а не «совпадение».
 
-- БД: `/home/evreconse/sent_signals.db`.
-- Таблица `sent_signals`, PK `(symbol, candle_timestamp)`.
-- `claim_signal()` делает `INSERT ... telegram_status='pending'` и commit.
-- `sqlite3.IntegrityError` → сигнал уже обрабатывался, отправка пропускается.
-- Успех → `telegram_status='sent'`, сохраняется `telegram_message_id`.
-- Полный failure → статус `failed`, затем строка **удаляется** (`DELETE`),
-  memory-set очищается; сигнал может быть обработан повторно.
-- При старте pending-сигналы только перечисляются с сообщением
-  `manual intervention needed`; автоматического resend нет.
-- `SENT_SIGNALS` — in-memory snapshot на старте; источник истины для
-  конкурентного claim — SQLite PK.
+| Модуль | SHA-256 server | SHA-256 GitHub | Почему загружается | Влияние |
+|---|---|---|---|---|
+| `src.core` | `cb0962b50566c1f7417ceb4c48571806ccadd27298a81e4481f3cfd2a2028b5b` | `944fd63ddbaa84b48a574281ef913ffcff9919d85759de6eb658da62154c92b3` | package init | app logging/core; не вызывается monitor |
+| `src.core.logging` | `2b40bdcb5a021d9d4840d2c1dd60374ab9e522402ad248b386c9745f8b123fac` | `90a6fa512abc2c33d2a6e88cc8a0e658792b37fb50ba990aaf5bbbaaa4b1d91e` | import из core | logging side effects; не в signal path |
+| `src.data_provider.bingx_provider` | `7c73bdd31d27eeb65639f8f91a64e20f119e75fdb52b4781330fdcf96ff9497b` | `557f457cde70277815d73e81e77d4aab2cd7d565dd2846edbadcb3b76c032d97` | package init | REST/WS provider; monitor не вызывает |
+| `src.data_provider.exceptions` | `627ba6c20824f1312353c7c8914abe457c7c7e289ea31bb070e76aa3394f4946` | `0cfec68296fabed9ffeba81a6b4356edbf9d81019984ff114e946934d6b61aba` | package init | типы исключений; не в signal path |
+| `src.data_provider.heartbeat` | `be042ca65645b5b3ca541ce730e031e6439fba52bb4b3f0ac50da2026fdfd6c2` | `f9f7a43839de0c3f295152dae34c9f5edd3033b50a1fa73e403dd556d602fe49` | package init | WebSocket heartbeat; не используется |
+| `src.data_provider.internal_models` | `3d56778fc04a37079320a8317d6ad9dac6aa273fb6e8210ec93385fc91971d17` | `079e35902eac2a5ac76da9155be5543ac58aacacddb8b0a1f951ec7a3cd25f2b` | package init | модели данных; не нужны Capitulation |
+| `src.data_provider.provider` | `1557553523e2ba5ee16ddb932bbe6158d37626e3fa70cea6dcda06bc1b9c36de` | `6090cdc0a42d4e4bfa0f3c13570e20df3e24352a47d2a1c940776c556a1826ff` | package init | ABC provider; не вызывается |
+| `src.data_provider.rate_limiter` | `9e1dabe29fdad6924bff585b8ddc740b4bb6f6d37bb6c89fd5ed27da4063601c` | `8f8d67ae8b4f7e8c868702de8ed3b50b47056b4787f802430ee9e8965383afa0` | package init | отдельный provider limiter; monitor использует BingX limiter |
+| `src.data_provider.reconnect_strategy` | `5298e7d95c1f3a377ed7162107e79f9d26a9e0b4e0dd183c4c0cb4e5953cf51f` | `93d412edb3da808ac0a008f79375abd91204aaba89188e1554cce10f050f6d15` | package init | reconnect; не используется |
+| `src.data_provider.rest_client` | `a5358721af5f32d87a512bacac960bac7f1a6ed9942f7fc00facb47587bb249a` | `b633010211e7ce637dea20749889aa00d749093f2536ee6b04fc2bf94daf88d1` | package init | Bybit-style REST; не используется |
+| `src.data_provider.websocket_client` | `a5c7de050bc04a1dbfb1f9fd4062a24b20efb30c5ff3751edebc0cae6eec8653` | `7998b52341a043ea65cc60a656a6cd4272a8196a7e14cfc7ea1110199491599b` | package init | WebSocket; не используется |
+| `src.exchange.coinglass_fetcher` | `8f56d8ac6a54858e99b792c22e7c7e93fc841b860da7d377aa337f6235867c11` | `a1d4291e14e97cea716bc88030e489331a9d4940208f8c047cee5785d0a7c50f` | package init exchange | импортируется, но active monitor его не вызывает |
+| `src.models` | `1ae4ff58d244f85e2c1dac77033fe50e8317cbf9188ff4e936d02afef335c330` | `ea04ebfc243f6d7be7d18896dc591a9ba02795afe8ec9466e13e3df5445be29a` | import из provider | модели приложения; не в signal path |
+| `src.models.enums` | `e3595d4a131bdb9f7d88f3c321e9c3837e57a18fc92f1629a9bb460f643bfeed` | `45c63b9681654add7868ef517d3f9f56487d51da47762822934393c936c1bb3b` | package init models | enum-типы; не в signal path |
+| `src.models.exceptions` | `b94070f407886c8f00f1d3a4719012679c416a69dcdf582dc9647d1ba7090d74` | `d241e06b72ba67995f1307551124abffd19e3e7f2213b3268a4a898402a7fcf3` | package init models | типы ошибок; не в signal path |
+| `src.models.identifiers` | `4d3641c37e3cdc307d3b57766614e2228652cb07fb5b5b3f1eacb9d6295ec1cd` | `5e9dd0408626b9f01d583bd819a1c2a718791d3dae0a2749775cbd4fa4a54d8c` | package init models | идентификаторы; не в signal path |
+| `src.models.market_event` | `9a9f05e4a439aff852ff46f7f3e360742f6e57509c9e3c11fa2527af640e901e` | `28e23ca6df690b681077af8e8b8b2230eb62c168a247bb04d3652b9ecf320abd` | package init models | event-модель; не в signal path |
+| `src.models.transition_guard` | `c44e3d413b926dc082db6b0f20bcc395a2363c15ccff7a54bdbb195e519a443f` | `bbad462b15625550dddacf866364bc7b26e7248c1b0aae1f6b7b90e257c89f4b` | package init models | state machine; не в signal path |
+| `src.strategy.context` | `01f431c58b35ce80b1cd23b0b1fb144690bb0cf2188a9cd4ee39946236ced92f` | `d8b1ad6772998fb221b4062f4c747139e9a879351d2bc2e537a62cea8ee5a42c` | package init strategy | context для LW-001; не в Capitulation |
+| `src.strategy.exceptions` | `1714cfbf69dc2b36fd5ed13c9f60abc0576d4b13df4766da25862a458a789072` | `0d7c7302c5cc8f01cae1f3ef470ac257b7e1e4b1ea3614e6adb57cc76dbc9b51` | package init strategy | ошибки стратегий; не в signal path |
+| `src.strategy.lw001_canonical` | `793496663f581ae528d06aecacf6b06a27ff229cb4fbc40ffa0a6698053999e2` | `8af637514c884e40e8da327fdf84bb02d75bbc5a38c81acb38dd7d018c49f8d6` | import из lw_001 | LW-001 formulas; inactive |
+| `src.strategy.lw_001` | `fe9a1e6ec2205ce4f304898ad88b66a99877697d27d1e2d82653724d98fc4cfc` | `411c5f1b2ce4ad425a79aadfc0a40e664e0ab5ddfde809329bc8e7acd3d03899` | package init strategy | LW-001 class; inactive |
+| `src.strategy.registry` | `49c236a322233dc56359a9471aed12f581780668986209f9f1ce158a4568bf0b` | `707cb7165d9a827497473d9efe7b115fc298fa91aea6ffe9a909373a9ca6683b` | package init strategy | registry; не вызывается monitor |
+| `src.strategy.strategy` | `069fb763329cf0b4f1e6bc1dbd80ae9179a6c484afaaae3b908abc7e6eab3e16` | `0fb084ef771cbc81eea4a305d9d6c9204aa02582d81d4c41552e4e3ef1f809c3` | package init strategy | базовый Strategy; не в Capitulation |
+| `src.strategy.strategy_engine` | `30d9ce05a3865b6e0db8299766a2590e348214f4ddb2a0a0633ed592d48c89b4` | `51dad1ca72c8be3f558e5f100d82ba4af34e53576510bbf21e03cdd592e819a1` | package init strategy | engine; не вызывается monitor |
 
-Снимок на момент проверки: **663 строки**, 468 `pending`, 195 `sent`.
-Значения меняются во время работы.
-
-### 6.2. Telegram
-
-- Получатели: personal chat и optional channel, если заданы в `.env`.
-- Успех, если доставлено хотя бы одно сообщение; сохраняется первый `message_id`.
-- Отдельного retry-loop нет; есть обработка HTTP/JSON-ошибок и rollback claim.
-- При неудаче одного получателя второй всё равно пытается отправиться.
-- `chat_id` печатается в journald в диагностических сообщениях — это
-  эксплуатационный/privacy-риск, не влияющий на сигнал.
-- Реальная отправка в рамках проверки **не выполнялась**.
-
----
-
-## 7. Universe: важное расхождение в runtime-состоянии
-
-Код GitHub и серверный код `universe_provider.py` / `cmc_universe_cache.py`
-совпадают алгоритмически, но фактическое состояние сервера имеет отдельную
-проблему:
-
-- active snapshot: `id=5`, `final_count=574`,
-  `fetched_at=2026-10-08T09:25:51Z`;
-- `data/cmc_universe.db` принадлежит `root:root`, режим `0644`;
-- процесс работает под `evreconse`, поэтому не может писать в этот файл;
-- в journal зафиксированы ошибки автоматического refresh:
-  `Universe refresh failed: attempt to write a readonly database`
-  (21 и 22 октября 2026);
-- `UniverseProvider.get_universe()` возвращает active snapshot без проверки
-  возраста/expiry; fallback используется только при отсутствии active cache;
-- `initialize()` не делает немедленный refresh; фоновый loop сначала спит 24h.
-
-Следствие: active universe остаётся **замороженным на 574 символах** с 8 октября
-2026. Монитор продолжает работать, а 28 символов в типичном цикле
-классифицируются как offline. Это не меняет формулы сигнала, но влияет на
-полноту universe и является эксплуатационным риском.
-
-GitHub не содержит runtime-БД и не может исправить права на сервере. В рамках
-задачи сервер **не изменялся**.
+Важно: часть этих файлов имеет не только formatting/typing, но и реальные
+API-отличия (например, `provider.py`, `models/exceptions.py`, `lw_001.py`).
+Именно поэтому они **не** заменялись «на глаз»: это изменило бы поведение
+application/legacy-кода, хотя и не current Capitulation signal.
 
 ---
 
-## 8. Полные SHA-256
+## 5. Различия вне active import graph
 
-### 8.1. Сервер (read-only снимок)
-
-```text
-f661e3796f9285dc3fc592714bc980d7734ec8dae61b6dcbd2863083d3de8204  realtime_capitulation_monitor_fixed.py
-df9331d7b64ada4cc47c510889b9af4c9e028677f22efcb52b8541ea2a6112fb  realtime_lw001_monitor.py
-3926898d46477ed94fe9362c1b709ef2722a608c38a1adf25a89b78d5e3c3e18  LW001_METRIC_SPEC.py
-3b239a003ee20873178ae2e0aad15784556658fb5b343bc98e4d1e843ace0539  src/strategy/capitulation_detector.py
-bc51b6972d243bb18eee1165579b18899597cd9b67d423dae0017bb0e62a0b5e  config/capitulation_thresholds.py
-793496663f581ae528d06aecacf6b06a27ff229cb4fbc40ffa0a6698053999e2  src/strategy/lw001_canonical.py
-fe9a1e6ec2205ce4f304898ad88b66a99877697d27d1e2d82653724d98fc4cfc  src/strategy/lw_001.py
-89369399e2521a8fa0e9b3aaf6faba05221e7d1090660bccc13e122050c6a14d  src/exchange/bingx_fetcher.py
-bd77f0516baf1bb4f058f5b88f857d5b015cf8fc32334d9ec30cf20cdfd5c3a6  src/exchange/bingx_rate_limiter.py
-cdc63bc050cf58f23aeb692b8f1dc18962ded5f58e3cfdc622c534eeafc7405a  src/exchange/bingx_endpoints.py
-9ca77e0b80b4f8859b57163324c8cf0ce7a831ed1e0112cf49c4d06ed2f0c0aa  src/data_provider/universe_provider.py
-da46289b9eb1880091e56fa1d88f43ebb56234c2fe02d6dac1067de34fad58d3  src/data_provider/cmc_universe_cache.py
-d77213dc7bcd5a7ac3577e9539552b9f6148cf658ca3b9bbfc0088d7ef13fb32  src/exchange/coinmarketcap_fetcher.py
-```
-
-### 8.2. GitHub `fc131d7`
-
-```text
-f661e3796f9285dc3fc592714bc980d7734ec8dae61b6dcbd2863083d3de8204  realtime_capitulation_monitor_fixed.py
-df9331d7b64ada4cc47c510889b9af4c9e028677f22efcb52b8541ea2a6112fb  realtime_lw001_monitor.py
-bd5ecc63cad03d229b298152e0662021046911ff50a1eca1d64cd1d4958f309f  LW001_METRIC_SPEC.py
-8e2ff8f6ef5775df6071617c96ff853fb3084cb73da9bc4ed65356e982a75c89  src/strategy/capitulation_detector.py
-4a7789ee20abd8a6d7b3f9e6016f2e8f6ded14bfba3a6ce809d2109d656ff93d  src/config/capitulation_thresholds.py
-8af637514c884e40e8da327fdf84bb02d75bbc5a38c81acb38dd7d018c49f8d6  src/strategy/lw001_canonical.py
-411c5f1b2ce4ad425a79aadfc0a40e664e0ab5ddfde809329bc8e7acd3d03899  src/strategy/lw_001.py
-19caf7730bf484ed337ba120f67e5b2fd70c71ba01c42c1058ed1aee7d2fa0ca  src/exchange/bingx_fetcher.py
-4f08b3180bef2068dccfed6bc43f3d58b7dc74fe1ac0980f18985b0aab7867a3  src/exchange/bingx_rate_limiter.py
-78e28acc39e1b5f7026a9d3599e57aba8a1e2dc866f59ff5f8425bb45425b047  src/exchange/bingx_endpoints.py
-2744e235c7bef4386a492426b367bdff994f210f9e1ba5d3dd49e64f3d34d9a1  src/data_provider/universe_provider.py
-56c3eb033ba1d43e1627a02c5414bcb87d94bdcfe55df84264e110860f5553ae  src/data_provider/cmc_universe_cache.py
-298d2dd20632bcd95469651f7d04afc9c9d1c43eeb380ac3080c301aaebcbdc7  src/exchange/coinmarketcap_fetcher.py
-```
-
----
-
-## 9. Безопасные адаптации, которые не меняют сигнал
-
-| Отличие | Сервер | GitHub | Почему не влияет |
+| Файл | SHA-256 server | SHA-256 GitHub | Статус / влияние |
 |---|---|---|---|
-| Package layout | `config/capitulation_thresholds.py` | `src/config/capitulation_thresholds.py` | active monitor добавляет `src` в `sys.path`; значения те же |
-| Formatting/typing | `List`, `Dict`, лишние пробелы | `list`, `dict`, `from __future__` | исполняемая логика та же |
-| Lint headers | нет | `# ruff: noqa`, `# mypy: ignore-errors` | комментарии/директивы |
-| `cmc_universe_cache` main | недостижимый `asyncio.run(main())` | блок удалён | active path не вызывает `__main__` |
-| LW-001 messages | местами `-2.5%` | `-5.0%` | порог берётся из spec; LW-001 inactive |
-| LW-001 strategy | без `Strategy` base | наследует `Strategy` | inactive; active path не импортирует |
-| CMC fetcher | без проверки типа `data` | добавлена проверка list | CMC не используется active monitor |
-| Service unit | production unit | безопасный шаблон | не влияет на расчёт; секреты не публикуются |
-| Dependencies | freeze от 2026-10-01 | более новые версии | формулы pure Python; тесты проходят |
+| `src/config/__init__.py` | server `config/__init__.py`: `35e3ae3fd2851525ecf6741ab834a63fcc6b722ca40b95f62ffd955035561b23` | `ed5ac8f174151e954e0ecc32ef129e64543a9af9995a74ba9817434d29823b75` | application config package; active monitor использует top-level `config` |
+| `requirements.txt` | `6e638060c003708658e1e10ca9ed020df24ca9324277dc6e18412aa2a04ad41e` (server freeze) | `3631ae899a523e0b7c07c46f8dbe4155e8483c399ccc284d92a31cbbd0738abf` | dev manifest; точный freeze добавлен отдельным файлом |
+| `LW001_METRIC_SPEC.py` | `3926898d46477ed94fe9362c1b709ef2722a608c38a1adf25a89b78d5e3c3e18` | `bd5ecc63cad03d229b298152e0662021046911ff50a1eca1d64cd1d4958f309f` | LW-001 inactive |
+| `realtime_lw001_monitor.py` | `df9331d7b64ada4cc47c510889b9af4c9e028677f22efcb52b8541ea2a6112fb` | `df9331d7b64ada4cc47c510889b9af4c9e028677f22efcb52b8541ea2a6112fb` | inactive, совпадает |
+| `src/exchange/coinmarketcap_fetcher.py` | `d77213dc7bcd5a7ac3577e9539552b9f6148cf658ca3b9bbfc0088d7ef13fb32` | `298d2dd20632bcd95469651f7d04afc9c9d1c43eeb380ac3080c301aaebcbdc7` | не используется active monitor |
+| `realtime_capitulation_monitor.py` | на сервере отсутствует | `f67aa1e44fdf684e344d60436eab2ea55a7df3078b2d7dc8bd3b3b88b24aaeb2` | GitHub legacy shim, не production entry point |
+| `pyproject.toml` | server-файл пустой | project manifest | на сервере не используется |
+| `.env`, `sent_signals.db`, `cmc_universe.db`, логи | не публикуются | отсутствуют | runtime-секреты/данные |
+
+Runtime-базы и логи не копировались. Их содержимое не является исходным кодом и
+не должно попадать в GitHub. Метаданные БД использовались только для
+эксплуатационного вывода о stale universe.
 
 ---
 
-## 10. Что не проверялось
+## 6. Работающий процесс: доказанное и предположения
 
-- Реальная отправка Telegram.
-- Приватные BingX-эндпоинты, CMC и CoinGlass.
-- Перезапуск/остановка production-сервиса.
-- Побайтовое извлечение кода из памяти процесса.
-- Изменение runtime-БД, `.env`, логов или прав на сервере.
-- Полная проверка всех исторических коммитов на секреты (выполнена отдельная
-  high-confidence проверка; см. `GITHUB_SERVER_SYNC_REPORT.md`).
+### 6.1. Доказано
+
+- процесс `880596` запущен `2026-10-17 08:02:29 UTC`, `NRestarts=0`;
+- active unit — `evreconse.service`, entry point — Capitulation monitor;
+- monitor на диске имеет mtime `2026-10-17 18:45:03 UTC`;
+- `apply_fix.py` содержит только stats/diagnostic замены, без порогов,
+  формул, dedup, red-candle и Telegram;
+- все остальные ключевые active-модули имеют mtime раньше старта процесса;
+- текущий файл monitor на диске и в GitHub побайтово совпадают;
+- detector/config/fetcher/limiter/universe/cache и package init на диске и в
+  GitHub теперь побайтово совпадают.
+
+### 6.2. Не доказано
+
+- что в памяти процесса находится ровно текущий файл monitor;
+- что в памяти загружены именно текущие версии всех import-time modules;
+- что stats/diagnostic правка была единственной, если не считать mtime и
+  содержимого `apply_fix.py` (других следов не найдено).
+
+Для доказательства памяти потребовался бы дамп/отладка или restart. И то, и
+другое запрещено условиями задачи. Поэтому статус — **B**, а не A.
 
 ---
 
-## 11. Итоговая оценка
+## 7. Dependency и runtime environment
 
-| Вопрос | Ответ |
+Сервер:
+
+```text
+Interpreter: /usr/bin/python3.11
+Version:     Python 3.11.13
+Freeze:      50 packages, ASCII, SHA-256 6e638060…
+```
+
+GitHub `requirements.txt`: те же 50 имён, но UTF-16/CRLF и три отличия:
+
+| Пакет | Server | GitHub dev manifest |
+|---|---:|---:|
+| `aiohappyeyeballs` | 2.6.1 | 2.7.1 |
+| `aiohttp` | 3.9.5 | 3.14.3 |
+| `numpy` | 1.26.4 | 2.5.1 |
+
+Точный server freeze опубликован как `requirements-production-freeze.txt`.
+`requirements.txt` и `pyproject.toml` не переписаны, потому что:
+
+- `pyproject.toml` требует `aiohttp>=3.14.0`, что конфликтует с server pin
+  3.9.5;
+- серверный freeze включает dev/test/OS-пакеты и не является декларацией
+  зависимостей проекта;
+- замена pin-ов без отдельного тестирования изменила бы dev-окружение, а не
+  алгоритм.
+
+Точное воспроизведение окружения зависит от Debian/system Python 3.11.13 и
+системных пакетов; на другой ОС оно не гарантируется. Для pure-Python формул
+Capitulation это не является алгоритмическим различием.
+
+Systemd unit опубликован точной копией: `StartLimitIntervalSec=0`,
+`StartLimitBurst=0`, `Restart=always`, `RestartSec=15`, `User=evreconse`,
+`WorkingDirectory=/home/evreconse`, `Environment=PYTHONUNBUFFERED=1`. Секретов в
+unit нет.
+
+---
+
+## 8. Повторная проверка сигнального пути
+
+### 8.1. Фактический финальный gate
+
+`verify_signal_comprehensive()`:
+
+```text
+timestamp <= 0?                 -> Invalid timestamp
+close >= open?                  -> Candle is not red
+len(prev_30_volumes) < 30?      -> Insufficient history for Volume30
+detector metrics                -> check_thresholds(FIXED_THRESHOLDS)
+```
+
+`check_thresholds()`:
+
+```python
+drop_pct        = metrics.open_to_low_pct <= -5.0
+wick_body_ratio = metrics.lw_body_ratio >= 1.0
+reclaim_pct     = metrics.reclaim_pct >= 30.0
+volume_30_ratio = metrics.volume_30_ratio >= 2.0
+passed = all(...)
+```
+
+Плюс отдельная проверка `close < open` до detector. Все операторы
+включительные. Score-гейта нет.
+
+### 8.2. `result.qualified` vs `check_thresholds()`
+
+Detector вычисляет `result.qualified` по тем же значениям из
+`CAPITULATION_THRESHOLDS`. Active monitor **игнорирует** `result.qualified` и
+использует `check_thresholds(metrics)`.
+
+- В текущем коде значения совпадают, поэтому решения не расходятся.
+- Архитектурно это dual source of truth: если изменить только
+  `config/capitulation_thresholds.py`, detector изменится, а production
+  monitor — нет. Это documented risk, не исправлялся.
+- Реально production signal решают `FIXED_THRESHOLDS` monitor + red-candle
+  check.
+
+### 8.3. Synthetic evidence
+
+- 5 007 одинаковых кейсов: server и GitHub detector загружены **полным**
+  import path (top-level `config`, `src.strategy`), JSON с `qualified`,
+  `failed_conditions` и всеми `metrics` совпал побайтово:
+  `793afcd9c37bf9f38347e45bdc4a2d1bb00b46939c09f8e90c8f25762e2a4069`.
+- 5 000 случайных свечей + границы + нулевые body/range/open + зелёная свеча:
+  detector и monitor gate совпали (`tests/test_monitor_threshold_equivalence.py`).
+- 152 теста проходят, включая 18 server-sync regression tests, 3 equivalence
+  tests и 16 source-hash/resolution tests.
+
+### 8.4. Что ещё проверено в пути
+
+- `get_klines()`: `limit=500`, `endTime`; `startTime` не фильтрует выдачу,
+  возвращается до 500 последних M15-свечей, не строго 4 часа.
+- Явной сортировки нет; используется порядок API + `reversed()`.
+- Закрытая свеча: `timestamp + 15min <= now_ms`, поиск с конца.
+- `candle_index < 31` → `insufficient_history` (нужно ≥ 32 свечи).
+- Предыдущие 30 объёмов: `candles[index-30:index]`.
+- Universe: active snapshot без проверки expiry; fallback только при
+  отсутствии active. На сервере snapshot stale (2026-10-08, 574 символа),
+  SQLite `root:root 0644`, refresh падает с readonly database.
+- Dedup: SQLite `(symbol, candle_timestamp)` primary key; claim `pending`;
+  success `sent`; failure `failed` + rollback `DELETE`; pending не
+  переотправляется автоматически.
+- Telegram: personal + optional channel; success if at least one message;
+  chat_id печатается в journald; live send не выполнялся.
+- Ошибки: rate limit / offline / network / other; per-symbol isolation;
+  `asyncio.Semaphore(10)`; monitor не останавливается из-за одного символа.
+- `get_last_completed_candle` определён дважды с идентичным телом; второе
+  определение перекрывает первое, поведение не меняется.
+
+---
+
+## 9. Проверки и ограничения
+
+| Проверка | Результат |
 |---|---|
-| Активная стратегия | Capitulation / Absorption |
-| Формулы совпадают | да |
-| Пороги совпадают | да |
-| Операторы/границы совпадают | да |
-| Дополнительные фильтры совпадают | да |
-| Порядок решения совпадает | да |
-| Dedup/Telegram flow совпадают | да |
-| Побайтово active monitor | диск = GitHub; память процесса — нет |
-| Detector/config побайтово | нет (formatting/typing/layout) |
-| Алгоритмически | да, подтверждено |
-| Production изменялся | нет |
+| `pytest -q` | **152 passed** |
+| `pytest -q tests/test_production_source_sync.py` | **16 passed** |
+| `pytest -q tests/test_server_sync_algorithms.py` | **18 passed** |
+| `pytest -q tests/test_monitor_threshold_equivalence.py` | **3 passed** |
+| `ruff check src tests config` | **All checks passed** |
+| `mypy src` | **Success: no issues found in 96 source files** |
+| Compile/import active modules | **OK** |
+| Server-vs-GitHub synthetic comparison | **5 007 / 5 007 identical** |
+
+Ограничения:
+
+1. Работающий процесс не перезапускался; memory bytes не доказаны.
+2. 25 import-time modules не синхронизированы (см. §4).
+3. `src/config` application package отличается от production top-level
+   `config`; active monitor использует top-level exact.
+4. `requirements.txt` dev manifest не совпадает с server freeze; exact freeze
+   опубликован отдельно.
+5. Live Telegram, private BingX, CMC и CoinGlass не вызывались.
+6. Universe stale и root-owned SQLite — эксплуатационный риск, не изменялся.
+7. В `.service` и документации нет секретов; `.env`, БД и логи не публиковались.
+
+---
+
+## 10. Итог
+
+**B. АЛГОРИТМИЧЕСКАЯ ЭКВИВАЛЕНТНОСТЬ ПОДТВЕРЖДЕНА, НО ОСТАЛИСЬ ФАЙЛОВЫЕ
+РАЗЛИЧИЯ.**
+
+Все файлы, которые реально определяют Capitulation/Absorption signal, и
+package init, необходимые для их импорта, теперь побайтово совпадают с
+production. Формулы, пороги, операторы, closed-candle, median30, red-candle,
+dedup, Telegram и error handling проверены. Оставшиеся различия относятся к
+import-time-only application/legacy-модулям, `src/config` layout, dev
+requirements и не влияют на current signal. Побайтовая память работающего
+процесса не доказана, production не изменялся.
